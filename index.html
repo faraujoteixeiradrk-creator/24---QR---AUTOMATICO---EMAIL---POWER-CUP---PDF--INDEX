@@ -3215,14 +3215,14 @@
                 
                 // Título
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(10);
+                doc.setFontSize(11);
                 doc.setTextColor(107, 114, 128);
                 doc.text('TU FACTURA ACTUAL', col1X, y1);
-                y1 += 10;
+                y1 += 12;
                 
                 // Precio mensual (TACHADO)
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(20);
+                doc.setFontSize(22);
                 doc.setTextColor(220, 38, 38);
                 const precioMensualActual = eur(resFijo.originalBillPeriod || resFijo.importe_total);
                 doc.text(precioMensualActual, col1X, y1);
@@ -3232,18 +3232,18 @@
                 doc.setDrawColor(220, 38, 38);
                 doc.setLineWidth(1.5);
                 doc.line(col1X, y1 - 4, col1X + tw1, y1 - 4);
-                y1 += 8;
+                y1 += 10;
                 
                 // Subtexto
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(156, 163, 175);
                 doc.text(`Total Periodo (${resFijo.dias_facturados || 0} días)`, col1X, y1);
-                y1 += 12;
+                y1 += 14;
                 
                 // Precio anual (TACHADO)
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(18);
+                doc.setFontSize(20);
                 doc.setTextColor(220, 38, 38);
                 const precioAnualActual = eur(resFijo.originalBillAnnual) + '/año';
                 doc.text(precioAnualActual, col1X, y1);
@@ -3258,44 +3258,47 @@
                 
                 let y2 = yPos;
                 
-                // Título "TU AHORRO ANUAL ESTIMADO"
+                // Caja gris superior "TU AHORRO ANUAL FIJO"
+                const boxHeaderHeight = 12;
+                doc.setFillColor(100, 116, 139);  // Gris azulado
+                doc.roundedRect(col2X - 2, y2, colWidth - 8, boxHeaderHeight, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(10);
-                doc.setTextColor(107, 114, 128);
-                doc.text('TU AHORRO ANUAL ESTIMADO', col2X, y2);
-                y2 += 10;
+                doc.setFontSize(9);
+                doc.text('TU AHORRO ANUAL FIJO', col2X + (colWidth - 8) / 2 - 2, y2 + 8, { align: 'center' });
+                y2 += boxHeaderHeight + 8;
                 
                 // Ahorro en verde GRANDE
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(28);
+                doc.setFontSize(30);
                 doc.setTextColor(22, 163, 74);
                 doc.text(eur(resFijo.savings), col2X, y2);
-                y2 += 15;
+                y2 += 18;
                 
                 // "TU NUEVO COSTE DRK"
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
                 doc.text('TU NUEVO COSTE DRK', col2X, y2);
-                y2 += 10;
+                y2 += 12;
                 
                 // Precio mensual nuevo
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(18);
+                doc.setFontSize(20);
                 doc.setTextColor(...brandColor);
                 doc.text(eur(resFijo.totalAnnual / 12) + '/mes', col2X, y2);
-                y2 += 8;
+                y2 += 10;
                 
                 // Subtexto "Estimado Mensual"
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(156, 163, 175);
                 doc.text('Estimado Mensual', col2X, y2);
-                y2 += 10;
+                y2 += 12;
                 
                 // Precio anual nuevo
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(16);
+                doc.setFontSize(18);
                 doc.setTextColor(...brandColor);
                 doc.text(eur(resFijo.totalAnnual) + '/año', col2X, y2);
                 
@@ -3303,49 +3306,65 @@
                 
                 let y3 = yPos;
                 
-                // Título "TU AHORRO ANUAL ESTIMADO"
+                // Caja gris superior "TU AHORRO ANUAL INDEXADO"
+                doc.setFillColor(100, 116, 139);  // Gris azulado
+                doc.roundedRect(col3X - 2, y3, colWidth - 8, boxHeaderHeight, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(10);
-                doc.setTextColor(107, 114, 128);
-                doc.text('TU AHORRO ANUAL ESTIMADO', col3X, y3);
-                y3 += 10;
+                doc.setFontSize(9);
+                doc.text('TU AHORRO ANUAL INDEXADO', col3X + (colWidth - 8) / 2 - 2, y3 + 8, { align: 'center' });
+                y3 += boxHeaderHeight + 8;
                 
                 // Ahorro en verde GRANDE
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(28);
+                doc.setFontSize(30);
                 doc.setTextColor(22, 163, 74);
                 doc.text(eur(resIndexed.savings), col3X, y3);
-                y3 += 15;
+                y3 += 18;
                 
                 // "TU NUEVO COSTE DRK"
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
                 doc.text('TU NUEVO COSTE DRK', col3X, y3);
-                y3 += 10;
+                y3 += 12;
                 
                 // Precio mensual nuevo
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(18);
+                doc.setFontSize(20);
                 doc.setTextColor(22, 163, 74);  // Verde para indexado
                 doc.text(eur(resIndexed.totalAnnual / 12) + '/mes', col3X, y3);
-                y3 += 8;
+                y3 += 10;
                 
                 // Subtexto "Estimado Mensual"
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(156, 163, 175);
                 doc.text('Estimado Mensual', col3X, y3);
-                y3 += 10;
+                y3 += 12;
                 
                 // Precio anual nuevo
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(16);
+                doc.setFontSize(18);
                 doc.setTextColor(22, 163, 74);
                 doc.text(eur(resIndexed.totalAnnual) + '/año', col3X, y3);
                 
                 // Actualizar yPos al máximo de las tres columnas
-                yPos = Math.max(y1, y2, y3) + 10;
+                const maxY = Math.max(y1, y2, y3);
+                
+                // LÍNEAS VERTICALES SEPARADORAS
+                const lineStartY = yPos - 5;
+                const lineEndY = maxY + 5;
+                
+                // Línea entre columna 1 y 2
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.line(col2X - 10, lineStartY, col2X - 10, lineEndY);
+                
+                // Línea entre columna 2 y 3
+                doc.line(col3X - 10, lineStartY, col3X - 10, lineEndY);
+                
+                yPos = maxY + 15;
                 
                 // === PÁGINA 2: DESARROLLO DETALLADO ===
                 doc.addPage();
