@@ -3129,6 +3129,35 @@
         
         async function generatePDF_Dual(resFijo, resIndexed) {
             try {
+                console.log('=== generatePDF_Dual INICIADO ===');
+                console.log('resFijo:', resFijo);
+                console.log('resFijo tiene powerCosts?:', !!resFijo.powerCosts);
+                console.log('resFijo tiene energyCosts?:', !!resFijo.energyCosts);
+                console.log('resIndexed:', resIndexed);
+                console.log('resIndexed tiene powerCosts?:', !!resIndexed.powerCosts);
+                console.log('resIndexed tiene energyCosts?:', !!resIndexed.energyCosts);
+                
+                // CRÍTICO: Si no tienen powerCosts/energyCosts, recalcularlos
+                if (!resFijo.powerCosts || !resFijo.energyCosts) {
+                    console.warn('resFijo no tiene powerCosts/energyCosts, recalculando...');
+                    const recalculated = recalculateCostsForOffer(resFijo, resFijo.offer);
+                    resFijo.powerCosts = recalculated.powerCosts;
+                    resFijo.energyCosts = recalculated.energyCosts;
+                    resFijo.subPower = recalculated.subPower;
+                    resFijo.subEnergyNet = recalculated.subEnergyNet;
+                    console.log('resFijo recalculado:', resFijo);
+                }
+                
+                if (!resIndexed.powerCosts || !resIndexed.energyCosts) {
+                    console.warn('resIndexed no tiene powerCosts/energyCosts, recalculando...');
+                    const recalculated = recalculateCostsForOffer(resIndexed, resIndexed.offer);
+                    resIndexed.powerCosts = recalculated.powerCosts;
+                    resIndexed.energyCosts = recalculated.energyCosts;
+                    resIndexed.subPower = recalculated.subPower;
+                    resIndexed.subEnergyNet = recalculated.subEnergyNet;
+                    console.log('resIndexed recalculado:', resIndexed);
+                }
+                
                 window.showMessageModal("⏳ Generando PDF con comparación Fijo vs Indexado... Por favor espere.");
                 
                 const { jsPDF } = window.jspdf;
@@ -3401,6 +3430,15 @@
                 
                 // Función para generar desglose completo
                 function generarDesgloseCompleto(res, x, width, color, titulo) {
+                    // VERIFICACIÓN CRÍTICA: Asegurar que res tiene los datos necesarios
+                    if (!res || !res.powerCosts || !res.energyCosts) {
+                        console.error('ERROR en generarDesgloseCompleto: res no tiene la estructura necesaria', res);
+                        doc.setTextColor(220, 38, 38);
+                        doc.setFontSize(8);
+                        doc.text('Error: Datos incompletos para generar desglose', x + 2, yPos + 10);
+                        return;
+                    }
+                    
                     let y = yPos;
                     
                     // Cabecera verde
