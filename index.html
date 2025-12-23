@@ -7414,8 +7414,20 @@
                 // Contexto individual: Mostrar resultados
                 console.log('Individual context, showing results');
                 
-                // Aplicar branding
-                let brand = result.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
+                // CRÍTICO: Aplicar branding según el modo de comparación
+                // Si el usuario eligió "POWER CUP Global", SIEMPRE usar POWER CUP
+                // Si eligió "DRK Prioritario", usar la marca de la tarifa ganadora
+                let brand;
+                if (comparisonMode === 'overall_best') {
+                    // POWER CUP Global: SIEMPRE verde, independiente de quién gane
+                    brand = BRANDS.POWER_CUP;
+                    console.log('Modo POWER CUP Global: Forzando branding POWER CUP (verde)');
+                } else {
+                    // DRK Prioritario: Usar marca de la tarifa ganadora
+                    brand = result.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
+                    console.log('Modo DRK Prioritario: Branding según ganador:', brand.NAME);
+                }
+                
                 console.log('Applying brand:', brand.NAME);
                 applyBrandStyles(brand);
                 activeBrand = brand;
