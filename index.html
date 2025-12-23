@@ -6992,10 +6992,23 @@
             console.log('addSupplyToMultiCupsList called with result:', result);
             console.log('Result offer:', result.offer);
             console.log('Result originalTariffType:', result.originalTariffType);
+            console.log('Result tiene indexedComparison?:', !!result.indexedComparison);
+            
+            if (result.indexedComparison) {
+                console.log('indexedComparison encontrado en result:', result.indexedComparison);
+                console.log('indexedComparison tiene powerCosts?:', !!result.indexedComparison.powerCosts);
+                console.log('indexedComparison tiene energyCosts?:', !!result.indexedComparison.energyCosts);
+            }
             
             if (resultIndexed) {
-                console.log('También recibido resultado indexado:', resultIndexed.offer.name);
+                console.log('También recibido resultado indexado como parámetro:', resultIndexed.offer.name);
             }
+            
+            // IMPORTANTE: Preservar indexedComparison ANTES de recalcular
+            // Usar copia profunda para evitar modificaciones por referencia
+            const preservedIndexedComparison = result.indexedComparison 
+                ? JSON.parse(JSON.stringify(result.indexedComparison))
+                : null;
             
             // Asegurar que el originalTariffType esté presente
             if (!result.originalTariffType && result._multiCupsContext) {
@@ -7014,7 +7027,13 @@
                 console.log('New subPower:', result.subPower, 'New subEnergyNet:', result.subEnergyNet);
             }
             
-            // Si hay resultado indexado, también recalcular sus costes
+            // RESTAURAR indexedComparison preservado
+            if (preservedIndexedComparison) {
+                result.indexedComparison = preservedIndexedComparison;
+                console.log('Restaurado indexedComparison preservado');
+            }
+            
+            // Si hay resultado indexado como parámetro, también recalcular sus costes
             if (resultIndexed && resultIndexed.offer && resultIndexed.originalTariffType) {
                 const recalculatedIndexed = recalculateCostsForOffer(resultIndexed, resultIndexed.offer);
                 resultIndexed.energyCosts = recalculatedIndexed.energyCosts;
@@ -7022,14 +7041,13 @@
                 resultIndexed.subPower = recalculatedIndexed.subPower;
                 resultIndexed.subEnergyNet = recalculatedIndexed.subEnergyNet;
                 console.log('Costs recalculated for indexed:', resultIndexed.originalTariffType);
+                
+                // Añadirlo al resultado principal
+                result.indexedComparison = resultIndexed;
             }
             
             // Limpiar el contexto temporal
             delete result._multiCupsContext;
-            
-            // Si hay resultado indexado, añadirlo al resultado principal para referencia
-            if (resultIndexed) {
-                result.indexedComparison = resultIndexed;
             }
             
             // Añadir a la lista
@@ -7365,6 +7383,18 @@
                         indexedResult.originalBillAnnual = originalBillAnnual;
                         indexedResult.originalBillPeriod = lastComparisonResult.originalBillPeriod;
                         indexedResult.cups = combinedResult.cups;
+                        indexedResult.originalTariffType = combinedResult.originalTariffType; // CRÍTICO
+                        indexedResult.ieRate = IE_RATE; // Añadir la tasa del impuesto eléctrico
+                        indexedResult.discountAmount = indexedResult.discountAmount || 0; // Preservar o inicializar
+                        indexedResult.discountRate = indexedResult.discountRate || 0; // Preservar o inicializar
+                        indexedResult.subEnergy = indexedResult.subEnergy || indexedResult.subEnergyNet; // Por compatibilidad
+                        
+                        console.log('indexedResult completo con todos los campos:', {
+                            originalTariffType: indexedResult.originalTariffType,
+                            powerCosts: indexedResult.powerCosts?.length,
+                            energyCosts: indexedResult.energyCosts?.length,
+                            dias_facturados: indexedResult.dias_facturados
+                        });
                         
                         // Añadir al resultado combinado ANTES de añadir a la lista
                         combinedResult.indexedComparison = indexedResult;
