@@ -2472,8 +2472,6 @@
             console.log('renderDualComparisonUI llamada', resFijo, resIndexed);
             
             // IMPORTANTE: Asegurar que las variables globales estén guardadas
-            // (normalmente ya deberían estar guardadas antes de llamar a esta función,
-            // pero lo hacemos aquí por seguridad)
             if (!lastComparisonResult) {
                 lastComparisonResult = resFijo;
             }
@@ -2482,13 +2480,7 @@
             }
             
             const brand = activeBrand;
-            const isDrk = brand.NAME.includes('DRK');
-            const tariffType = resFijo.originalTariffType || currentTariffType;
-            const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
-            
             const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
-            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
-            const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
             
             // Banner de empresa
             const companyBanner = document.getElementById('company-banner');
@@ -2497,9 +2489,13 @@
                     <div class="flex items-center gap-4">
                         ${brand.LOGO_SVG}
                         <div>
-                            <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">DRK ENERGÍA</h1>
-                            <p class="text-drk-100 text-sm md:text-base font-medium">Comparación: Tarifa Fija vs Indexada</p>
+                            <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">${brand.FULL_NAME}</h1>
+                            <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética</p>
                         </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-white text-sm font-bold">📊 Comparación:</p>
+                        <p class="text-drk-100 text-xs">Tarifa Fija vs Indexada</p>
                     </div>
                 </div>
             `;
@@ -2509,246 +2505,106 @@
                 CUPS: <span class="font-mono text-slate-700">${resFijo.cups}</span>
             `;
             
-            // Función auxiliar para generar desglose de cálculos
-            function generarDesgloseCalculo(res, colorClass, borderClass) {
-                let powerBreakdown = '';
-                res.powerCosts.forEach(p => {
-                    if (p.kw > 0 || p.period <= config.powerPeriods) {
-                        powerBreakdown += `<div class="flex justify-between text-xs"><span>P${p.period} (${num(p.kw, 2)} kW × ${res.dias_facturados}d × ${numPriceFormula(p.priceDay)} €/día)</span><span class="font-mono">${num(p.cost, 2)} €</span></div>`;
-                    }
-                });
-                
-                let energyBreakdown = '';
-                res.energyCosts.forEach(e => {
-                    if (e.kwh > 0 || e.period <= config.periods) {
-                        let label = `E${e.period}`;
-                        if (tariffType === '2.0TD') {
-                            if (e.period === 1) label += ' (Punta)';
-                            if (e.period === 2) label += ' (Llano)';
-                            if (e.period === 3) label += ' (Valle)';
-                        }
-                        energyBreakdown += `<div class="flex justify-between text-xs"><span>${label} (${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)} €/kWh)</span><span class="font-mono">${num(e.cost, 2)} €</span></div>`;
-                    }
-                });
-                
-                let discountHtml = '';
-                if (res.discountAmount > 0) {
-                    discountHtml = `
-                        <div class="flex justify-between text-xs text-red-600 mt-2">
-                            <span>Descuento (${num(res.discountRate * 100, 0)}%)</span>
-                            <span class="font-mono">-${num(res.discountAmount, 2)} €</span>
-                        </div>
-                        <div class="flex justify-between text-xs font-bold mt-1 pt-1 border-t border-dashed">
-                            <span>Subtotal Energía (Neto)</span>
-                            <span class="font-mono">${num(res.subEnergyNet, 2)} €</span>
-                        </div>
-                    `;
-                }
-                
-                return `
-                    <div class="bg-white rounded-lg p-4 text-slate-700 text-xs">
-                        <div class="mb-3">
-                            <p class="font-black text-sm ${colorClass} mb-2">TÉRMINO POTENCIA</p>
-                            ${powerBreakdown}
-                            <div class="flex justify-between font-bold mt-2 pt-2 border-t">
-                                <span>Subtotal Potencia</span>
-                                <span class="font-mono">${num(res.subPower, 2)} €</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <p class="font-black text-sm ${colorClass} mb-2">TÉRMINO ENERGÍA</p>
-                            ${energyBreakdown}
-                            <div class="flex justify-between font-bold mt-2 pt-2 border-t">
-                                <span>Subtotal Energía (Bruto)</span>
-                                <span class="font-mono">${num(res.subEnergy, 2)} €</span>
-                            </div>
-                            ${discountHtml}
-                        </div>
-                        
-                        <div class="border-t-2 pt-3 space-y-1">
-                            <div class="flex justify-between font-bold">
-                                <span>SUBTOTAL BASE (P+E)</span>
-                                <span class="font-mono">${num(res.subBase, 2)} €</span>
-                            </div>
-                            <div class="flex justify-between text-xs">
-                                <span>Imp. Eléctrico (${num(res.ieRate * 100, 3)}%)</span>
-                                <span class="font-mono">${num(res.costIE, 2)} €</span>
-                            </div>
-                            <div class="flex justify-between font-bold ${colorClass}">
-                                <span>BASE IMPONIBLE</span>
-                                <span class="font-mono">${num(res.baseImp, 2)} €</span>
-                            </div>
-                            <div class="flex justify-between text-xs">
-                                <span>IVA (21%)</span>
-                                <span class="font-mono">${num(res.costIVA, 2)} €</span>
-                            </div>
-                            <div class="flex justify-between font-black text-base ${colorClass} mt-2 pt-2 border-t-2">
-                                <span>TOTAL FACTURA (${res.dias_facturados} días)</span>
-                                <span class="font-mono">${eur(res.totalPeriod)}</span>
-                            </div>
-                            <div class="flex justify-between font-bold ${colorClass} text-sm">
-                                <span>Total Año (Proyectado)</span>
-                                <span class="font-mono">${eur(res.totalAnnual)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Crear contenido dual con desarrollo completo de cálculos
+            // Vista con TRES COLUMNAS
             const resultCard = document.getElementById('result-card');
             resultCard.innerHTML = `
-                <div class="p-6">
-                    <h2 class="text-2xl font-black text-slate-800 mb-6 text-center">
-                        📊 COMPARACIÓN: TARIFA FIJA vs INDEXADA
-                    </h2>
-                    
-                    <!-- RESUMEN DE AHORROS -->
-                    <div class="grid md:grid-cols-2 gap-6 mb-6">
-                        <!-- Columna FIJO -->
-                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border-2 border-blue-300">
-                            <div class="text-center mb-4">
-                                <div class="inline-block bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-black mb-3">
-                                    💼 TARIFA FIJA
-                                </div>
-                                <h3 class="text-xl font-black text-blue-900 mb-1">${resFijo.offer.name}</h3>
-                                <p class="text-sm text-blue-700">${resFijo.offer.description || ''}</p>
+                <div class="p-4">
+                    <!-- TRES COLUMNAS -->
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <!-- COLUMNA 1: TU FACTURA ACTUAL -->
+                        <div class="text-center">
+                            <div class="bg-slate-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">TU FACTURA ACTUAL</p>
                             </div>
-                            
-                            <div class="bg-white rounded-xl p-4 mb-4">
-                                <p class="text-xs text-slate-500 font-bold uppercase mb-2 text-center">Ahorro Anual Estimado</p>
-                                <p class="text-4xl font-black text-green-600 text-center">${eur(resFijo.savings)}</p>
-                            </div>
-                            
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-600">Coste Actual:</span>
-                                    <span class="font-bold text-red-600 line-through">${eur(resFijo.originalBillAnnual)}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-600">Nuevo Coste Anual:</span>
-                                    <span class="font-black text-blue-900">${eur(resFijo.totalAnnual)}</span>
-                                </div>
-                                <div class="flex justify-between pt-2 border-t border-blue-200">
-                                    <span class="text-slate-600">Coste Mensual:</span>
-                                    <span class="font-bold text-blue-900">${eur(resFijo.totalAnnual / 12)}</span>
-                                </div>
+                            <div class="bg-white border-2 border-slate-300 rounded-b-lg p-3">
+                                <p class="text-xs text-slate-500 mb-2 uppercase">TU FACTURA ACTUAL</p>
+                                <p class="text-2xl font-black text-red-600 line-through mb-2">${eur(resFijo.originalBillPeriod || resFijo.importe_total)}</p>
+                                <p class="text-xs text-slate-500 mb-3">Total Periodo (${resFijo.dias_facturados || 0} días)</p>
+                                <p class="text-2xl font-black text-red-600">${eur(resFijo.originalBillAnnual)}/año</p>
                             </div>
                         </div>
                         
-                        <!-- Columna INDEXADO -->
-                        <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border-2 border-green-300">
-                            <div class="text-center mb-4">
-                                <div class="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-sm font-black mb-3">
-                                    ⚡ TARIFA INDEXADA
-                                </div>
-                                <h3 class="text-xl font-black text-green-900 mb-1">${resIndexed.offer.name}</h3>
-                                <p class="text-sm text-green-700">${resIndexed.offer.description || ''}</p>
+                        <!-- COLUMNA 2: LA MEJOR OPCIÓN PARA TI ES DRK (FIJO) -->
+                        <div class="text-center">
+                            <div class="bg-blue-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES DRK</p>
                             </div>
-                            
-                            <div class="bg-white rounded-xl p-4 mb-4">
-                                <p class="text-xs text-slate-500 font-bold uppercase mb-2 text-center">Ahorro Anual Estimado</p>
-                                <p class="text-4xl font-black text-green-600 text-center">${eur(resIndexed.savings)}</p>
+                            <div class="bg-blue-50 border-2 border-blue-400 rounded-b-lg p-3">
+                                <p class="text-xs text-blue-700 mb-2 font-bold">${resFijo.offer.name}</p>
+                                <p class="text-2xl font-black text-blue-900 mb-2">${eur(resFijo.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs text-blue-700 mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black text-blue-900">${eur(resFijo.totalAnnual)}/año</p>
                             </div>
-                            
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-600">Coste Actual:</span>
-                                    <span class="font-bold text-red-600 line-through">${eur(resIndexed.originalBillAnnual)}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-600">Nuevo Coste Anual:</span>
-                                    <span class="font-black text-green-900">${eur(resIndexed.totalAnnual)}</span>
-                                </div>
-                                <div class="flex justify-between pt-2 border-t border-green-200">
-                                    <span class="text-slate-600">Coste Mensual:</span>
-                                    <span class="font-bold text-green-900">${eur(resIndexed.totalAnnual / 12)}</span>
-                                </div>
+                        </div>
+                        
+                        <!-- COLUMNA 3: LA MEJOR OPCIÓN PARA TI ES DRK (INDEXADO) -->
+                        <div class="text-center">
+                            <div class="bg-green-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES DRK</p>
+                            </div>
+                            <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
+                                <p class="text-xs text-green-700 mb-2 font-bold">${resIndexed.offer.name}</p>
+                                <p class="text-2xl font-black text-green-900 mb-2">${eur(resIndexed.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs text-green-700 mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black text-green-900">${eur(resIndexed.totalAnnual)}/año</p>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- DESARROLLO COMPLETO DE CÁLCULOS -->
-                    <div class="mb-6">
-                        <h3 class="text-xl font-black text-slate-800 mb-4 text-center">
-                            🧮 DESARROLLO DETALLADO DE CÁLCULOS
-                        </h3>
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <!-- Desglose FIJO -->
-                            <div>
-                                <div class="bg-blue-600 text-white px-4 py-2 rounded-t-xl text-sm font-black text-center">
-                                    DESGLOSE TARIFA FIJA
-                                </div>
-                                ${generarDesgloseCalculo(resFijo, 'text-blue-700', 'border-blue-200')}
-                            </div>
-                            
-                            <!-- Desglose INDEXADO -->
-                            <div>
-                                <div class="bg-green-600 text-white px-4 py-2 rounded-t-xl text-sm font-black text-center">
-                                    DESGLOSE TARIFA INDEXADA
-                                </div>
-                                ${generarDesgloseCalculo(resIndexed, 'text-green-700', 'border-green-200')}
-                            </div>
+                    <!-- AHORROS -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-blue-100 border-2 border-blue-400 rounded-xl p-4 text-center">
+                            <p class="text-xs text-blue-700 font-bold uppercase mb-2">💼 TU AHORRO CON TARIFA FIJA</p>
+                            <p class="text-4xl font-black text-green-600">${eur(resFijo.savings)}</p>
+                            <p class="text-xs text-blue-700 mt-1">Ahorro anual estimado</p>
+                        </div>
+                        <div class="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center">
+                            <p class="text-xs text-green-700 font-bold uppercase mb-2">⚡ TU AHORRO CON TARIFA INDEXADA</p>
+                            <p class="text-4xl font-black text-green-600">${eur(resIndexed.savings)}</p>
+                            <p class="text-xs text-green-700 mt-1">Ahorro anual estimado</p>
                         </div>
                     </div>
                     
-                    <!-- Explicación de diferencias -->
-                    <div class="bg-slate-50 rounded-xl p-6 mb-4">
-                        <h3 class="text-lg font-black text-slate-800 mb-4 text-center">
-                            📚 ¿CUÁL ES LA DIFERENCIA?
-                        </h3>
-                        <div class="grid md:grid-cols-2 gap-6 text-sm">
-                            <div>
-                                <h4 class="font-black text-blue-700 mb-2">💼 ¿Por qué Tarifa Fija?</h4>
-                                <ul class="space-y-2 text-slate-700">
-                                    <li>• Implica un precio <strong>fijo</strong> por los kilovatios que consumes (kWh).</li>
-                                    <li>• El precio se mantiene estable, independientemente de cómo se comporten los precios en el mercado eléctrico.</li>
-                                    <li>• Cuando el precio del mercado está alto, el cliente está protegido frente a sobresaltos.</li>
-                                    <li>• No tendrás que estar pendiente de las variaciones del mercado y podrás seguir usando la electricidad como siempre.</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-green-700 mb-2">⚡ ¿Por qué Tarifa Indexada?</h4>
-                                <ul class="space-y-2 text-slate-700">
-                                    <li>• Implica un precio <strong>variable</strong> por los kilovatios que consumes (kWh) cada mes.</li>
-                                    <li>• Es la tarifa más justa, ya que pagas el coste real de la energía mes a mes.</li>
-                                    <li>• Al contratarla, el cliente evita pagar márgenes adicionales cuando el precio de la electricidad es más barato.</li>
-                                    <li>• A largo plazo, con un indexado 100% funcional, se puede obtener un ahorro aproximado de hasta un 20% en épocas de mejor precio.</li>
-                                </ul>
-                            </div>
-                        </div>
+                    <!-- NOTA IMPORTANTE -->
+                    <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-yellow-900">
+                            <strong>⚠️ Importante:</strong> La tarifa indexada puede variar mensualmente según el mercado eléctrico. 
+                            Los valores mostrados son estimaciones basadas en precios actuales.
+                        </p>
+                    </div>
+                    
+                    <!-- BOTONES -->
+                    <div class="grid grid-cols-1 gap-3 mb-4">
+                        <button id="send-offer-btn" class="w-full bg-cta-red-500 hover:bg-cta-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-2m-4-4l-4 4m0 0l-4-4m4 4V5"></path></svg>
+                            <span>COPIAR COMPARATIVO</span>
+                        </button>
                     </div>
                 </div>
             `;
             
-            // Configurar botón para abrir modal (no generar PDF directamente)
+            // Configurar botón para abrir modal
             document.getElementById('send-offer-btn').onclick = () => {
-                // Abrir el modal para ingresar datos del comercial
                 document.getElementById('send-offer-modal').classList.remove('hidden');
                 document.getElementById('send-offer-modal').classList.add('flex');
-                // Aplicar focus ring de la marca a los inputs
                 document.querySelectorAll('#send-offer-modal input').forEach(input => {
                     input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
                     input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
                 });
             };
             
-            // Mostrar el botón de detalles pero que no haga nada (o mejor, ocultarlo)
+            // Ocultar detalles
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
             // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
-            // Buscar el botón específicamente en el results-view
             const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
             if (resetButton) {
                 resetButton.style.display = 'flex';
                 resetButton.style.visibility = 'visible';
                 resetButton.classList.remove('hidden');
-                // No cambiar el texto, ya está correcto en el HTML
             }
         }
-
         function renderResultsUI(res, resIndexed = null) {
             // Si hay resultado indexado, usar vista de comparación dual
             if (resIndexed) {
