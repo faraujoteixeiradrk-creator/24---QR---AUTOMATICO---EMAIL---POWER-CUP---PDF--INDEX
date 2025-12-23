@@ -3033,6 +3033,7 @@
                 const brandColor = isDrk ? [59, 130, 246] : [132, 204, 22];  // Azul DRK o Verde POWER CUP
                 const brandColorLight = isDrk ? [59, 130, 246] : [22, 163, 74];  // Para ahorros
                 const blueColor = brandColor;  // Alias para compatibilidad (usado en Página 2 y 3)
+                const greenIndexColor = [22, 163, 74];  // Verde para INDEXADA (siempre verde)
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
