@@ -6733,23 +6733,14 @@
             document.getElementById('offer-decision-modal').classList.remove('hidden');
             document.getElementById('offer-decision-modal').classList.add('flex');
             
-            // NUEVO: Ocultar el selector de tarifa al abrir el modal (se mostrará solo si hace click en VER MEJOR OPCIÓN)
+            // Ocultar el selector de tarifa al abrir el modal (se mostrará solo si es necesario)
             document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            // NUEVO: Mostrar/ocultar checkbox INDEX según modo de comparación
+            // IMPORTANTE: El checkbox de comparación siempre visible (para DRK y POWER CUP)
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
-            const isDrkMode = comparisonMode !== 'overall_best';
-            const isIndividual = currentTariffType !== 'MULTICUPS';
+            checkboxContainer?.classList.remove('hidden');
             
-            if (isDrkMode && isIndividual) {
-                // DRK Individual: Ocultar checkbox INDEX (usarán el selector en VER MEJOR OPCIÓN)
-                checkboxContainer?.classList.add('hidden');
-            } else {
-                // POWER CUP o MULTICUPS: Mostrar checkbox INDEX
-                checkboxContainer?.classList.remove('hidden');
-            }
-            
-            // NUEVO: Resetear selector a FIJA por defecto
+            // Resetear selector a FIJA por defecto
             const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
             if (fijaRadio) {
                 fijaRadio.checked = true;
@@ -6766,15 +6757,26 @@
         function handleBestOptionClick() {
             const selectorDiv = document.getElementById('best-option-tariff-selector');
             
-            // Solo mostrar selector si es DRK Prioritario + Individual (no MULTICUPS)
+            // Detectar contexto
             const isDrkMode = comparisonMode !== 'overall_best';
             const isIndividual = currentTariffType !== 'MULTICUPS';
             
-            if (isDrkMode && isIndividual) {
-                // DRK Individual: Mostrar selector
-                selectorDiv?.classList.remove('hidden');
+            if (isDrkMode) {
+                // DRK (Individual o MULTICUPS)
+                
+                if (compareWithIndexed) {
+                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
+                    console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
+                    selectorDiv?.classList.add('hidden');
+                    selectBestOptionDirect(); // Ejecutar directamente
+                } else {
+                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
+                    console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
+                    selectorDiv?.classList.remove('hidden');
+                }
             } else {
-                // POWER CUP o MULTICUPS: Ejecutar directamente
+                // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
+                selectorDiv?.classList.add('hidden');
                 selectBestOptionDirect();
             }
         }
@@ -6804,61 +6806,49 @@
             // Cerrar el selector
             document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            // CRÍTICO: Si es DRK Individual, necesitamos recalcular filtrando por tipo de tarifa
-            const isDrkMode = comparisonMode !== 'overall_best';
-            const isIndividual = currentTariffType !== 'MULTICUPS';
+            // CRÍTICO: Cuando llega aquí, significa que el CHECK NO estaba marcado
+            // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
+            console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
             
-            if (isDrkMode && isIndividual) {
-                console.log('DRK Individual: Filtrando por tipo de tarifa:', bestOptionTariffChoice);
+            // Filtrar availableOffers según la elección
+            let filteredOffers = availableOffers.filter(offer => {
+                const offerName = (offer.offer.name || '').toUpperCase();
+                const offerDesc = (offer.offer.description || '').toUpperCase();
+                const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
                 
-                // Filtrar availableOffers según la elección
-                let filteredOffers = availableOffers.filter(offer => {
-                    const offerName = (offer.offer.name || '').toUpperCase();
-                    const offerDesc = (offer.offer.description || '').toUpperCase();
-                    const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
-                    
-                    if (bestOptionTariffChoice === 'indexada') {
-                        // Solo tarifas INDEX
-                        return isIndexed;
-                    } else {
-                        // Solo tarifas FIJAS (excluir INDEX)
-                        return !isIndexed;
-                    }
-                });
-                
-                console.log('Ofertas filtradas:', filteredOffers.length, 'de', availableOffers.length);
-                
-                if (filteredOffers.length === 0) {
-                    const tipoTarifa = bestOptionTariffChoice === 'indexada' ? 'INDEXADAS (DRK INDEX)' : 'FIJAS';
-                    window.showErrorModal(`No se encontraron tarifas ${tipoTarifa} con ahorro positivo.`);
-                    closeOfferDecisionModal();
-                    return;
+                if (bestOptionTariffChoice === 'indexada') {
+                    // Solo tarifas INDEX
+                    return isIndexed;
+                } else {
+                    // Solo tarifas FIJAS (excluir INDEX)
+                    return !isIndexed;
                 }
-                
-                // Seleccionar la mejor de las filtradas
-                let bestFiltered = filteredOffers.reduce((best, current) => {
-                    return (current.totalAnnual < best.totalAnnual) ? current : best;
-                }, filteredOffers[0]);
-                
-                console.log('Mejor tarifa filtrada:', bestFiltered.offer.name, 'Ahorro:', bestFiltered.savings);
-                
-                // Actualizar lastComparisonResult con la mejor filtrada
-                lastComparisonResult = bestFiltered;
-                
-                // Si compareWithIndexed está activo, calcular también indexado
-                if (compareWithIndexed && bestOptionTariffChoice === 'fija') {
-                    // Solo calcular indexado si elegimos FIJA (para comparar FIJA vs INDEX)
-                    const tariffType = lastComparisonResult.originalTariffType || currentTariffType;
-                    lastIndexedResult = calculateIndexedOffer(lastComparisonResult, tariffType);
-                    
-                    if (!lastIndexedResult) {
-                        console.warn('No se encontraron tarifas indexadas para comparar');
-                        lastIndexedResult = null;
-                    }
-                }
+            });
+            
+            console.log('Ofertas filtradas:', filteredOffers.length, 'de', availableOffers.length);
+            
+            if (filteredOffers.length === 0) {
+                const tipoTarifa = bestOptionTariffChoice === 'indexada' ? 'INDEXADAS (DRK INDEX)' : 'FIJAS';
+                window.showErrorModal(`No se encontraron tarifas ${tipoTarifa} con ahorro positivo.`);
+                closeOfferDecisionModal();
+                return;
             }
             
-            // Ejecutar lógica normal
+            // Seleccionar la mejor de las filtradas
+            let bestFiltered = filteredOffers.reduce((best, current) => {
+                return (current.totalAnnual < best.totalAnnual) ? current : best;
+            }, filteredOffers[0]);
+            
+            console.log('Mejor tarifa filtrada:', bestFiltered.offer.name, 'Ahorro:', bestFiltered.savings);
+            
+            // Actualizar lastComparisonResult con la mejor filtrada
+            lastComparisonResult = bestFiltered;
+            
+            // IMPORTANTE: NO calcular indexado porque el usuario solo quiere ver UNA tarifa
+            lastIndexedResult = null;
+            compareWithIndexed = false; // Asegurar que no se active la comparativa
+            
+            // Ejecutar lógica normal (mostrará solo el resultado principal)
             selectBestOptionDirect();
         }
         
