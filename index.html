@@ -3464,9 +3464,9 @@
                 yPos = 15;
                 
                 // Definir variables para las dos columnas de la explicación
-                const colWidth = (contentWidth - 3) / 2;
-                const leftX = margin;
-                const rightX = margin + colWidth + 3;
+                const colWidthPage3 = (contentWidth - 3) / 2;
+                const leftXPage3 = margin;
+                const rightXPage3 = margin + colWidthPage3 + 3;
                 
                 doc.setFillColor(245, 245, 245);
                 doc.roundedRect(margin, yPos, contentWidth, 120, 2, 2, 'F');
@@ -3483,7 +3483,7 @@
                 doc.setFontSize(9);
                 doc.setTextColor(...blueColor);
                 doc.setFont('helvetica', 'bold');
-                doc.text('💼 ¿POR QUÉ TARIFA FIJA?', leftX + 2, leftColY);
+                doc.text('💼 ¿POR QUÉ TARIFA FIJA?', leftXPage3 + 2, leftColY);
                 leftColY += 6;
                 
                 doc.setTextColor(0, 0, 0);
@@ -3506,7 +3506,7 @@
                 ];
                 
                 fijaTextFull.forEach(line => {
-                    doc.text(line, leftX + 2, leftColY, { maxWidth: colWidth - 4 });
+                    doc.text(line, leftXPage3 + 2, leftColY, { maxWidth: colWidthPage3 - 4 });
                     leftColY += 3.5;
                 });
                 
@@ -3515,7 +3515,7 @@
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...greenColor);
-                doc.text('⚡ ¿POR QUÉ TARIFA INDEXADA?', rightX + 2, rightColY);
+                doc.text('⚡ ¿POR QUÉ TARIFA INDEXADA?', rightXPage3 + 2, rightColY);
                 rightColY += 6;
                 
                 doc.setTextColor(0, 0, 0);
@@ -3539,7 +3539,7 @@
                 ];
                 
                 indexadaTextFull.forEach(line => {
-                    doc.text(line, rightX + 2, rightColY, { maxWidth: colWidth - 4 });
+                    doc.text(line, rightXPage3 + 2, rightColY, { maxWidth: colWidthPage3 - 4 });
                     rightColY += 3.5;
                 });
                 
@@ -5046,15 +5046,15 @@
                 
                 // === DOS COLUMNAS COMPACTAS === (Solo si hay ahorro)
                 if (res.savings > 0) {
-                const colWidth = (contentWidth - 20) / 2;
+                const colWidthResumen = (contentWidth - 20) / 2;
                 
                 // COLUMNA IZQUIERDA - TU FACTURA ACTUAL
-                const leftX = margin + 10;
+                const leftXResumen = margin + 10;
                 
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU FACTURA ACTUAL', leftX + colWidth / 2, yPos, { align: 'center' });
+                doc.text('TU FACTURA ACTUAL', leftXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio periodo (mensual estimado) tachado en rojo
                 const diasPeriodo = res.dias_facturados || 30;
@@ -5063,7 +5063,7 @@
                 doc.setTextColor(...redColor);
                 doc.setFontSize(18);
                 doc.setFont('helvetica', 'bold');
-                const oldX = leftX + colWidth / 2;
+                const oldX = leftXResumen + colWidthResumen / 2;
                 const oldY = yPos + 12;
                 doc.text(oldPrice, oldX, oldY, { align: 'center' });
                 
@@ -5077,14 +5077,14 @@
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Total Periodo (${diasPeriodo} días)`, leftX + colWidth / 2, yPos + 19, { align: 'center' });
+                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual tachado
                 const oldAnnual = eur(res.originalBillAnnual);
                 doc.setTextColor(...redColor);
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                const oldAnnualX = leftX + colWidth / 2;
+                const oldAnnualX = leftXResumen + colWidthResumen / 2;
                 const oldAnnualY = yPos + 32;
                 doc.text(`${oldAnnual}/año`, oldAnnualX, oldAnnualY, { align: 'center' });
                 
@@ -5100,31 +5100,31 @@
                 doc.line(pageWidth / 2, yPos - 5, pageWidth / 2, yPos + 38);
                 
                 // COLUMNA DERECHA - TU NUEVO COSTE
-                const rightX = margin + 10 + colWidth + 10;
+                const rightXResumen = margin + 10 + colWidthResumen + 10;
                 
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 const newLabel = `TU NUEVO COSTE ${brandName}`;
-                doc.text(newLabel, rightX + colWidth / 2, yPos, { align: 'center' });
+                doc.text(newLabel, rightXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio mensual en azul
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightX + colWidth / 2, yPos + 13, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
                 
                 // "Estimado Mensual"
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Estimado Mensual', rightX + colWidth / 2, yPos + 19, { align: 'center' });
+                doc.text('Estimado Mensual', rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual en azul
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual)}/año`, rightX + colWidth / 2, yPos + 32, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual)}/año`, rightXResumen + colWidthResumen / 2, yPos + 32, { align: 'center' });
                 
                 yPos += 50;
                 } // Fin del condicional de columnas de precios en Individual
