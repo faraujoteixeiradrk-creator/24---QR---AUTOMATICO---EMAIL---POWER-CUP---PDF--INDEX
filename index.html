@@ -588,8 +588,8 @@
                 
                 <!-- Content -->
                 <div class="p-6">
-                    <!-- NUEVO: Checkbox para comparación con tarifas indexadas -->
-                    <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
+                    <!-- NUEVO: Checkbox para comparación con tarifas indexadas (SOLO POWER CUP) -->
+                    <div id="powercup-indexed-checkbox" class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200 hidden">
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input 
                                 type="checkbox" 
@@ -606,6 +606,45 @@
                                 </p>
                             </div>
                         </label>
+                    </div>
+                    
+                    <!-- NUEVO: Selector de tipo de tarifa para DRK (SOLO DRK PRIORITARIO) -->
+                    <div id="drk-tariff-selector" class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-slate-50 rounded-xl border-2 border-drk-300">
+                        <p class="font-black text-base text-slate-900 mb-3">
+                            🎯 Elige el tipo de tarifa DRK a mostrar:
+                        </p>
+                        <div class="space-y-3">
+                            <!-- Tarifa FIJA -->
+                            <label class="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition hover:bg-drk-50" id="drk-fija-label">
+                                <input 
+                                    type="radio" 
+                                    name="drk-tariff-type" 
+                                    value="fija" 
+                                    checked
+                                    class="w-5 h-5 text-drk-600 border-2 border-slate-300 focus:ring-2 focus:ring-drk-500 cursor-pointer"
+                                    onchange="updateDrkTariffChoice('fija')"
+                                >
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-900">⚡ Tarifa FIJA</p>
+                                    <p class="text-xs text-slate-600">Precio fijo estable durante el periodo contratado</p>
+                                </div>
+                            </label>
+                            
+                            <!-- Tarifa INDEXADA -->
+                            <label class="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition hover:bg-green-50" id="drk-indexada-label">
+                                <input 
+                                    type="radio" 
+                                    name="drk-tariff-type" 
+                                    value="indexada"
+                                    class="w-5 h-5 text-green-600 border-2 border-slate-300 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                    onchange="updateDrkTariffChoice('indexada')"
+                                >
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-900">🌱 Tarifa INDEXADA (DRK INDEX)</p>
+                                    <p class="text-xs text-slate-600">Precio variable según el mercado eléctrico</p>
+                                </div>
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="flex flex-col gap-4">
@@ -813,6 +852,7 @@
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_prioritized';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
+        let drkTariffChoice = 'fija'; // NUEVO: Elección de tarifa para DRK ('fija' o 'indexada')
         let activeBrand = BRANDS.DRK;
         let qrCodeInstance = null; // Instancia de QRCode.js
         
@@ -1183,11 +1223,19 @@
             availableOffers = [];
             manuallySelectedOffer = null;
             compareWithIndexed = false; // Resetear comparación indexada
+            drkTariffChoice = 'fija'; // NUEVO: Resetear elección de tarifa DRK
             
             // Resetear checkbox de comparación indexada
             const checkboxIndexed = document.getElementById('compare-indexed-checkbox');
             if (checkboxIndexed) {
                 checkboxIndexed.checked = false;
+            }
+            
+            // Resetear selector de tarifa DRK
+            const drkFijaRadio = document.querySelector('input[name="drk-tariff-type"][value="fija"]');
+            if (drkFijaRadio) {
+                drkFijaRadio.checked = true;
+                updateDrkTariffChoice('fija'); // Actualizar estilos visuales
             }
             
             // Restaurar la marca activa según el modo de comparación
@@ -6653,6 +6701,20 @@
                     label.querySelector('.checkmark-icon').classList.add('hidden');
                 }
             });
+            
+            // NUEVO: Mostrar/ocultar selectores de tarifa según el modo
+            const powercupCheckbox = document.getElementById('powercup-indexed-checkbox');
+            const drkSelector = document.getElementById('drk-tariff-selector');
+            
+            if (newMode === 'overall_best') {
+                // POWER CUP Global: Mostrar checkbox de comparativa dual
+                powercupCheckbox?.classList.remove('hidden');
+                drkSelector?.classList.add('hidden');
+            } else {
+                // DRK Prioritario: Mostrar selector de tipo de tarifa
+                powercupCheckbox?.classList.add('hidden');
+                drkSelector?.classList.remove('hidden');
+            }
         }
         
         // --- NUEVA FUNCIONALIDAD: Tipo de Selección de Oferta ---
@@ -6689,6 +6751,24 @@
         function toggleIndexedComparison(checked) {
             compareWithIndexed = checked;
             console.log('Comparación con indexadas:', compareWithIndexed ? 'ACTIVADA' : 'DESACTIVADA');
+        }
+        
+        // NUEVA: Función para actualizar la elección de tipo de tarifa DRK
+        function updateDrkTariffChoice(choice) {
+            drkTariffChoice = choice;
+            console.log('Tipo de tarifa DRK seleccionada:', choice);
+            
+            // Actualizar estilos visuales de los labels
+            const fijaLabel = document.getElementById('drk-fija-label');
+            const indexadaLabel = document.getElementById('drk-indexada-label');
+            
+            if (choice === 'fija') {
+                fijaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-drk-500 bg-drk-50 cursor-pointer transition';
+                indexadaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-green-50';
+            } else {
+                fijaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-drk-50';
+                indexadaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-green-500 bg-green-50 cursor-pointer transition';
+            }
         }
         
         // Nueva función para calcular la mejor oferta indexada (DRK INDEX)
@@ -7352,8 +7432,19 @@
                 console.log('Energy costs periods:', combinedResult.energyCosts.length);
                 console.log('Power costs periods:', combinedResult.powerCosts.length);
                 
-                // IMPORTANTE: Si compareWithIndexed está activo, calcular resultado indexado ANTES de añadir a la lista
-                if (compareWithIndexed) {
+                // NUEVA LÓGICA: Calcular indexado según modo de comparación
+                let shouldCalculateIndexed = false;
+                
+                if (comparisonMode === 'overall_best') {
+                    // POWER CUP Global: Solo si checkbox está marcado
+                    shouldCalculateIndexed = compareWithIndexed;
+                } else {
+                    // DRK Prioritario: Solo si eligieron INDEXADA o si eligieron comparativa
+                    shouldCalculateIndexed = (drkTariffChoice === 'indexada' || compareWithIndexed);
+                }
+                
+                // IMPORTANTE: Si shouldCalculateIndexed está activo, calcular resultado indexado ANTES de añadir a la lista
+                if (shouldCalculateIndexed) {
                     const tariffType = lastComparisonResult.originalTariffType;
                     const dataForCalc = lastComparisonResult;
                     const indexedResult = calculateIndexedOffer(dataForCalc, tariffType);
@@ -7436,15 +7527,45 @@
                 lastComparisonResult = result;
                 lastComparisonResult.isMulti = false;
                 
-                // Si compareWithIndexed está activo, calcular resultado indexado
+                // NUEVA LÓGICA: Decidir qué mostrar según modo de comparación
                 let indexedResult = null;
-                if (compareWithIndexed) {
+                let shouldShowDual = false;
+                
+                if (comparisonMode === 'overall_best') {
+                    // POWER CUP Global: Solo calcular indexado si checkbox está marcado
+                    if (compareWithIndexed) {
+                        const tariffType = result.originalTariffType || currentTariffType;
+                        indexedResult = calculateIndexedOffer(result, tariffType);
+                        shouldShowDual = true; // Mostrar comparativa dual
+                        
+                        if (indexedResult) {
+                            lastIndexedResult = indexedResult;
+                            console.log('POWER CUP Global con comparativa: Calculado resultado indexado');
+                        }
+                    }
+                    // Si checkbox no está marcado, solo mostrar FIJO (result)
+                } else {
+                    // DRK Prioritario: Usar drkTariffChoice para decidir
                     const tariffType = result.originalTariffType || currentTariffType;
-                    indexedResult = calculateIndexedOffer(result, tariffType);
                     
-                    if (indexedResult) {
-                        lastIndexedResult = indexedResult;
-                        console.log('Calculado resultado indexado para contexto individual:', indexedResult.offer.name);
+                    if (drkTariffChoice === 'indexada') {
+                        // Usuario quiere ver solo INDEXADA
+                        indexedResult = calculateIndexedOffer(result, tariffType);
+                        
+                        if (indexedResult) {
+                            // SWAP: Poner indexado como resultado principal
+                            lastComparisonResult = indexedResult;
+                            lastIndexedResult = null;
+                            console.log('DRK Prioritario: Mostrando solo INDEXADA:', indexedResult.offer.name);
+                            
+                            // Actualizar result para renderizado
+                            result = indexedResult;
+                            indexedResult = null;
+                        }
+                    } else {
+                        // Usuario quiere ver solo FIJA (default)
+                        indexedResult = null;
+                        console.log('DRK Prioritario: Mostrando solo FIJA:', result.offer.name);
                     }
                 }
                 
