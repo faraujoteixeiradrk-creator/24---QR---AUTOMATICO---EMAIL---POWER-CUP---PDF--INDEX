@@ -2044,11 +2044,13 @@
             document.getElementById('details-container').style.display = 'none';
             
             // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
-            const resetButton = document.querySelector('button[onclick="resetToLanding()"]');
+            // Buscar el botón específicamente en el results-view
+            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
             if (resetButton) {
                 resetButton.style.display = 'flex';
-                resetButton.textContent = '';
-                resetButton.innerHTML = 'Realizar Nueva Comparación';
+                resetButton.style.visibility = 'visible';
+                resetButton.classList.remove('hidden');
+                // No cambiar el texto, ya está correcto en el HTML
             }
         }
 
@@ -2722,11 +2724,13 @@
             document.getElementById('details-container').style.display = 'none';
             
             // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
-            const resetButton = document.querySelector('button[onclick="resetToLanding()"]');
+            // Buscar el botón específicamente en el results-view
+            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
             if (resetButton) {
                 resetButton.style.display = 'flex';
-                resetButton.textContent = '';
-                resetButton.innerHTML = 'Realizar Nueva Comparación';
+                resetButton.style.visibility = 'visible';
+                resetButton.classList.remove('hidden');
+                // No cambiar el texto, ya está correcto en el HTML
             }
         }
 
@@ -3540,6 +3544,85 @@
                 doc.setFontSize(12);
                 doc.text(`${eur(resIndexed.savings)}/ AÑO`, rightX + 3, yPos + 10);
                 
+                // === PÁGINA 3: EXPLICACIÓN ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, yPos, contentWidth, 120, 2, 2, 'F');
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                yPos += 15;
+                
+                // Columna izquierda - Tarifa Fija
+                let leftColY = yPos;
+                doc.setFontSize(9);
+                doc.setTextColor(...blueColor);
+                doc.setFont('helvetica', 'bold');
+                doc.text('💼 ¿POR QUÉ TARIFA FIJA?', leftX + 2, leftColY);
+                leftColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const fijaTextFull = [
+                    '• Implica un precio fijo por los kilovatios que',
+                    '  consumes (kWh).',
+                    '',
+                    '• El precio se mantiene estable,',
+                    '  independientemente de cómo se comporten los',
+                    '  precios en el mercado eléctrico.',
+                    '',
+                    '• Cuando el precio del mercado está alto, el',
+                    '  cliente está protegido frente a sobresaltos.',
+                    '',
+                    '• No tendrás que estar pendiente de las',
+                    '  variaciones del mercado y podrás seguir',
+                    '  usando la electricidad como siempre.'
+                ];
+                
+                fijaTextFull.forEach(line => {
+                    doc.text(line, leftX + 2, leftColY, { maxWidth: colWidth - 4 });
+                    leftColY += 3.5;
+                });
+                
+                // Columna derecha - Tarifa Indexada
+                let rightColY = yPos;
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...greenColor);
+                doc.text('⚡ ¿POR QUÉ TARIFA INDEXADA?', rightX + 2, rightColY);
+                rightColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const indexadaTextFull = [
+                    '• Implica un precio variable por los kilovatios',
+                    '  que consumes (kWh) cada mes.',
+                    '',
+                    '• Es la tarifa más justa, ya que pagas el coste',
+                    '  real de la energía mes a mes.',
+                    '',
+                    '• Al contratarla, el cliente evita pagar',
+                    '  márgenes adicionales cuando el precio de la',
+                    '  electricidad es más barato.',
+                    '',
+                    '• A largo plazo, con un indexado 100%',
+                    '  funcional, se puede obtener un ahorro',
+                    '  aproximado de hasta un 20% en épocas de',
+                    '  mejor precio.'
+                ];
+                
+                indexadaTextFull.forEach(line => {
+                    doc.text(line, rightX + 2, rightColY, { maxWidth: colWidth - 4 });
+                    rightColY += 3.5;
+                });
+                
                 // Guardar PDF
                 const filename = `Comparacion_Fijo_vs_Indexado_${resFijo.cups.slice(-6)}.pdf`;
                 doc.save(filename);
@@ -3832,11 +3915,95 @@
                     yPos += 14;
                 });
                 
+                // === PÁGINA FINAL: EXPLICACIÓN ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, yPos, contentWidth, 120, 2, 2, 'F');
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                yPos += 15;
+                
+                // Columna izquierda - Tarifa Fija
+                let leftColY = yPos;
+                doc.setFontSize(9);
+                doc.setTextColor(...blueColor);
+                doc.setFont('helvetica', 'bold');
+                doc.text('💼 ¿POR QUÉ TARIFA FIJA?', leftX + 2, leftColY);
+                leftColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const fijaExplText = [
+                    '• Implica un precio fijo por los kilovatios que',
+                    '  consumes (kWh).',
+                    '',
+                    '• El precio se mantiene estable,',
+                    '  independientemente de cómo se comporten los',
+                    '  precios en el mercado eléctrico.',
+                    '',
+                    '• Cuando el precio del mercado está alto, el',
+                    '  cliente está protegido frente a sobresaltos.',
+                    '',
+                    '• No tendrás que estar pendiente de las',
+                    '  variaciones del mercado y podrás seguir',
+                    '  usando la electricidad como siempre.'
+                ];
+                
+                fijaExplText.forEach(line => {
+                    doc.text(line, leftX + 2, leftColY, { maxWidth: colWidth - 4 });
+                    leftColY += 3.5;
+                });
+                
+                // Columna derecha - Tarifa Indexada
+                let rightColY = yPos;
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...greenColor);
+                doc.text('⚡ ¿POR QUÉ TARIFA INDEXADA?', rightX + 2, rightColY);
+                rightColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const indexExplText = [
+                    '• Implica un precio variable por los kilovatios',
+                    '  que consumes (kWh) cada mes.',
+                    '',
+                    '• Es la tarifa más justa, ya que pagas el coste',
+                    '  real de la energía mes a mes.',
+                    '',
+                    '• Al contratarla, el cliente evita pagar',
+                    '  márgenes adicionales cuando el precio de la',
+                    '  electricidad es más barato.',
+                    '',
+                    '• A largo plazo, con un indexado 100%',
+                    '  funcional, se puede obtener un ahorro',
+                    '  aproximado de hasta un 20% en épocas de',
+                    '  mejor precio.'
+                ];
+                
+                indexExplText.forEach(line => {
+                    doc.text(line, rightX + 2, rightColY, { maxWidth: colWidth - 4 });
+                    rightColY += 3.5;
+                });
+                
                 // Guardar
                 const filename = `MULTICUPS_Fijo_vs_Indexado_${new Date().getTime()}.pdf`;
                 doc.save(filename);
                 
                 window.showMessageModal(`✅ PDF generado con éxito: ${filename}`);
+                
+                // Cerrar modal
+                document.getElementById('send-offer-modal').classList.add('hidden');
+                document.getElementById('send-offer-modal').classList.remove('flex');
+                
             } catch (error) {
                 console.error('Error generando PDF MULTICUPS dual:', error);
                 window.showErrorModal(`Error al generar PDF: ${error.message}`);
