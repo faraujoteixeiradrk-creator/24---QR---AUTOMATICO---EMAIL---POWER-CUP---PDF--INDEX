@@ -3110,11 +3110,16 @@
                 const tariffType = resFijo.originalTariffType || currentTariffType;
                 const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
                 
-                // Colores (mantener los mismos del HTML)
+                const commercialCode = document.getElementById('comercial-code-input').value.trim();
+                const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+                
+                // Colores
                 const darkColor = [107, 125, 142];
                 const greenColor = [22, 163, 74];
                 const blueColor = [59, 130, 246];
+                const greenIndexColor = [22, 163, 74];
                 const redColor = [220, 38, 38];
+                const grayBg = [245, 245, 245];
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
@@ -3124,9 +3129,10 @@
                 const pageWidth = 210;
                 const margin = 12;
                 const contentWidth = pageWidth - (2 * margin);
-                const colWidth = (contentWidth / 2) - 2;
                 
-                // === CABECERA ===
+                // === PÁGINA 1: RESUMEN ===
+                
+                // CABECERA con degradado
                 const headerHeight = 35;
                 for (let i = 0; i < pageWidth; i++) {
                     const ratio = i / pageWidth;
@@ -3137,320 +3143,419 @@
                     doc.rect(i, 0, 1, headerHeight, 'F');
                 }
                 
+                // Logo DRK
+                const logoX = margin + 8;
+                const logoY = 12;
+                const logoRadius = 5;
+                
+                doc.setFillColor(219, 68, 55);
+                doc.circle(logoX - 1, logoY + 1, logoRadius * 0.8, 'F');
+                doc.setFillColor(66, 133, 244);
+                doc.circle(logoX + 1, logoY - 1, logoRadius * 0.8, 'F');
+                doc.setFillColor(244, 180, 0);
+                doc.circle(logoX - 1, logoY - 1, logoRadius * 0.7, 'F');
+                doc.setFillColor(15, 157, 88);
+                doc.circle(logoX + 1, logoY + 1, logoRadius * 0.7, 'F');
+                doc.setFillColor(255, 255, 255);
+                doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
+                
+                // Texto DRK ENERGÍA
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(20);
+                doc.setFontSize(18);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DRK ENERGÍA', margin, 15);
-                doc.setFontSize(10);
+                doc.text('DRK ENERGÍA', logoX + 12, 14);
+                
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Comparación: Tarifa Fija vs Indexada', margin, 22);
+                doc.text('Liderando el ahorro y la', logoX + 12, 20);
+                doc.text('eficiencia energética.', logoX + 12, 24);
+                
+                // Texto derecha
+                doc.setTextColor(40, 60, 80);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ESTUDIO DE AHORRO', pageWidth - margin, 12, { align: 'right' });
+                
+                doc.setFontSize(11);
+                doc.setTextColor(255, 255, 255);
+                doc.text('COMPARATIVA', pageWidth - margin, 18, { align: 'right' });
+                
+                doc.setFontSize(9);
+                doc.setTextColor(100, 120, 140);
+                doc.text('PROFESIONAL', pageWidth - margin, 24, { align: 'right' });
                 
                 yPos = headerHeight + 8;
                 
-                // === INFORMACIÓN DEL CUPS ===
+                // Barra verde "ESTUDIO DE AHORRO"
+                doc.setFillColor(...greenColor);
+                doc.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ESTUDIO DE AHORRO', margin + 3, yPos + 4.5);
+                yPos += 9;
+                
+                // Caja blanca con datos del cliente
+                doc.setFillColor(255, 255, 255);
+                doc.setDrawColor(...darkColor);
+                doc.setLineWidth(0.5);
+                doc.roundedRect(margin, yPos, contentWidth, 16, 2, 2, 'FD');
+                
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`CUPS: ${resFijo.cups}`, margin, yPos);
-                doc.text(`Periodo: ${resFijo.dias_facturados} días`, pageWidth - margin, yPos, { align: 'right' });
-                yPos += 8;
+                doc.text(`COMPARATIVA PROFESIONAL - DRK`, margin + 3, yPos + 5);
                 
-                // === TÍTULO DE COMPARACIÓN ===
-                doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(11);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`CLIENTE: ${clientName}`, margin + 3, yPos + 10);
+                doc.text(`CUPS: ${resFijo.cups}`, margin + 3, yPos + 14);
+                
                 doc.setFont('helvetica', 'bold');
-                doc.text('COMPARACIÓN: TARIFA FIJA VS INDEXADA', pageWidth / 2, yPos + 5.5, { align: 'center' });
-                yPos += 12;
+                doc.text(`COMERCIAL: ${commercialCode}`, pageWidth - margin - 3, yPos + 10, { align: 'right' });
                 
-                // === RESUMEN DE AHORROS (DOS COLUMNAS) ===
-                const leftX = margin;
-                const rightX = margin + colWidth + 4;
+                yPos += 20;
                 
-                // Función auxiliar para generar resumen
-                function generarResumenAhorro(res, x, width, color, titulo) {
+                // === TRES COLUMNAS: ACTUAL, FIJO, INDEXADO ===
+                const colWidth = (contentWidth - 6) / 3;
+                const col1X = margin;
+                const col2X = margin + colWidth + 3;
+                const col3X = margin + (colWidth + 3) * 2;
+                
+                // Función para dibujar columna
+                function drawColumn(x, width, headerBg, headerText, label, costPeriod, periodDays, costYear, isActual = false) {
                     let y = yPos;
                     
-                    // Cabecera
-                    doc.setFillColor(...color);
-                    doc.roundedRect(x, y, width, 8, 1, 1, 'F');
+                    // Cabecera gris
+                    doc.setFillColor(109, 115, 125);
+                    doc.roundedRect(x, y, width, 10, 1, 1, 'F');
                     doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(9);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(titulo, x + width / 2, y + 5.5, { align: 'center' });
-                    y += 10;
-                    
-                    // Nombre de tarifa
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(8);
-                    doc.setFont('helvetica', 'bold');
-                    const splitName = doc.splitTextToSize(res.offer.name, width - 4);
-                    doc.text(splitName, x + 2, y);
-                    y += splitName.length * 4;
-                    
-                    // Ahorro
                     doc.setFontSize(7);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('Ahorro Anual:', x + 2, y);
-                    doc.setFontSize(11);
                     doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(...greenColor);
-                    doc.text(eur(res.savings), x + width - 2, y, { align: 'right' });
-                    y += 6;
+                    doc.text(headerText, x + width / 2, y + 6, { align: 'center' });
+                    y += 12;
                     
-                    // Costes
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('Coste Actual:', x + 2, y);
-                    doc.setTextColor(...redColor);
-                    doc.text(eur(res.originalBillAnnual), x + width - 2, y, { align: 'right' });
-                    y += 4;
+                    // Contenido
+                    doc.setFillColor(248, 249, 250);
+                    doc.roundedRect(x, y, width, 50, 2, 2, 'F');
                     
-                    doc.setTextColor(0, 0, 0);
-                    doc.text('Nuevo Coste Anual:', x + 2, y);
+                    // Label
+                    doc.setTextColor(107, 114, 128);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(eur(res.totalAnnual), x + width - 2, y, { align: 'right' });
-                    y += 4;
+                    doc.text(label, x + width / 2, y + 6, { align: 'center' });
                     
+                    // Coste periodo
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isActual ? redColor[0] : 30, isActual ? redColor[1] : 64, isActual ? redColor[2] : 175);
+                    if (isActual) {
+                        // Tachar si es actual
+                        const text = costPeriod;
+                        const textWidth = doc.getTextWidth(text);
+                        doc.text(text, x + width / 2, y + 14, { align: 'center' });
+                        doc.setDrawColor(...redColor);
+                        doc.setLineWidth(0.5);
+                        doc.line(x + width / 2 - textWidth / 2, y + 13, x + width / 2 + textWidth / 2, y + 13);
+                    } else {
+                        doc.text(costPeriod, x + width / 2, y + 14, { align: 'center' });
+                    }
+                    
+                    // Días
+                    doc.setFontSize(5.5);
+                    doc.setTextColor(156, 163, 175);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Coste Mensual:', x + 2, y);
-                    doc.text(eur(res.totalAnnual / 12), x + width - 2, y, { align: 'right' });
+                    doc.text(periodDays, x + width / 2, y + 18, { align: 'center' });
+                    
+                    // Separador
+                    doc.setDrawColor(229, 231, 235);
+                    doc.setLineWidth(0.3);
+                    doc.line(x + 5, y + 25, x + width - 5, y + 25);
+                    
+                    // Coste anual
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isActual ? redColor[0] : 30, isActual ? redColor[1] : 64, isActual ? redColor[2] : 175);
+                    doc.text(costYear, x + width / 2, y + 36, { align: 'center' });
                 }
                 
-                // Generar resúmenes
-                generarResumenAhorro(resFijo, leftX, colWidth, blueColor, '💼 TARIFA FIJA');
-                generarResumenAhorro(resIndexed, rightX, colWidth, greenColor, '⚡ TARIFA INDEXADA');
+                // Dibujar las tres columnas
+                drawColumn(
+                    col1X, colWidth,
+                    grayBg, 'TU FACTURA ACTUAL',
+                    'TU FACTURA ACTUAL',
+                    eur(resFijo.originalBillPeriod),
+                    `Total Periodo (${resFijo.dias_facturados} días)`,
+                    `${eur(resFijo.originalBillAnnual)}/año`,
+                    true
+                );
                 
-                yPos += 45;
+                drawColumn(
+                    col2X, colWidth,
+                    blueColor, 'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    resFijo.offer.name,
+                    `${eur(resFijo.totalPeriod / resFijo.dias_facturados * 30)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(resFijo.totalAnnual)}/año`,
+                    false
+                );
                 
-                // === DESARROLLO COMPLETO DE CÁLCULOS ===
+                drawColumn(
+                    col3X, colWidth,
+                    greenIndexColor, 'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    resIndexed.offer.name,
+                    `${eur(resIndexed.totalPeriod / resIndexed.dias_facturados * 30)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(resIndexed.totalAnnual)}/año`,
+                    false
+                );
+                
+                yPos += 65;
+                
+                // === RECUADROS DE AHORRO ===
+                const ahorroBoxWidth = (contentWidth - 6) / 3;
+                
+                // Actual (vacío)
+                yPos += 5;
+                
+                // Ahorro FIJO
+                doc.setFillColor(239, 246, 255);
+                doc.setDrawColor(...blueColor);
+                doc.setLineWidth(0.5);
+                doc.roundedRect(col2X, yPos, ahorroBoxWidth, 28, 2, 2, 'FD');
+                
+                doc.setTextColor(59, 130, 246);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TU AHORRO EN FIJO', col2X + ahorroBoxWidth / 2, yPos + 6, { align: 'center' });
+                
+                doc.setFontSize(18);
+                doc.setTextColor(...greenColor);
+                doc.text(eur(resFijo.savings), col2X + ahorroBoxWidth / 2, yPos + 16, { align: 'center' });
+                
+                doc.setFontSize(6);
+                doc.setTextColor(107, 114, 128);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado', col2X + ahorroBoxWidth / 2, yPos + 22, { align: 'center' });
+                
+                // Ahorro INDEXADO
+                doc.setFillColor(240, 253, 244);
+                doc.setDrawColor(...greenIndexColor);
+                doc.roundedRect(col3X, yPos, ahorroBoxWidth, 28, 2, 2, 'FD');
+                
+                doc.setTextColor(22, 163, 74);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TU AHORRO EN INDEXADO', col3X + ahorroBoxWidth / 2, yPos + 6, { align: 'center' });
+                
+                doc.setFontSize(18);
+                doc.setTextColor(...greenColor);
+                doc.text(eur(resIndexed.savings), col3X + ahorroBoxWidth / 2, yPos + 16, { align: 'center' });
+                
+                doc.setFontSize(6);
+                doc.setTextColor(107, 114, 128);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado', col3X + ahorroBoxWidth / 2, yPos + 22, { align: 'center' });
+                
+                // === PÁGINA 2: DESARROLLO DETALLADO ===
                 doc.addPage();
                 yPos = 15;
                 
                 doc.setTextColor(0, 0, 0);
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DESARROLLO DETALLADO DE CÁLCULOS', pageWidth / 2, yPos, { align: 'center' });
+                doc.text('DESARROLLO DETALLADO DE LA SIMULACIÓN', pageWidth / 2, yPos, { align: 'center' });
                 yPos += 8;
+                
+                const col2Width = (contentWidth - 3) / 2;
+                const leftX = margin;
+                const rightX = margin + col2Width + 3;
                 
                 // Función para generar desglose completo
                 function generarDesgloseCompleto(res, x, width, color, titulo) {
                     let y = yPos;
                     
-                    // Cabecera del desglose
+                    // Cabecera verde
                     doc.setFillColor(...color);
                     doc.roundedRect(x, y, width, 6, 1, 1, 'F');
                     doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(8);
+                    doc.setFontSize(7.5);
                     doc.setFont('helvetica', 'bold');
                     doc.text(titulo, x + width / 2, y + 4, { align: 'center' });
                     y += 8;
                     
-                    // TÉRMINO POTENCIA
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('TÉRMINO POTENCIA', x + 1, y);
+                    // Fondo blanco
+                    doc.setFillColor(255, 255, 255);
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(x, y, width, 110, 1, 1, 'FD');
+                    
                     y += 4;
                     
-                    doc.setFontSize(6);
+                    // TÉRMINO POTENCIA
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('TÉRMINO POTENCIA (Precio en €/kW Día)', x + 2, y);
+                    y += 4;
+                    
+                    doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
                     res.powerCosts.forEach(p => {
                         if (p.kw > 0 || p.period <= config.powerPeriods) {
-                            const formula = `P${p.period}: ${num(p.kw, 2)} kW × ${res.dias_facturados}d × ${numPriceFormula(p.priceDay)}`;
-                            doc.text(formula, x + 1, y);
-                            doc.text(`${num(p.cost, 2)} €`, x + width - 1, y, { align: 'right' });
+                            const formula = `P${p.period} (${num(p.kw, 2)} kW × ${res.dias_facturados}d × ${numPriceFormula(p.priceDay)})`;
+                            doc.text(formula, x + 2, y);
+                            doc.text(`${num(p.cost, 2)} €`, x + width - 2, y, { align: 'right' });
                             y += 3.5;
                         }
                     });
                     
-                    doc.setFontSize(6.5);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Subtotal Potencia:', x + 1, y);
-                    doc.text(`${num(res.subPower, 2)} €`, x + width - 1, y, { align: 'right' });
+                    doc.text('Subtotal Potencia', x + 2, y);
+                    doc.text(`${num(res.subPower, 2)} €`, x + width - 2, y, { align: 'right' });
                     y += 5;
                     
                     // TÉRMINO ENERGÍA
-                    doc.setFontSize(7);
-                    doc.text('TÉRMINO ENERGÍA', x + 1, y);
+                    doc.setFontSize(6.5);
+                    doc.text('TÉRMINO ENERGÍA (Precios en €/kWh)', x + 2, y);
                     y += 4;
                     
-                    doc.setFontSize(6);
+                    doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
                     res.energyCosts.forEach(e => {
                         if (e.kwh > 0 || e.period <= config.periods) {
                             let label = `E${e.period}`;
                             if (tariffType === '2.0TD') {
-                                if (e.period === 1) label += ' (Punta)';
-                                if (e.period === 2) label += ' (Llano)';
-                                if (e.period === 3) label += ' (Valle)';
+                                if (e.period === 1) label += ' - Punta';
+                                if (e.period === 2) label += ' - Llano';
+                                if (e.period === 3) label += ' - Valle';
                             }
-                            const formula = `${label}: ${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)}`;
-                            doc.text(formula, x + 1, y);
-                            doc.text(`${num(e.cost, 2)} €`, x + width - 1, y, { align: 'right' });
+                            const formula = `${label} (${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)})`;
+                            doc.text(formula, x + 2, y);
+                            doc.text(`${num(e.cost, 2)} €`, x + width - 2, y, { align: 'right' });
                             y += 3.5;
                         }
                     });
                     
-                    doc.setFontSize(6.5);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Subtotal Energía (Bruto):', x + 1, y);
-                    doc.text(`${num(res.subEnergy, 2)} €`, x + width - 1, y, { align: 'right' });
+                    doc.text('Subtotal Energía (Bruto)', x + 2, y);
+                    doc.text(`${num(res.subEnergy, 2)} €`, x + width - 2, y, { align: 'right' });
                     y += 3.5;
                     
                     // Descuento si existe
                     if (res.discountAmount > 0) {
                         doc.setTextColor(...redColor);
                         doc.setFont('helvetica', 'normal');
-                        doc.text(`Descuento (${num(res.discountRate * 100, 0)}%):`, x + 1, y);
-                        doc.text(`-${num(res.discountAmount, 2)} €`, x + width - 1, y, { align: 'right' });
+                        doc.setFontSize(5.5);
+                        doc.text(`Descuento (${num(res.discountRate * 100, 0)}%)`, x + 2, y);
+                        doc.text(`-${num(res.discountAmount, 2)} €`, x + width - 2, y, { align: 'right' });
                         y += 3.5;
                         
                         doc.setTextColor(0, 0, 0);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('Subtotal Energía (Neto):', x + 1, y);
-                        doc.text(`${num(res.subEnergyNet, 2)} €`, x + width - 1, y, { align: 'right' });
+                        doc.setFontSize(6);
+                        doc.text('Subtotal Energía (Neto)', x + 2, y);
+                        doc.text(`${num(res.subEnergyNet, 2)} €`, x + width - 2, y, { align: 'right' });
                         y += 4;
                     }
                     
                     y += 1;
                     
-                    // TOTALES
+                    // Línea separadora
                     doc.setDrawColor(150, 150, 150);
                     doc.setLineWidth(0.2);
-                    doc.line(x, y, x + width, y);
+                    doc.line(x + 2, y, x + width - 2, y);
                     y += 3;
                     
+                    // TOTALES
                     doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('SUBTOTAL BASE (P+E)', x + 2, y);
+                    doc.text(`${num(res.subBase, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(5.5);
+                    doc.text(`Imp. Eléc. (${num(res.ieRate * 100, 3)}%)`, x + 2, y);
+                    doc.text(`${num(res.costIE, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'bold');
                     doc.setFontSize(6.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('SUBTOTAL BASE (P+E):', x + 1, y);
-                    doc.text(`${num(res.subBase, 2)} €`, x + width - 1, y, { align: 'right' });
+                    doc.text('BASE IMPONIBLE', x + 2, y);
+                    doc.text(`${num(res.baseImp, 2)} €`, x + width - 2, y, { align: 'right' });
                     y += 3.5;
                     
                     doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(6);
-                    doc.text(`Imp. Eléc. (${num(res.ieRate * 100, 3)}%):`, x + 1, y);
-                    doc.text(`${num(res.costIE, 2)} €`, x + width - 1, y, { align: 'right' });
-                    y += 3.5;
-                    
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(7);
-                    doc.text('BASE IMPONIBLE:', x + 1, y);
-                    doc.text(`${num(res.baseImp, 2)} €`, x + width - 1, y, { align: 'right' });
-                    y += 3.5;
-                    
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(6);
-                    doc.text('IVA (21%):', x + 1, y);
-                    doc.text(`${num(res.costIVA, 2)} €`, x + width - 1, y, { align: 'right' });
+                    doc.setFontSize(5.5);
+                    doc.text('IVA (21%)', x + 2, y);
+                    doc.text(`${num(res.costIVA, 2)} €`, x + width - 2, y, { align: 'right' });
                     y += 5;
                     
-                    // TOTAL FACTURA
+                    // TOTAL FACTURA con fondo de color
                     doc.setFillColor(...color);
-                    doc.roundedRect(x, y, width, 7, 1, 1, 'F');
+                    doc.roundedRect(x + 1, y, width - 2, 7, 1, 1, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`TOTAL FACTURA (${res.dias_facturados}d)`, x + 1, y + 4.5);
-                    doc.text(eur(res.totalPeriod), x + width - 1, y + 4.5, { align: 'right' });
+                    doc.text(`TOTAL FACTURA (${res.dias_facturados} días)`, x + 3, y + 4.5);
+                    doc.text(eur(res.totalPeriod), x + width - 3, y + 4.5, { align: 'right' });
                     y += 9;
                     
+                    // Total año
                     doc.setTextColor(...color);
-                    doc.setFontSize(6.5);
-                    doc.text('Total Año (Proyectado):', x + 1, y);
-                    doc.text(eur(res.totalAnnual), x + width - 1, y, { align: 'right' });
+                    doc.setFontSize(6);
+                    doc.text('Total Año (Proyectado)', x + 2, y);
+                    doc.text(eur(res.totalAnnual), x + width - 2, y, { align: 'right' });
                 }
                 
-                // Generar desgloses completos en dos columnas
-                generarDesgloseCompleto(resFijo, leftX, colWidth, blueColor, 'DESGLOSE TARIFA FIJA');
-                generarDesgloseCompleto(resIndexed, rightX, colWidth, greenColor, 'DESGLOSE TARIFA INDEXADA');
+                // Generar desgloses en dos columnas
+                generarDesgloseCompleto(resFijo, leftX, col2Width, blueColor, `DESGLOSE DETALLADO (${resFijo.offer.name})`);
+                generarDesgloseCompleto(resIndexed, rightX, col2Width, greenIndexColor, `TARIFA INDEXADA (${resIndexed.offer.name})`);
                 
-                // === EXPLICACIÓN (NUEVA PÁGINA) ===
-                doc.addPage();
-                yPos = 15;
+                yPos += 120;
                 
-                doc.setFillColor(245, 245, 245);
-                doc.roundedRect(margin, yPos, contentWidth, 90, 2, 2, 'F');
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 7, { align: 'center' });
+                // === RECUADROS ROJOS DE AHORRO ===
+                const ahorroWidth = col2Width;
                 
-                yPos += 12;
-                
-                // Explicación Fija (Izquierda)
-                doc.setFontSize(8);
-                doc.setTextColor(...blueColor);
-                doc.text('💼 ¿Por qué Tarifa Fija?', leftX + 2, yPos);
-                yPos += 5;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                const fijaText = [
-                    '• Implica un precio fijo por los kilovatios que',
-                    '  consumes (kWh).',
-                    '',
-                    '• El precio se mantiene estable,',
-                    '  independientemente de cómo se comporten los',
-                    '  precios en el mercado eléctrico.',
-                    '',
-                    '• Cuando el precio del mercado está alto, el',
-                    '  cliente está protegido frente a sobresaltos.',
-                    '',
-                    '• No tendrás que estar pendiente de las',
-                    '  variaciones del mercado y podrás seguir',
-                    '  usando la electricidad como siempre.'
-                ];
-                fijaText.forEach(line => {
-                    doc.text(line, leftX + 2, yPos, { maxWidth: colWidth - 4 });
-                    yPos += 3.5;
-                });
-                
-                yPos -= fijaText.length * 3.5;
-                
-                // Explicación Indexada (Derecha)
+                // Ahorro FIJO
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(leftX, yPos, ahorroWidth, 12, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...greenColor);
-                doc.text('⚡ ¿Por qué Tarifa Indexada?', rightX + 2, yPos);
-                yPos += 5;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                const indexadaText = [
-                    '• Implica un precio variable por los kilovatios',
-                    '  que consumes (kWh) cada mes.',
-                    '',
-                    '• Es la tarifa más justa, ya que pagas el coste',
-                    '  real de la energía mes a mes.',
-                    '',
-                    '• Al contratarla, el cliente evita pagar',
-                    '  márgenes adicionales cuando el precio de la',
-                    '  electricidad es más barato.',
-                    '',
-                    '• A largo plazo, con un indexado 100%',
-                    '  funcional, se puede obtener un ahorro',
-                    '  aproximado de hasta un 20% en épocas de',
-                    '  mejor precio.'
-                ];
-                indexadaText.forEach(line => {
-                    doc.text(line, rightX + 2, yPos, { maxWidth: colWidth - 4 });
-                    yPos += 3.5;
-                });
+                doc.text('TU AHORRO ANUAL ESTIMADO ES:', leftX + 3, yPos + 5);
+                doc.setFontSize(12);
+                doc.text(`${eur(resFijo.savings)}/ AÑO`, leftX + 3, yPos + 10);
+                
+                // Ahorro INDEXADO
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(rightX, yPos, ahorroWidth, 12, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.text('TU AHORRO ANUAL ESTIMADO ES:', rightX + 3, yPos + 5);
+                doc.setFontSize(12);
+                doc.text(`${eur(resIndexed.savings)}/ AÑO`, rightX + 3, yPos + 10);
                 
                 // Guardar PDF
                 const filename = `Comparacion_Fijo_vs_Indexado_${resFijo.cups.slice(-6)}.pdf`;
                 doc.save(filename);
                 
                 window.showMessageModal(`✅ PDF generado con éxito: ${filename}`);
+                
+                // Cerrar modal
+                document.getElementById('send-offer-modal').classList.add('hidden');
+                document.getElementById('send-offer-modal').classList.remove('flex');
+                
             } catch (error) {
                 console.error('Error generando PDF dual:', error);
                 window.showErrorModal(`Error al generar PDF: ${error.message}`);
             }
         }
+
 
         async function generateMultiPDF_Dual(res) {
             try {
@@ -4992,6 +5097,299 @@
             }
         }
         
+        // --- GENERACIÓN DE HTML PARA COMPARACIÓN DUAL (FIJO VS INDEXADO) ---
+        
+        function generateDualStyledHtmlOffer(commercialCode, resFijo, resIndexed) {
+            const brand = activeBrand;
+            
+            const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            
+            const DRK_DARK = '#0c4a6e';
+            const DRK_MED = '#075985';
+            const GREEN_SAVE = '#16a34a';
+            const RED_CTA = '#CC0000';
+            const BLUE_FIXED = '#3b82f6';
+            const GREEN_INDEXED = '#16a34a';
+            
+            const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+            
+            // Determinar el ahorro (usar el mayor de los dos)
+            const ahorroFijo = resFijo.savings;
+            const ahorroIndexado = resIndexed.savings;
+            const ahorroMayor = Math.max(ahorroFijo, ahorroIndexado);
+            
+            return `
+                <div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; background-color: white;">
+                    
+                    <!-- Banner Superior Azul -->
+                    <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center; border-radius: 20px 20px 0 0;">
+                        <h1 style="color: white; font-size: 18px; font-weight: bold; margin: 0 0 5px 0; letter-spacing: 1px;">
+                            LA MEJOR OPCIÓN PARA TI ES
+                        </h1>
+                        <h2 style="color: white; font-size: 48px; font-weight: bold; margin: 0; letter-spacing: 2px;">
+                            DRK
+                        </h2>
+                        <p style="color: white; font-size: 16px; margin: 10px 0 0 0; font-weight: 600;">
+                            ${resFijo.offer.name}
+                        </p>
+                    </div>
+                    
+                    <!-- Ahorro Anual -->
+                    <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
+                        <p style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                            TU AHORRO ANUAL ESTIMADO
+                        </p>
+                        <p style="color: ${GREEN_SAVE}; font-size: 48px; font-weight: bold; margin: 0;">
+                            ${eur(ahorroMayor)}
+                        </p>
+                    </div>
+                    
+                    <!-- Tres Columnas: Actual, Fijo, Indexado -->
+                    <div style="display: flex; gap: 10px; padding: 20px; background-color: white;">
+                        
+                        <!-- Columna 1: TU FACTURA ACTUAL -->
+                        <div style="flex: 1; background-color: #fff; border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                            <div style="background-color: #f3f4f6; padding: 12px; border-bottom: 2px solid #e5e7eb;">
+                                <p style="margin: 0; font-size: 12px; font-weight: bold; color: #6b7280; text-align: center;">
+                                    TU FACTURA ACTUAL
+                                </p>
+                            </div>
+                            <div style="padding: 20px 15px; text-align: center;">
+                                <p style="margin: 0 0 5px 0; font-size: 11px; color: #9ca3af; font-weight: 600;">
+                                    TU FACTURA ACTUAL
+                                </p>
+                                <p style="margin: 0; font-size: 18px; font-weight: bold; color: ${RED_CTA}; text-decoration: line-through;">
+                                    ${eur(resFijo.originalBillPeriod)}
+                                </p>
+                                <p style="margin: 5px 0 0 0; font-size: 10px; color: #9ca3af;">
+                                    Total Periodo (${resFijo.dias_facturados} días)
+                                </p>
+                                
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: ${RED_CTA};">
+                                        ${eur(resFijo.originalBillAnnual)}/año
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna 2: TU NUEVO COSTE EN FIJO -->
+                        <div style="flex: 1; background-color: #eff6ff; border: 2px solid ${BLUE_FIXED}; border-radius: 12px; overflow: hidden;">
+                            <div style="background-color: ${BLUE_FIXED}; padding: 12px; border-bottom: 2px solid #1e40af;">
+                                <p style="margin: 0; font-size: 12px; font-weight: bold; color: white; text-align: center;">
+                                    TU NUEVO COSTE EN FIJO
+                                </p>
+                            </div>
+                            <div style="padding: 20px 15px; text-align: center;">
+                                <p style="margin: 0 0 5px 0; font-size: 11px; color: #3b82f6; font-weight: 600;">
+                                    TU NUEVO COSTE DRK
+                                </p>
+                                <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1e40af;">
+                                    ${eur(resFijo.totalPeriod / resFijo.dias_facturados * 30)}/mes
+                                </p>
+                                <p style="margin: 5px 0 0 0; font-size: 10px; color: #60a5fa;">
+                                    Estimado Mensual
+                                </p>
+                                
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bfdbfe;">
+                                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #1e40af;">
+                                        ${eur(resFijo.totalAnnual)}/año
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna 3: TU NUEVO COSTE INDEXADO -->
+                        <div style="flex: 1; background-color: #f0fdf4; border: 2px solid ${GREEN_INDEXED}; border-radius: 12px; overflow: hidden;">
+                            <div style="background-color: ${GREEN_INDEXED}; padding: 12px; border-bottom: 2px solid #15803d;">
+                                <p style="margin: 0; font-size: 12px; font-weight: bold; color: white; text-align: center;">
+                                    TU NUEVO COSTE INDEXADO
+                                </p>
+                            </div>
+                            <div style="padding: 20px 15px; text-align: center;">
+                                <p style="margin: 0 0 5px 0; font-size: 11px; color: #16a34a; font-weight: 600;">
+                                    TU NUEVO COSTE DRK
+                                </p>
+                                <p style="margin: 0; font-size: 18px; font-weight: bold; color: #15803d;">
+                                    ${eur(resIndexed.totalPeriod / resIndexed.dias_facturados * 30)}/mes
+                                </p>
+                                <p style="margin: 5px 0 0 0; font-size: 10px; color: #4ade80;">
+                                    Estimado Mensual
+                                </p>
+                                
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bbf7d0;">
+                                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #15803d;">
+                                        ${eur(resIndexed.totalAnnual)}/año
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Datos del Cliente -->
+                    <div style="background-color: #f9fafb; padding: 15px 20px; margin: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #374151;">
+                            CLIENTE: ${clientName}
+                        </p>
+                        <p style="margin: 0; font-size: 11px; color: #6b7280;">
+                            CUPS: ${resFijo.cups}
+                        </p>
+                        <p style="margin: 5px 0 0 0; font-size: 11px; color: #6b7280;">
+                            COMERCIAL: ${commercialCode}
+                        </p>
+                    </div>
+                    
+                    <!-- Nota final -->
+                    <div style="padding: 20px; background-color: #fffbeb; border-top: 3px solid #f59e0b; margin-top: 20px;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; line-height: 1.5;">
+                            ⚠️ <strong>Importante:</strong> Los cálculos mostrados son estimaciones basadas en su consumo actual. 
+                            La tarifa indexada puede variar mensualmente según el mercado eléctrico.
+                        </p>
+                    </div>
+                    
+                </div>
+            `;
+        }
+        
+        function generateMultiDualStyledHtmlOffer(commercialCode) {
+            const res = lastComparisonResult;
+            const brand = activeBrand;
+            
+            const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0);
+            
+            const GREEN_SAVE = '#16a34a';
+            const RED_CTA = '#CC0000';
+            const BLUE_FIXED = '#3b82f6';
+            const GREEN_INDEXED = '#16a34a';
+            
+            const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+            
+            // Calcular ahorros totales
+            const ahorroFijo = res.savings;
+            const ahorroIndexado = res.indexedTotals ? res.indexedTotals.savings : 0;
+            
+            // Generar listado de CUPS
+            let cupsListHtml = '';
+            res.individualResults.forEach((supply, idx) => {
+                const offerFijo = supply.offer;
+                const offerIndexado = supply.indexedComparison ? supply.indexedComparison.offer : null;
+                const savingsFijo = supply.savings;
+                const savingsIndexado = supply.indexedComparison ? supply.indexedComparison.savings : 0;
+                
+                cupsListHtml += `
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 12px 8px; font-size: 10px; color: #6b7280; font-family: monospace;">
+                            ${supply.cups.slice(-12)}
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <div style="font-size: 10px; font-weight: bold; color: #1e40af;">
+                                ${offerFijo.name}
+                            </div>
+                            <div style="font-size: 9px; color: ${GREEN_SAVE}; font-weight: bold; margin-top: 3px;">
+                                ${eur(savingsFijo)}
+                            </div>
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <div style="font-size: 10px; font-weight: bold; color: #15803d;">
+                                ${offerIndexado ? offerIndexado.name : 'N/A'}
+                            </div>
+                            <div style="font-size: 9px; color: ${GREEN_SAVE}; font-weight: bold; margin-top: 3px;">
+                                ${eur(savingsIndexado)}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            return `
+                <div style="max-width: 900px; margin: 0 auto; font-family: Arial, sans-serif; background-color: white;">
+                    
+                    <!-- Banner Superior -->
+                    <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center; border-radius: 20px 20px 0 0;">
+                        <h1 style="color: white; font-size: 18px; font-weight: bold; margin: 0 0 5px 0; letter-spacing: 1px;">
+                            MULTICUPS: COMPARACIÓN FIJO VS INDEXADO
+                        </h1>
+                        <h2 style="color: white; font-size: 42px; font-weight: bold; margin: 0; letter-spacing: 2px;">
+                            DRK ENERGÍA
+                        </h2>
+                        <p style="color: white; font-size: 14px; margin: 10px 0 0 0;">
+                            Total: ${res.cups}
+                        </p>
+                    </div>
+                    
+                    <!-- Ahorros Totales -->
+                    <div style="display: flex; gap: 15px; padding: 20px; background-color: #f8f9fa;">
+                        
+                        <!-- Ahorro FIJO -->
+                        <div style="flex: 1; background-color: #eff6ff; border: 2px solid ${BLUE_FIXED}; border-radius: 12px; padding: 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #3b82f6; text-transform: uppercase;">
+                                💼 AHORRO TOTAL CON TARIFAS FIJAS
+                            </p>
+                            <p style="margin: 0; font-size: 36px; font-weight: bold; color: ${GREEN_SAVE};">
+                                ${eur(ahorroFijo)}
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #6b7280;">
+                                Ahorro anual estimado
+                            </p>
+                        </div>
+                        
+                        <!-- Ahorro INDEXADO -->
+                        <div style="flex: 1; background-color: #f0fdf4; border: 2px solid ${GREEN_INDEXED}; border-radius: 12px; padding: 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #16a34a; text-transform: uppercase;">
+                                ⚡ AHORRO TOTAL CON TARIFAS INDEXADAS
+                            </p>
+                            <p style="margin: 0; font-size: 36px; font-weight: bold; color: ${GREEN_SAVE};">
+                                ${eur(ahorroIndexado)}
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #6b7280;">
+                                Ahorro anual estimado
+                            </p>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Tabla de CUPS -->
+                    <div style="padding: 20px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #374151; text-align: center;">
+                            📊 DETALLE POR SUMINISTRO
+                        </h3>
+                        
+                        <table style="width: 100%; border-collapse: collapse; background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                            <thead>
+                                <tr style="background-color: #f3f4f6;">
+                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: #6b7280; border-bottom: 2px solid #e5e7eb;">
+                                        CUPS
+                                    </th>
+                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: ${BLUE_FIXED}; border-bottom: 2px solid #e5e7eb;">
+                                        TARIFA FIJA
+                                    </th>
+                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: ${GREEN_INDEXED}; border-bottom: 2px solid #e5e7eb;">
+                                        TARIFA INDEXADA
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${cupsListHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Datos del Cliente -->
+                    <div style="background-color: #f9fafb; padding: 15px 20px; margin: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #374151;">
+                            CLIENTE: ${clientName}
+                        </p>
+                        <p style="margin: 0; font-size: 11px; color: #6b7280;">
+                            COMERCIAL: ${commercialCode}
+                        </p>
+                    </div>
+                    
+                </div>
+            `;
+        }
+
         function generateStyledHtmlOffer(commercialCode) {
             const bd = lastComparisonResult;
             const offer = bd.offer;
