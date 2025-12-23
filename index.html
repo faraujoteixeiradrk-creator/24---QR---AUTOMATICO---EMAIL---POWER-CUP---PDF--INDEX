@@ -768,6 +768,7 @@
         const BRANDS = {
             DRK: {
                 NAME: 'DRK', ACCENT: 'drk-500', ACCENT_TEXT: 'Energía',
+                FULL_NAME: 'DRK ENERGÍA', // AÑADIDO
                 TITLE: 'DRK COMPARADOR', // Título en mayúsculas
                 QR_URL: 'https://faraujoteixeiradrk-creator.github.io/QR-21-POWER-2-0-TD---3.0-TD-Con-PDF/',
                 QR_TEXT: 'DRK',
@@ -783,6 +784,7 @@
             },
             POWER_CUP: {
                 NAME: 'POWER CUP', ACCENT: 'powercup-500', ACCENT_TEXT: '',
+                FULL_NAME: 'POWER CUP', // AÑADIDO
                 TITLE: 'POWER CUP COMPARADOR', // Título en mayúsculas
                 QR_URL: 'https://faraujoteixeiradrk-creator.github.io/QR-21-POWER-2-0-TD---3.0-TD-Con-PDF/',
                 QR_TEXT: 'POWER',
@@ -3250,11 +3252,6 @@
                 doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
                 
                 yPos += ahorroBoxHeight + 8;
-                
-                doc.setFontSize(6);
-                doc.setTextColor(107, 114, 128);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado', col3X + ahorroBoxWidth / 2, yPos + 22, { align: 'center' });
                 
                 // === PÁGINA 2: DESARROLLO DETALLADO ===
                 doc.addPage();
