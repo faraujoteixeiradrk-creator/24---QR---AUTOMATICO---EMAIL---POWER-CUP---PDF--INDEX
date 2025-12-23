@@ -2027,14 +2027,29 @@
                 </div>
             `;
             
-            // Configurar botón de PDF
+            // Configurar botón para abrir modal (no generar PDF directamente)
             document.getElementById('send-offer-btn').onclick = () => {
-                generateMultiPDF_Dual(res);
+                // Abrir el modal para ingresar datos del comercial
+                document.getElementById('send-offer-modal').classList.remove('hidden');
+                document.getElementById('send-offer-modal').classList.add('flex');
+                // Aplicar focus ring de la marca a los inputs
+                document.querySelectorAll('#send-offer-modal input').forEach(input => {
+                    input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
+                    input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
+                });
             };
             
             // Ocultar detalles
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
+            
+            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            const resetButton = document.querySelector('button[onclick="resetToLanding()"]');
+            if (resetButton) {
+                resetButton.style.display = 'flex';
+                resetButton.textContent = '';
+                resetButton.innerHTML = 'Realizar Nueva Comparación';
+            }
         }
 
         /**
@@ -2690,14 +2705,29 @@
                 </div>
             `;
             
-            // Configurar botón de PDF con ambos resultados
+            // Configurar botón para abrir modal (no generar PDF directamente)
             document.getElementById('send-offer-btn').onclick = () => {
-                generatePDF_Dual(resFijo, resIndexed);
+                // Abrir el modal para ingresar datos del comercial
+                document.getElementById('send-offer-modal').classList.remove('hidden');
+                document.getElementById('send-offer-modal').classList.add('flex');
+                // Aplicar focus ring de la marca a los inputs
+                document.querySelectorAll('#send-offer-modal input').forEach(input => {
+                    input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
+                    input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
+                });
             };
             
             // Mostrar el botón de detalles pero que no haga nada (o mejor, ocultarlo)
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
+            
+            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            const resetButton = document.querySelector('button[onclick="resetToLanding()"]');
+            if (resetButton) {
+                resetButton.style.display = 'flex';
+                resetButton.textContent = '';
+                resetButton.innerHTML = 'Realizar Nueva Comparación';
+            }
         }
 
         function renderResultsUI(res, resIndexed = null) {
@@ -3016,10 +3046,24 @@
             try {
                 // 1. Generar el HTML
                 let htmlContent = '';
-                if (lastComparisonResult.isMulti) {
-                    htmlContent = generateMultiStyledHtmlOffer(commercialCode);
+                
+                // IMPORTANTE: Detectar si hay resultado indexado para generar HTML dual
+                if (lastIndexedResult && compareWithIndexed) {
+                    // Si hay resultado indexado, generar HTML dual
+                    if (lastComparisonResult.isMultiCups) {
+                        // MULTICUPS con índice - generar HTML especial
+                        htmlContent = generateMultiDualStyledHtmlOffer(commercialCode);
+                    } else {
+                        // Individual con índice - generar HTML especial
+                        htmlContent = generateDualStyledHtmlOffer(commercialCode, lastComparisonResult, lastIndexedResult);
+                    }
                 } else {
-                    htmlContent = generateStyledHtmlOffer(commercialCode);
+                    // Modo normal (sin indexado)
+                    if (lastComparisonResult.isMulti) {
+                        htmlContent = generateMultiStyledHtmlOffer(commercialCode);
+                    } else {
+                        htmlContent = generateStyledHtmlOffer(commercialCode);
+                    }
                 }
                 
                 // 2. Crear un elemento temporal para la copia HTML enriquecida
@@ -3705,6 +3749,23 @@
             const clientEmail = document.getElementById('client-email-input').value.trim();
             
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
+            
+            // IMPORTANTE: Detectar si hay resultado indexado para generar PDF dual
+            if (lastIndexedResult && compareWithIndexed) {
+                // Si hay resultado indexado, generar PDF dual
+                if (lastComparisonResult.isMultiCups) {
+                    // MULTICUPS con índice
+                    await generateMultiPDF_Dual(lastComparisonResult);
+                } else {
+                    // Individual con índice
+                    await generatePDF_Dual(lastComparisonResult, lastIndexedResult);
+                }
+                
+                // Cerrar modal
+                document.getElementById('send-offer-modal').classList.add('hidden');
+                document.getElementById('send-offer-modal').classList.remove('flex');
+                return;
+            }
             
             try {
                 // Mostrar mensaje de carga
