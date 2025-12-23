@@ -1864,6 +1864,7 @@
             
             const brand = activeBrand;
             const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
             
             // Banner
             const companyBanner = document.getElementById('company-banner');
@@ -1884,7 +1885,45 @@
                 Total: ${res.cups} - <span class="text-xs">${res.multiCupsList}</span>
             `;
             
-            // Contenido dual
+            // Generar listado de CUPS con sus tarifas
+            function generarListadoCUPS(color, titulo, usarIndexado = false) {
+                let html = `
+                    <div class="bg-white rounded-xl p-4 mb-4">
+                        <h4 class="font-bold text-sm ${color} mb-3">TARIFAS POR SUMINISTRO:</h4>
+                        <div class="space-y-2 text-xs">
+                `;
+                
+                res.individualResults.forEach((supply, idx) => {
+                    const offer = usarIndexado && supply.indexedComparison 
+                        ? supply.indexedComparison.offer 
+                        : supply.offer;
+                    const savings = usarIndexado && supply.indexedComparison 
+                        ? supply.indexedComparison.savings 
+                        : supply.savings;
+                    
+                    html += `
+                        <div class="bg-slate-50 rounded p-2">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-mono text-slate-600">${supply.cups.slice(-10)}</span>
+                                <span class="font-bold ${color}">${eur(savings)}</span>
+                            </div>
+                            <div class="text-slate-700">
+                                <span class="font-semibold">${offer.name}</span>
+                                ${offer.description ? `<br><span class="text-slate-500 text-xs">${offer.description}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+                
+                return html;
+            }
+            
+            // Contenido dual con listado de CUPS
             const resultCard = document.getElementById('result-card');
             resultCard.innerHTML = `
                 <div class="p-6">
@@ -1892,6 +1931,7 @@
                         📊 MULTICUPS: TARIFA FIJA vs INDEXADA
                     </h2>
                     
+                    <!-- RESUMEN TOTAL DE AHORROS -->
                     <div class="grid md:grid-cols-2 gap-6 mb-6">
                         <!-- Columna FIJO -->
                         <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border-2 border-blue-300">
@@ -1921,6 +1961,8 @@
                                     <span class="font-bold text-blue-900">${eur(res.totalAnnual / 12)}</span>
                                 </div>
                             </div>
+                            
+                            ${generarListadoCUPS('text-blue-700', 'FIJAS', false)}
                         </div>
                         
                         <!-- Columna INDEXADO -->
@@ -1951,6 +1993,8 @@
                                     <span class="font-bold text-green-900">${eur(res.indexedTotals.totalAnnual / 12)}</span>
                                 </div>
                             </div>
+                            
+                            ${generarListadoCUPS('text-green-700', 'INDEXADAS', true)}
                         </div>
                     </div>
                     
@@ -1963,7 +2007,8 @@
                             <div>
                                 <h4 class="font-black text-blue-700 mb-2">💼 ¿Por qué Tarifa Fija?</h4>
                                 <ul class="space-y-2 text-slate-700">
-                                    <li>• Precio <strong>fijo</strong> por los kilovatios que consumes (kWh).</li>
+                                    <li>• Implica un precio <strong>fijo</strong> por los kilovatios que consumes (kWh).</li>
+                                    <li>• El precio se mantiene estable, independientemente del mercado eléctrico.</li>
                                     <li>• Cubierto de sobresaltos cuando el mercado está alto.</li>
                                     <li>• No necesitas estar pendiente de variaciones.</li>
                                 </ul>
@@ -1971,8 +2016,9 @@
                             <div>
                                 <h4 class="font-black text-green-700 mb-2">⚡ ¿Por qué Tarifa Indexada?</h4>
                                 <ul class="space-y-2 text-slate-700">
-                                    <li>• Precio <strong>variable</strong> según el mercado cada mes.</li>
+                                    <li>• Implica un precio <strong>variable</strong> por los kilovatios cada mes.</li>
                                     <li>• Tarifa más justa: pagas el coste real de la energía.</li>
+                                    <li>• Evitas pagar márgenes adicionales cuando el precio es barato.</li>
                                     <li>• Ahorro de hasta 20% en épocas de mejor precio.</li>
                                 </ul>
                             </div>
@@ -2405,7 +2451,12 @@
             
             const brand = activeBrand;
             const isDrk = brand.NAME.includes('DRK');
+            const tariffType = resFijo.originalTariffType || currentTariffType;
+            const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
+            
             const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
             
             // Banner de empresa
             const companyBanner = document.getElementById('company-banner');
@@ -2426,7 +2477,94 @@
                 CUPS: <span class="font-mono text-slate-700">${resFijo.cups}</span>
             `;
             
-            // Crear contenido dual
+            // Función auxiliar para generar desglose de cálculos
+            function generarDesgloseCalculo(res, colorClass, borderClass) {
+                let powerBreakdown = '';
+                res.powerCosts.forEach(p => {
+                    if (p.kw > 0 || p.period <= config.powerPeriods) {
+                        powerBreakdown += `<div class="flex justify-between text-xs"><span>P${p.period} (${num(p.kw, 2)} kW × ${res.dias_facturados}d × ${numPriceFormula(p.priceDay)} €/día)</span><span class="font-mono">${num(p.cost, 2)} €</span></div>`;
+                    }
+                });
+                
+                let energyBreakdown = '';
+                res.energyCosts.forEach(e => {
+                    if (e.kwh > 0 || e.period <= config.periods) {
+                        let label = `E${e.period}`;
+                        if (tariffType === '2.0TD') {
+                            if (e.period === 1) label += ' (Punta)';
+                            if (e.period === 2) label += ' (Llano)';
+                            if (e.period === 3) label += ' (Valle)';
+                        }
+                        energyBreakdown += `<div class="flex justify-between text-xs"><span>${label} (${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)} €/kWh)</span><span class="font-mono">${num(e.cost, 2)} €</span></div>`;
+                    }
+                });
+                
+                let discountHtml = '';
+                if (res.discountAmount > 0) {
+                    discountHtml = `
+                        <div class="flex justify-between text-xs text-red-600 mt-2">
+                            <span>Descuento (${num(res.discountRate * 100, 0)}%)</span>
+                            <span class="font-mono">-${num(res.discountAmount, 2)} €</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-bold mt-1 pt-1 border-t border-dashed">
+                            <span>Subtotal Energía (Neto)</span>
+                            <span class="font-mono">${num(res.subEnergyNet, 2)} €</span>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="bg-white rounded-lg p-4 text-slate-700 text-xs">
+                        <div class="mb-3">
+                            <p class="font-black text-sm ${colorClass} mb-2">TÉRMINO POTENCIA</p>
+                            ${powerBreakdown}
+                            <div class="flex justify-between font-bold mt-2 pt-2 border-t">
+                                <span>Subtotal Potencia</span>
+                                <span class="font-mono">${num(res.subPower, 2)} €</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="font-black text-sm ${colorClass} mb-2">TÉRMINO ENERGÍA</p>
+                            ${energyBreakdown}
+                            <div class="flex justify-between font-bold mt-2 pt-2 border-t">
+                                <span>Subtotal Energía (Bruto)</span>
+                                <span class="font-mono">${num(res.subEnergy, 2)} €</span>
+                            </div>
+                            ${discountHtml}
+                        </div>
+                        
+                        <div class="border-t-2 pt-3 space-y-1">
+                            <div class="flex justify-between font-bold">
+                                <span>SUBTOTAL BASE (P+E)</span>
+                                <span class="font-mono">${num(res.subBase, 2)} €</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span>Imp. Eléctrico (${num(res.ieRate * 100, 3)}%)</span>
+                                <span class="font-mono">${num(res.costIE, 2)} €</span>
+                            </div>
+                            <div class="flex justify-between font-bold ${colorClass}">
+                                <span>BASE IMPONIBLE</span>
+                                <span class="font-mono">${num(res.baseImp, 2)} €</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span>IVA (21%)</span>
+                                <span class="font-mono">${num(res.costIVA, 2)} €</span>
+                            </div>
+                            <div class="flex justify-between font-black text-base ${colorClass} mt-2 pt-2 border-t-2">
+                                <span>TOTAL FACTURA (${res.dias_facturados} días)</span>
+                                <span class="font-mono">${eur(res.totalPeriod)}</span>
+                            </div>
+                            <div class="flex justify-between font-bold ${colorClass} text-sm">
+                                <span>Total Año (Proyectado)</span>
+                                <span class="font-mono">${eur(res.totalAnnual)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Crear contenido dual con desarrollo completo de cálculos
             const resultCard = document.getElementById('result-card');
             resultCard.innerHTML = `
                 <div class="p-6">
@@ -2434,7 +2572,7 @@
                         📊 COMPARACIÓN: TARIFA FIJA vs INDEXADA
                     </h2>
                     
-                    <!-- Dos columnas con los resultados -->
+                    <!-- RESUMEN DE AHORROS -->
                     <div class="grid md:grid-cols-2 gap-6 mb-6">
                         <!-- Columna FIJO -->
                         <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border-2 border-blue-300">
@@ -2499,6 +2637,30 @@
                         </div>
                     </div>
                     
+                    <!-- DESARROLLO COMPLETO DE CÁLCULOS -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-black text-slate-800 mb-4 text-center">
+                            🧮 DESARROLLO DETALLADO DE CÁLCULOS
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Desglose FIJO -->
+                            <div>
+                                <div class="bg-blue-600 text-white px-4 py-2 rounded-t-xl text-sm font-black text-center">
+                                    DESGLOSE TARIFA FIJA
+                                </div>
+                                ${generarDesgloseCalculo(resFijo, 'text-blue-700', 'border-blue-200')}
+                            </div>
+                            
+                            <!-- Desglose INDEXADO -->
+                            <div>
+                                <div class="bg-green-600 text-white px-4 py-2 rounded-t-xl text-sm font-black text-center">
+                                    DESGLOSE TARIFA INDEXADA
+                                </div>
+                                ${generarDesgloseCalculo(resIndexed, 'text-green-700', 'border-green-200')}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Explicación de diferencias -->
                     <div class="bg-slate-50 rounded-xl p-6 mb-4">
                         <h3 class="text-lg font-black text-slate-800 mb-4 text-center">
@@ -2508,8 +2670,9 @@
                             <div>
                                 <h4 class="font-black text-blue-700 mb-2">💼 ¿Por qué Tarifa Fija?</h4>
                                 <ul class="space-y-2 text-slate-700">
-                                    <li>• Precio <strong>fijo</strong> por los kilovatios que consumes (kWh), independientemente de cómo se comporten los precios del mercado eléctrico.</li>
-                                    <li>• Cuando el precio del mercado está alto, el cliente está cubierto de los sobresaltos.</li>
+                                    <li>• Implica un precio <strong>fijo</strong> por los kilovatios que consumes (kWh).</li>
+                                    <li>• El precio se mantiene estable, independientemente de cómo se comporten los precios en el mercado eléctrico.</li>
+                                    <li>• Cuando el precio del mercado está alto, el cliente está protegido frente a sobresaltos.</li>
                                     <li>• No tendrás que estar pendiente de las variaciones del mercado y podrás seguir usando la electricidad como siempre.</li>
                                 </ul>
                             </div>
@@ -2517,9 +2680,9 @@
                                 <h4 class="font-black text-green-700 mb-2">⚡ ¿Por qué Tarifa Indexada?</h4>
                                 <ul class="space-y-2 text-slate-700">
                                     <li>• Implica un precio <strong>variable</strong> por los kilovatios que consumes (kWh) cada mes.</li>
-                                    <li>• Es la tarifa más justa ya que pagas por el coste de la energía cada mes.</li>
-                                    <li>• Al contrario, el cliente evita pagar un margen más amplio cuando el precio de electricidad es más barato.</li>
-                                    <li>• A la larga, con un indexado 100% funcional se puede obtener un ahorro aproximado de hasta un 20% en el precio de energía en las épocas de mejor precio.</li>
+                                    <li>• Es la tarifa más justa, ya que pagas el coste real de la energía mes a mes.</li>
+                                    <li>• Al contratarla, el cliente evita pagar márgenes adicionales cuando el precio de la electricidad es más barato.</li>
+                                    <li>• A largo plazo, con un indexado 100% funcional, se puede obtener un ahorro aproximado de hasta un 20% en épocas de mejor precio.</li>
                                 </ul>
                             </div>
                         </div>
@@ -2532,7 +2695,7 @@
                 generatePDF_Dual(resFijo, resIndexed);
             };
             
-            // Ocultar el botón de detalles (no tiene sentido en comparación dual)
+            // Mostrar el botón de detalles pero que no haga nada (o mejor, ocultarlo)
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
         }
@@ -2890,7 +3053,7 @@
             }
         }
         
-        // --- GENERACIÓN DE PDF CON COMPARACIÓN DUAL (FIJO VS INDEXADO) ---
+        // --- GENERACIÓN DE PDF CON COMPARACIÓN DUAL (FIJO VS INDEXADO) CON DESARROLLO COMPLETO ---
         
         async function generatePDF_Dual(resFijo, resIndexed) {
             try {
@@ -2900,10 +3063,10 @@
                 const doc = new jsPDF('p', 'mm', 'a4');
                 
                 const brand = activeBrand;
-                const isDrk = true; // Siempre DRK para indexadas
                 const tariffType = resFijo.originalTariffType || currentTariffType;
+                const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
                 
-                // Colores
+                // Colores (mantener los mismos del HTML)
                 const darkColor = [107, 125, 142];
                 const greenColor = [22, 163, 74];
                 const blueColor = [59, 130, 246];
@@ -2911,15 +3074,16 @@
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+                const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
                 
                 let yPos = 0;
                 const pageWidth = 210;
-                const margin = 15;
+                const margin = 12;
                 const contentWidth = pageWidth - (2 * margin);
-                const colWidth = (contentWidth / 2) - 3;
+                const colWidth = (contentWidth / 2) - 2;
                 
                 // === CABECERA ===
-                const headerHeight = 40;
+                const headerHeight = 35;
                 for (let i = 0; i < pageWidth; i++) {
                     const ratio = i / pageWidth;
                     const r = Math.round(darkColor[0] + (240 - darkColor[0]) * ratio);
@@ -2930,151 +3094,251 @@
                 }
                 
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(24);
+                doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
                 doc.text('DRK ENERGÍA', margin, 15);
-                doc.setFontSize(12);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Comparación: Tarifa Fija vs Indexada', margin, 25);
+                doc.text('Comparación: Tarifa Fija vs Indexada', margin, 22);
                 
-                yPos = headerHeight + 10;
+                yPos = headerHeight + 8;
                 
                 // === INFORMACIÓN DEL CUPS ===
                 doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
+                doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
                 doc.text(`CUPS: ${resFijo.cups}`, margin, yPos);
-                yPos += 10;
+                doc.text(`Periodo: ${resFijo.dias_facturados} días`, pageWidth - margin, yPos, { align: 'right' });
+                yPos += 8;
                 
                 // === TÍTULO DE COMPARACIÓN ===
                 doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
+                doc.roundedRect(margin, yPos, contentWidth, 8, 1, 1, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(14);
+                doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('COMPARACIÓN: TARIFA FIJA VS INDEXADA', pageWidth / 2, yPos + 6.5, { align: 'center' });
-                yPos += 15;
+                doc.text('COMPARACIÓN: TARIFA FIJA VS INDEXADA', pageWidth / 2, yPos + 5.5, { align: 'center' });
+                yPos += 12;
                 
-                // === DOS COLUMNAS ===
+                // === RESUMEN DE AHORROS (DOS COLUMNAS) ===
                 const leftX = margin;
-                const rightX = margin + colWidth + 6;
+                const rightX = margin + colWidth + 4;
                 
-                // COLUMNA IZQUIERDA - TARIFA FIJA
-                doc.setFillColor(59, 130, 246, 0.1);
-                doc.roundedRect(leftX, yPos, colWidth, 90, 2, 2, 'F');
+                // Función auxiliar para generar resumen
+                function generarResumenAhorro(res, x, width, color, titulo) {
+                    let y = yPos;
+                    
+                    // Cabecera
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x, y, width, 8, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(titulo, x + width / 2, y + 5.5, { align: 'center' });
+                    y += 10;
+                    
+                    // Nombre de tarifa
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    const splitName = doc.splitTextToSize(res.offer.name, width - 4);
+                    doc.text(splitName, x + 2, y);
+                    y += splitName.length * 4;
+                    
+                    // Ahorro
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Ahorro Anual:', x + 2, y);
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...greenColor);
+                    doc.text(eur(res.savings), x + width - 2, y, { align: 'right' });
+                    y += 6;
+                    
+                    // Costes
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Coste Actual:', x + 2, y);
+                    doc.setTextColor(...redColor);
+                    doc.text(eur(res.originalBillAnnual), x + width - 2, y, { align: 'right' });
+                    y += 4;
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Nuevo Coste Anual:', x + 2, y);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(eur(res.totalAnnual), x + width - 2, y, { align: 'right' });
+                    y += 4;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Coste Mensual:', x + 2, y);
+                    doc.text(eur(res.totalAnnual / 12), x + width - 2, y, { align: 'right' });
+                }
                 
-                // Cabecera Fija
-                doc.setFillColor(...blueColor);
-                doc.roundedRect(leftX, yPos, colWidth, 12, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💼 TARIFA FIJA', leftX + colWidth / 2, yPos + 8, { align: 'center' });
+                // Generar resúmenes
+                generarResumenAhorro(resFijo, leftX, colWidth, blueColor, '💼 TARIFA FIJA');
+                generarResumenAhorro(resIndexed, rightX, colWidth, greenColor, '⚡ TARIFA INDEXADA');
                 
-                let yFixed = yPos + 18;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text(resFijo.offer.name, leftX + 2, yFixed, { maxWidth: colWidth - 4 });
-                yFixed += 5;
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(resFijo.offer.description || '', leftX + 2, yFixed, { maxWidth: colWidth - 4 });
-                yFixed += 10;
+                yPos += 45;
                 
-                // Ahorro Fijo
-                doc.setFontSize(8);
-                doc.text('Ahorro Anual:', leftX + 2, yFixed);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...greenColor);
-                doc.text(eur(resFijo.savings), leftX + colWidth - 2, yFixed, { align: 'right' });
-                yFixed += 10;
+                // === DESARROLLO COMPLETO DE CÁLCULOS ===
+                doc.addPage();
+                yPos = 15;
                 
-                // Costes Fijo
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Actual:', leftX + 2, yFixed);
-                doc.setTextColor(...redColor);
-                doc.text(eur(resFijo.originalBillAnnual), leftX + colWidth - 2, yFixed, { align: 'right' });
-                yFixed += 5;
-                
-                doc.setTextColor(0, 0, 0);
-                doc.text('Nuevo Coste Anual:', leftX + 2, yFixed);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resFijo.totalAnnual), leftX + colWidth - 2, yFixed, { align: 'right' });
-                yFixed += 5;
-                
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Mensual:', leftX + 2, yFixed);
-                doc.text(eur(resFijo.totalAnnual / 12), leftX + colWidth - 2, yFixed, { align: 'right' });
-                
-                // COLUMNA DERECHA - TARIFA INDEXADA
-                doc.setFillColor(34, 197, 94, 0.1);
-                doc.roundedRect(rightX, yPos, colWidth, 90, 2, 2, 'F');
-                
-                // Cabecera Indexada
-                doc.setFillColor(...greenColor);
-                doc.roundedRect(rightX, yPos, colWidth, 12, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ TARIFA INDEXADA', rightX + colWidth / 2, yPos + 8, { align: 'center' });
-                
-                let yIndexed = yPos + 18;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text(resIndexed.offer.name, rightX + 2, yIndexed, { maxWidth: colWidth - 4 });
-                yIndexed += 5;
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(resIndexed.offer.description || '', rightX + 2, yIndexed, { maxWidth: colWidth - 4 });
-                yIndexed += 10;
-                
-                // Ahorro Indexado
-                doc.setFontSize(8);
-                doc.text('Ahorro Anual:', rightX + 2, yIndexed);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...greenColor);
-                doc.text(eur(resIndexed.savings), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                yIndexed += 10;
-                
-                // Costes Indexado
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Actual:', rightX + 2, yIndexed);
-                doc.setTextColor(...redColor);
-                doc.text(eur(resIndexed.originalBillAnnual), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                yIndexed += 5;
-                
-                doc.setTextColor(0, 0, 0);
-                doc.text('Nuevo Coste Anual:', rightX + 2, yIndexed);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resIndexed.totalAnnual), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                yIndexed += 5;
-                
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Mensual:', rightX + 2, yIndexed);
-                doc.text(eur(resIndexed.totalAnnual / 12), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                
-                yPos += 100;
-                
-                // === EXPLICACIÓN ===
-                doc.setFillColor(245, 245, 245);
-                doc.roundedRect(margin, yPos, contentWidth, 80, 2, 2, 'F');
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text('DESARROLLO DETALLADO DE CÁLCULOS', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
                 
-                yPos += 15;
+                // Función para generar desglose completo
+                function generarDesgloseCompleto(res, x, width, color, titulo) {
+                    let y = yPos;
+                    
+                    // Cabecera del desglose
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x, y, width, 6, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(titulo, x + width / 2, y + 4, { align: 'center' });
+                    y += 8;
+                    
+                    // TÉRMINO POTENCIA
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('TÉRMINO POTENCIA', x + 1, y);
+                    y += 4;
+                    
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'normal');
+                    res.powerCosts.forEach(p => {
+                        if (p.kw > 0 || p.period <= config.powerPeriods) {
+                            const formula = `P${p.period}: ${num(p.kw, 2)} kW × ${res.dias_facturados}d × ${numPriceFormula(p.priceDay)}`;
+                            doc.text(formula, x + 1, y);
+                            doc.text(`${num(p.cost, 2)} €`, x + width - 1, y, { align: 'right' });
+                            y += 3.5;
+                        }
+                    });
+                    
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Subtotal Potencia:', x + 1, y);
+                    doc.text(`${num(res.subPower, 2)} €`, x + width - 1, y, { align: 'right' });
+                    y += 5;
+                    
+                    // TÉRMINO ENERGÍA
+                    doc.setFontSize(7);
+                    doc.text('TÉRMINO ENERGÍA', x + 1, y);
+                    y += 4;
+                    
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'normal');
+                    res.energyCosts.forEach(e => {
+                        if (e.kwh > 0 || e.period <= config.periods) {
+                            let label = `E${e.period}`;
+                            if (tariffType === '2.0TD') {
+                                if (e.period === 1) label += ' (Punta)';
+                                if (e.period === 2) label += ' (Llano)';
+                                if (e.period === 3) label += ' (Valle)';
+                            }
+                            const formula = `${label}: ${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)}`;
+                            doc.text(formula, x + 1, y);
+                            doc.text(`${num(e.cost, 2)} €`, x + width - 1, y, { align: 'right' });
+                            y += 3.5;
+                        }
+                    });
+                    
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Subtotal Energía (Bruto):', x + 1, y);
+                    doc.text(`${num(res.subEnergy, 2)} €`, x + width - 1, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    // Descuento si existe
+                    if (res.discountAmount > 0) {
+                        doc.setTextColor(...redColor);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`Descuento (${num(res.discountRate * 100, 0)}%):`, x + 1, y);
+                        doc.text(`-${num(res.discountAmount, 2)} €`, x + width - 1, y, { align: 'right' });
+                        y += 3.5;
+                        
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Subtotal Energía (Neto):', x + 1, y);
+                        doc.text(`${num(res.subEnergyNet, 2)} €`, x + width - 1, y, { align: 'right' });
+                        y += 4;
+                    }
+                    
+                    y += 1;
+                    
+                    // TOTALES
+                    doc.setDrawColor(150, 150, 150);
+                    doc.setLineWidth(0.2);
+                    doc.line(x, y, x + width, y);
+                    y += 3;
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('SUBTOTAL BASE (P+E):', x + 1, y);
+                    doc.text(`${num(res.subBase, 2)} €`, x + width - 1, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(6);
+                    doc.text(`Imp. Eléc. (${num(res.ieRate * 100, 3)}%):`, x + 1, y);
+                    doc.text(`${num(res.costIE, 2)} €`, x + width - 1, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(7);
+                    doc.text('BASE IMPONIBLE:', x + 1, y);
+                    doc.text(`${num(res.baseImp, 2)} €`, x + width - 1, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(6);
+                    doc.text('IVA (21%):', x + 1, y);
+                    doc.text(`${num(res.costIVA, 2)} €`, x + width - 1, y, { align: 'right' });
+                    y += 5;
+                    
+                    // TOTAL FACTURA
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x, y, width, 7, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`TOTAL FACTURA (${res.dias_facturados}d)`, x + 1, y + 4.5);
+                    doc.text(eur(res.totalPeriod), x + width - 1, y + 4.5, { align: 'right' });
+                    y += 9;
+                    
+                    doc.setTextColor(...color);
+                    doc.setFontSize(6.5);
+                    doc.text('Total Año (Proyectado):', x + 1, y);
+                    doc.text(eur(res.totalAnnual), x + width - 1, y, { align: 'right' });
+                }
+                
+                // Generar desgloses completos en dos columnas
+                generarDesgloseCompleto(resFijo, leftX, colWidth, blueColor, 'DESGLOSE TARIFA FIJA');
+                generarDesgloseCompleto(resIndexed, rightX, colWidth, greenColor, 'DESGLOSE TARIFA INDEXADA');
+                
+                // === EXPLICACIÓN (NUEVA PÁGINA) ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, yPos, contentWidth, 90, 2, 2, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 7, { align: 'center' });
+                
+                yPos += 12;
                 
                 // Explicación Fija (Izquierda)
-                doc.setFontSize(9);
+                doc.setFontSize(8);
                 doc.setTextColor(...blueColor);
                 doc.text('💼 ¿Por qué Tarifa Fija?', leftX + 2, yPos);
                 yPos += 5;
@@ -3082,22 +3346,29 @@
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
                 const fijaText = [
-                    '• Precio fijo por los kilovatios que consumes',
-                    '  (kWh), independientemente del mercado eléctrico.',
-                    '• Cuando el precio del mercado está alto, el cliente',
-                    '  está cubierto de los sobresaltos.',
-                    '• No tendrás que estar pendiente de las variaciones',
-                    '  del mercado.'
+                    '• Implica un precio fijo por los kilovatios que',
+                    '  consumes (kWh).',
+                    '',
+                    '• El precio se mantiene estable,',
+                    '  independientemente de cómo se comporten los',
+                    '  precios en el mercado eléctrico.',
+                    '',
+                    '• Cuando el precio del mercado está alto, el',
+                    '  cliente está protegido frente a sobresaltos.',
+                    '',
+                    '• No tendrás que estar pendiente de las',
+                    '  variaciones del mercado y podrás seguir',
+                    '  usando la electricidad como siempre.'
                 ];
                 fijaText.forEach(line => {
                     doc.text(line, leftX + 2, yPos, { maxWidth: colWidth - 4 });
-                    yPos += 4;
+                    yPos += 3.5;
                 });
                 
-                yPos -= fijaText.length * 4;
+                yPos -= fijaText.length * 3.5;
                 
                 // Explicación Indexada (Derecha)
-                doc.setFontSize(9);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...greenColor);
                 doc.text('⚡ ¿Por qué Tarifa Indexada?', rightX + 2, yPos);
@@ -3106,18 +3377,24 @@
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
                 const indexadaText = [
-                    '• Implica un precio variable por los kilovatios que',
-                    '  consumes (kWh) cada mes.',
-                    '• Es la tarifa más justa ya que pagas por el coste',
-                    '  de la energía cada mes.',
-                    '• El cliente evita pagar un margen más amplio',
-                    '  cuando el precio de electricidad es más barato.',
-                    '• A la larga, se puede obtener un ahorro de hasta',
-                    '  un 20% en el precio de energía.'
+                    '• Implica un precio variable por los kilovatios',
+                    '  que consumes (kWh) cada mes.',
+                    '',
+                    '• Es la tarifa más justa, ya que pagas el coste',
+                    '  real de la energía mes a mes.',
+                    '',
+                    '• Al contratarla, el cliente evita pagar',
+                    '  márgenes adicionales cuando el precio de la',
+                    '  electricidad es más barato.',
+                    '',
+                    '• A largo plazo, con un indexado 100%',
+                    '  funcional, se puede obtener un ahorro',
+                    '  aproximado de hasta un 20% en épocas de',
+                    '  mejor precio.'
                 ];
                 indexadaText.forEach(line => {
                     doc.text(line, rightX + 2, yPos, { maxWidth: colWidth - 4 });
-                    yPos += 4;
+                    yPos += 3.5;
                 });
                 
                 // Guardar PDF
@@ -3130,249 +3407,7 @@
                 window.showErrorModal(`Error al generar PDF: ${error.message}`);
             }
         }
-        
-        // --- GENERACIÓN DE PDF CON COMPARACIÓN DUAL (FIJO VS INDEXADO) ---
-        
-        async function generatePDF_Dual(resFijo, resIndexed) {
-            try {
-                window.showMessageModal("⏳ Generando PDF con comparación Fijo vs Indexado... Por favor espere.");
-                
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-                
-                const brand = activeBrand;
-                const isDrk = true; // Siempre DRK para indexadas
-                const tariffType = resFijo.originalTariffType || currentTariffType;
-                
-                // Colores
-                const darkColor = [107, 125, 142];
-                const greenColor = [22, 163, 74];
-                const blueColor = [59, 130, 246];
-                const redColor = [220, 38, 38];
-                
-                const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
-                const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
-                
-                let yPos = 0;
-                const pageWidth = 210;
-                const margin = 15;
-                const contentWidth = pageWidth - (2 * margin);
-                const colWidth = (contentWidth / 2) - 3;
-                
-                // === CABECERA ===
-                const headerHeight = 40;
-                for (let i = 0; i < pageWidth; i++) {
-                    const ratio = i / pageWidth;
-                    const r = Math.round(darkColor[0] + (240 - darkColor[0]) * ratio);
-                    const g = Math.round(darkColor[1] + (245 - darkColor[1]) * ratio);
-                    const b = Math.round(darkColor[2] + (250 - darkColor[2]) * ratio);
-                    doc.setFillColor(r, g, b);
-                    doc.rect(i, 0, 1, headerHeight, 'F');
-                }
-                
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(24);
-                doc.setFont('helvetica', 'bold');
-                doc.text('DRK ENERGÍA', margin, 15);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Comparación: Tarifa Fija vs Indexada', margin, 25);
-                
-                yPos = headerHeight + 10;
-                
-                // === INFORMACIÓN DEL CUPS ===
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`CUPS: ${resFijo.cups}`, margin, yPos);
-                yPos += 10;
-                
-                // === TÍTULO DE COMPARACIÓN ===
-                doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('COMPARACIÓN: TARIFA FIJA VS INDEXADA', pageWidth / 2, yPos + 6.5, { align: 'center' });
-                yPos += 15;
-                
-                // === DOS COLUMNAS ===
-                const leftX = margin;
-                const rightX = margin + colWidth + 6;
-                
-                // COLUMNA IZQUIERDA - TARIFA FIJA
-                doc.setFillColor(59, 130, 246, 0.1);
-                doc.roundedRect(leftX, yPos, colWidth, 90, 2, 2, 'F');
-                
-                // Cabecera Fija
-                doc.setFillColor(...blueColor);
-                doc.roundedRect(leftX, yPos, colWidth, 12, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💼 TARIFA FIJA', leftX + colWidth / 2, yPos + 8, { align: 'center' });
-                
-                let yFixed = yPos + 18;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text(resFijo.offer.name, leftX + 2, yFixed, { maxWidth: colWidth - 4 });
-                yFixed += 5;
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(resFijo.offer.description || '', leftX + 2, yFixed, { maxWidth: colWidth - 4 });
-                yFixed += 10;
-                
-                // Ahorro Fijo
-                doc.setFontSize(8);
-                doc.text('Ahorro Anual:', leftX + 2, yFixed);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...greenColor);
-                doc.text(eur(resFijo.savings), leftX + colWidth - 2, yFixed, { align: 'right' });
-                yFixed += 10;
-                
-                // Costes Fijo
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Actual:', leftX + 2, yFixed);
-                doc.setTextColor(...redColor);
-                doc.text(eur(resFijo.originalBillAnnual), leftX + colWidth - 2, yFixed, { align: 'right' });
-                yFixed += 5;
-                
-                doc.setTextColor(0, 0, 0);
-                doc.text('Nuevo Coste Anual:', leftX + 2, yFixed);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resFijo.totalAnnual), leftX + colWidth - 2, yFixed, { align: 'right' });
-                yFixed += 5;
-                
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Mensual:', leftX + 2, yFixed);
-                doc.text(eur(resFijo.totalAnnual / 12), leftX + colWidth - 2, yFixed, { align: 'right' });
-                
-                // COLUMNA DERECHA - TARIFA INDEXADA
-                doc.setFillColor(34, 197, 94, 0.1);
-                doc.roundedRect(rightX, yPos, colWidth, 90, 2, 2, 'F');
-                
-                // Cabecera Indexada
-                doc.setFillColor(...greenColor);
-                doc.roundedRect(rightX, yPos, colWidth, 12, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ TARIFA INDEXADA', rightX + colWidth / 2, yPos + 8, { align: 'center' });
-                
-                let yIndexed = yPos + 18;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text(resIndexed.offer.name, rightX + 2, yIndexed, { maxWidth: colWidth - 4 });
-                yIndexed += 5;
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(resIndexed.offer.description || '', rightX + 2, yIndexed, { maxWidth: colWidth - 4 });
-                yIndexed += 10;
-                
-                // Ahorro Indexado
-                doc.setFontSize(8);
-                doc.text('Ahorro Anual:', rightX + 2, yIndexed);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...greenColor);
-                doc.text(eur(resIndexed.savings), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                yIndexed += 10;
-                
-                // Costes Indexado
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Actual:', rightX + 2, yIndexed);
-                doc.setTextColor(...redColor);
-                doc.text(eur(resIndexed.originalBillAnnual), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                yIndexed += 5;
-                
-                doc.setTextColor(0, 0, 0);
-                doc.text('Nuevo Coste Anual:', rightX + 2, yIndexed);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resIndexed.totalAnnual), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                yIndexed += 5;
-                
-                doc.setFont('helvetica', 'normal');
-                doc.text('Coste Mensual:', rightX + 2, yIndexed);
-                doc.text(eur(resIndexed.totalAnnual / 12), rightX + colWidth - 2, yIndexed, { align: 'right' });
-                
-                yPos += 100;
-                
-                // === EXPLICACIÓN ===
-                doc.setFillColor(245, 245, 245);
-                doc.roundedRect(margin, yPos, contentWidth, 80, 2, 2, 'F');
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'bold');
-                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
-                
-                yPos += 15;
-                
-                // Explicación Fija (Izquierda)
-                doc.setFontSize(9);
-                doc.setTextColor(...blueColor);
-                doc.text('💼 ¿Por qué Tarifa Fija?', leftX + 2, yPos);
-                yPos += 5;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                const fijaText = [
-                    '• Precio fijo por los kilovatios que consumes',
-                    '  (kWh), independientemente del mercado eléctrico.',
-                    '• Cuando el precio del mercado está alto, el cliente',
-                    '  está cubierto de los sobresaltos.',
-                    '• No tendrás que estar pendiente de las variaciones',
-                    '  del mercado.'
-                ];
-                fijaText.forEach(line => {
-                    doc.text(line, leftX + 2, yPos, { maxWidth: colWidth - 4 });
-                    yPos += 4;
-                });
-                
-                yPos -= fijaText.length * 4;
-                
-                // Explicación Indexada (Derecha)
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...greenColor);
-                doc.text('⚡ ¿Por qué Tarifa Indexada?', rightX + 2, yPos);
-                yPos += 5;
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                const indexadaText = [
-                    '• Implica un precio variable por los kilovatios que',
-                    '  consumes (kWh) cada mes.',
-                    '• Es la tarifa más justa ya que pagas por el coste',
-                    '  de la energía cada mes.',
-                    '• El cliente evita pagar un margen más amplio',
-                    '  cuando el precio de electricidad es más barato.',
-                    '• A la larga, se puede obtener un ahorro de hasta',
-                    '  un 20% en el precio de energía.'
-                ];
-                indexadaText.forEach(line => {
-                    doc.text(line, rightX + 2, yPos, { maxWidth: colWidth - 4 });
-                    yPos += 4;
-                });
-                
-                // Guardar PDF
-                const filename = `Comparacion_Fijo_vs_Indexado_${resFijo.cups.slice(-6)}.pdf`;
-                doc.save(filename);
-                
-                window.showMessageModal(`✅ PDF generado con éxito: ${filename}`);
-            } catch (error) {
-                console.error('Error generando PDF dual:', error);
-                window.showErrorModal(`Error al generar PDF: ${error.message}`);
-            }
-        }
-        
-        // Nueva función para generar PDF de MULTICUPS con comparación dual
+
         async function generateMultiPDF_Dual(res) {
             try {
                 window.showMessageModal("⏳ Generando PDF MULTICUPS con comparación Fijo vs Indexado... Por favor espere.");
@@ -3559,6 +3594,93 @@
                 indexadaText.forEach(line => {
                     doc.text(line, rightX + 2, yPos, { maxWidth: colWidth - 4 });
                     yPos += 4;
+                });
+                
+                // === NUEVA PÁGINA: LISTADO DETALLADO DE CUPS ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DETALLE POR SUMINISTRO', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 10;
+                
+                // Función para generar listado de un CUPS
+                function generarLineaCUPS(supply, x, width, color, usarIndexado = false) {
+                    const offer = usarIndexado && supply.indexedComparison 
+                        ? supply.indexedComparison.offer 
+                        : supply.offer;
+                    const savings = usarIndexado && supply.indexedComparison 
+                        ? supply.indexedComparison.savings 
+                        : supply.savings;
+                    
+                    // Fondo claro
+                    doc.setFillColor(...color, 0.05);
+                    doc.roundedRect(x, yPos, width, 12, 1, 1, 'F');
+                    
+                    // CUPS
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(supply.cups.slice(-12), x + 1, yPos + 3);
+                    
+                    // Ahorro
+                    doc.setTextColor(...greenColor);
+                    doc.text(eur(savings), x + width - 1, yPos + 3, { align: 'right' });
+                    
+                    // Tarifa
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'normal');
+                    const tarifaText = doc.splitTextToSize(`${offer.name}`, width - 2);
+                    doc.text(tarifaText[0], x + 1, yPos + 7);
+                    if (tarifaText.length > 1) {
+                        doc.text(tarifaText[1], x + 1, yPos + 10);
+                    }
+                }
+                
+                // Cabeceras de las columnas
+                doc.setFillColor(...blueColor);
+                doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                
+                doc.setFillColor(...greenColor);
+                doc.roundedRect(rightX, yPos, colWidth, 7, 1, 1, 'F');
+                doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                
+                yPos += 9;
+                
+                // Listar todos los CUPS
+                res.individualResults.forEach((supply, idx) => {
+                    // Verificar si necesitamos nueva página
+                    if (yPos > 260) {
+                        doc.addPage();
+                        yPos = 15;
+                        
+                        // Repetir cabeceras
+                        doc.setFillColor(...blueColor);
+                        doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                        
+                        doc.setFillColor(...greenColor);
+                        doc.roundedRect(rightX, yPos, colWidth, 7, 1, 1, 'F');
+                        doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                        
+                        yPos += 9;
+                    }
+                    
+                    // Generar líneas para ambas columnas
+                    generarLineaCUPS(supply, leftX, colWidth, blueColor, false);
+                    generarLineaCUPS(supply, rightX, colWidth, greenColor, true);
+                    
+                    yPos += 14;
                 });
                 
                 // Guardar
@@ -7167,4 +7289,3 @@
         }
     </script>
 </body>
-</html>
