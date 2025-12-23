@@ -1862,6 +1862,11 @@
         function renderMultiDualComparisonUI(res) {
             console.log('renderMultiDualComparisonUI llamada', res);
             
+            // IMPORTANTE: Asegurar que la variable global esté guardada
+            if (!lastComparisonResult) {
+                lastComparisonResult = res;
+            }
+            
             const brand = activeBrand;
             const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
             const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
@@ -2466,6 +2471,16 @@
         function renderDualComparisonUI(resFijo, resIndexed) {
             console.log('renderDualComparisonUI llamada', resFijo, resIndexed);
             
+            // IMPORTANTE: Asegurar que las variables globales estén guardadas
+            // (normalmente ya deberían estar guardadas antes de llamar a esta función,
+            // pero lo hacemos aquí por seguridad)
+            if (!lastComparisonResult) {
+                lastComparisonResult = resFijo;
+            }
+            if (!lastIndexedResult) {
+                lastIndexedResult = resIndexed;
+            }
+            
             const brand = activeBrand;
             const isDrk = brand.NAME.includes('DRK');
             const tariffType = resFijo.originalTariffType || currentTariffType;
@@ -3042,7 +3057,16 @@
         // --- COPIA HTML MEJORADA ---
 
         async function handleCopyOffer() {
-            if (!lastComparisonResult) return window.showErrorModal("Primero realice una comparación.");
+            console.log('handleCopyOffer llamada', {
+                lastComparisonResult: lastComparisonResult,
+                lastIndexedResult: lastIndexedResult,
+                compareWithIndexed: compareWithIndexed
+            });
+            
+            if (!lastComparisonResult) {
+                console.error('ERROR: lastComparisonResult es null o undefined');
+                return window.showErrorModal("Primero realice una comparación.");
+            }
             
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
@@ -4013,7 +4037,16 @@
         // --- GENERACIÓN DE PDF PROFESIONAL COMPLETO ---
         
         async function handleGeneratePDF() {
-            if (!lastComparisonResult) return window.showErrorModal("Primero realice una comparación.");
+            console.log('handleGeneratePDF llamada', {
+                lastComparisonResult: lastComparisonResult,
+                lastIndexedResult: lastIndexedResult,
+                compareWithIndexed: compareWithIndexed
+            });
+            
+            if (!lastComparisonResult) {
+                console.error('ERROR: lastComparisonResult es null o undefined');
+                return window.showErrorModal("Primero realice una comparación.");
+            }
             
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
