@@ -3030,8 +3030,8 @@
                 
                 // CRÍTICO: Colores según marca (DRK = azul, POWER CUP = verde)
                 const isDrk = brand.NAME.includes('DRK');
-                const brandColor = isDrk ? brandColor : [132, 204, 22];  // Azul DRK o Verde POWER CUP
-                const brandColorLight = isDrk ? brandColor : [22, 163, 74];  // Para ahorros
+                const brandColor = isDrk ? [59, 130, 246] : [132, 204, 22];  // Azul DRK o Verde POWER CUP
+                const brandColorLight = isDrk ? [59, 130, 246] : [22, 163, 74];  // Para ahorros
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
