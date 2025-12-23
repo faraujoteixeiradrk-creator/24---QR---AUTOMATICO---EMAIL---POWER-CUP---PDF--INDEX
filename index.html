@@ -3347,13 +3347,6 @@
                 // Actualizar yPos al máximo de las tres columnas
                 yPos = Math.max(y1, y2, y3) + 10;
                 
-                doc.setFontSize(6.5);
-                doc.setTextColor(22, 163, 74);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
-                
-                yPos += ahorroBoxHeight + 8;
-                
                 // === PÁGINA 2: DESARROLLO DETALLADO ===
                 doc.addPage();
                 yPos = 15;
