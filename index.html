@@ -3153,21 +3153,54 @@
                 
                 yPos = headerHeight + 8;
                 
-                // === PÁGINA 1: RESUMEN VISUAL MEJORADO ===
+                // === DATOS DEL CLIENTE ===
                 
-                // Título principal
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(14);
+                // Título "COMPARATIVA PROFESIONAL - DRK"
+                doc.setTextColor(55, 65, 81);  // Gris oscuro
+                doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text('📊 COMPARATIVA: TARIFA FIJA vs INDEXADA', pageWidth / 2, yPos, { align: 'center' });
-                yPos += 10;
+                doc.text('COMPARATIVA PROFESIONAL - ' + brand.NAME.toUpperCase(), margin, yPos);
+                yPos += 8;
                 
                 // Info del cliente
-                doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.setTextColor(100, 100, 100);
-                doc.text(`Cliente: ${clientName} | CUPS: ${resFijo.cups} | Comercial: ${commercialCode}`, pageWidth / 2, yPos, { align: 'center' });
-                yPos += 8;
+                doc.setFontSize(10);
+                doc.setTextColor(75, 85, 99);
+                doc.text('CLIENTE: ' + clientName.toUpperCase(), margin, yPos);
+                yPos += 6;
+                doc.text('CUPS TOTALES: ' + (resFijo.isMulti ? resFijo.cups : '1'), margin, yPos);
+                yPos += 12;
+                
+                // === CAJA GRIS GRANDE CON LA MEJOR OPCIÓN ===
+                
+                const bigBoxY = yPos;
+                const bigBoxHeight = 45;
+                const bigBoxMargin = 20;  // Márgenes laterales para hacerla más estrecha y elegante
+                const bigBoxWidth = contentWidth - (bigBoxMargin * 2);
+                const bigBoxX = margin + bigBoxMargin;
+                
+                // Fondo gris azulado
+                doc.setFillColor(100, 116, 139);  // Gris azulado elegante
+                doc.roundedRect(bigBoxX, bigBoxY, bigBoxWidth, bigBoxHeight, 4, 4, 'F');
+                
+                // Texto "LA MEJOR OPCIÓN PARA TI ES"
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.text('LA MEJOR OPCIÓN PARA TI ES', pageWidth / 2, bigBoxY + 12, { align: 'center' });
+                
+                // Nombre de la marca en grande
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(30);
+                doc.text(brand.NAME.toUpperCase(), pageWidth / 2, bigBoxY + 26, { align: 'center' });
+                
+                // Descripción
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+                const descripcion = `Ofrece el mayor ahorro consolidado con ${brand.FULL_NAME}.`;
+                doc.text(descripcion, pageWidth / 2, bigBoxY + 37, { align: 'center' });
+                
+                yPos = bigBoxY + bigBoxHeight + 10;
                 
                 // === TRES CAJAS GRANDES ===
                 const boxWidth = (contentWidth - 4) / 3;
