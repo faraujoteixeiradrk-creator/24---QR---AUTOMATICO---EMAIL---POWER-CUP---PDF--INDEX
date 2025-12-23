@@ -3666,6 +3666,20 @@
 
         async function generateMultiPDF_Dual(res) {
             try {
+                console.log('=== generateMultiPDF_Dual INICIADO ===');
+                console.log('res recibido:', res);
+                console.log('res.individualResults:', res.individualResults);
+                
+                if (res.individualResults && res.individualResults.length > 0) {
+                    console.log('Primer supply:', res.individualResults[0]);
+                    console.log('Primer supply tiene indexedComparison?:', !!res.individualResults[0].indexedComparison);
+                    if (res.individualResults[0].indexedComparison) {
+                        console.log('indexedComparison:', res.individualResults[0].indexedComparison);
+                        console.log('indexedComparison.powerCosts?:', !!res.individualResults[0].indexedComparison.powerCosts);
+                        console.log('indexedComparison.energyCosts?:', !!res.individualResults[0].indexedComparison.energyCosts);
+                    }
+                }
+                
                 window.showMessageModal("⏳ Generando PDF MULTICUPS con comparación Fijo vs Indexado... Por favor espere.");
                 
                 const { jsPDF } = window.jspdf;
@@ -3827,6 +3841,16 @@
                 // Función auxiliar para generar desglose detallado
                 function generarDesgloseDetalladoCUPS(supply, x, width, color, titulo, usarIndexado = false) {
                     const resultado = usarIndexado && supply.indexedComparison ? supply.indexedComparison : supply;
+                    
+                    // VERIFICACIÓN CRÍTICA: Asegurar que resultado tiene los datos necesarios
+                    if (!resultado || !resultado.powerCosts || !resultado.energyCosts) {
+                        console.error('ERROR: resultado no tiene la estructura necesaria', resultado);
+                        doc.setTextColor(220, 38, 38);
+                        doc.setFontSize(8);
+                        doc.text('Error: Datos incompletos para este suministro', x + 2, yPos + 10);
+                        return;
+                    }
+                    
                     const tariffType = resultado.originalTariffType || currentTariffType;
                     const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
                     
@@ -7304,9 +7328,7 @@
                 console.log('Energy costs periods:', combinedResult.energyCosts.length);
                 console.log('Power costs periods:', combinedResult.powerCosts.length);
                 
-                addSupplyToMultiCupsList(combinedResult);
-                
-                // Si compareWithIndexed está activo, también calcular resultado indexado
+                // IMPORTANTE: Si compareWithIndexed está activo, calcular resultado indexado ANTES de añadir a la lista
                 if (compareWithIndexed) {
                     const tariffType = lastComparisonResult.originalTariffType;
                     const dataForCalc = lastComparisonResult;
@@ -7320,11 +7342,38 @@
                         indexedResult.subPower = recalculatedIndexed.subPower;
                         indexedResult.subEnergyNet = recalculatedIndexed.subEnergyNet;
                         
-                        // Añadir al resultado combinado
+                        // Calcular todos los costes adicionales para indexedResult
+                        const subEnergyNetIndexed = indexedResult.subEnergyNet || 0;
+                        const subPowerIndexed = indexedResult.subPower || 0;
+                        const subBaseIndexed = subPowerIndexed + subEnergyNetIndexed;
+                        const costIEIndexed = subBaseIndexed * IE_RATE;
+                        const baseImpIndexed = subBaseIndexed + costIEIndexed;
+                        const costIVAIndexed = baseImpIndexed * IVA_RATE;
+                        const totalPeriodIndexed = baseImpIndexed + costIVAIndexed;
+                        const totalAnnualIndexed = totalPeriodIndexed * factorAnual;
+                        const savingsIndexed = originalBillAnnual - totalAnnualIndexed;
+                        
+                        // Añadir los campos calculados al indexedResult
+                        indexedResult.subBase = subBaseIndexed;
+                        indexedResult.costIE = costIEIndexed;
+                        indexedResult.baseImp = baseImpIndexed;
+                        indexedResult.costIVA = costIVAIndexed;
+                        indexedResult.totalPeriod = totalPeriodIndexed;
+                        indexedResult.totalAnnual = totalAnnualIndexed;
+                        indexedResult.savings = savingsIndexed;
+                        indexedResult.dias_facturados = combinedResult.dias_facturados;
+                        indexedResult.originalBillAnnual = originalBillAnnual;
+                        indexedResult.originalBillPeriod = lastComparisonResult.originalBillPeriod;
+                        indexedResult.cups = combinedResult.cups;
+                        
+                        // Añadir al resultado combinado ANTES de añadir a la lista
                         combinedResult.indexedComparison = indexedResult;
-                        console.log('Añadido resultado indexado al MultiCups');
+                        console.log('Añadido resultado indexado completo al combinedResult:', indexedResult);
                     }
                 }
+                
+                // Ahora sí, añadir a la lista (ya con indexedComparison si corresponde)
+                addSupplyToMultiCupsList(combinedResult);
             } else {
                 // Contexto individual: Mostrar resultados
                 console.log('Individual context, showing results');
