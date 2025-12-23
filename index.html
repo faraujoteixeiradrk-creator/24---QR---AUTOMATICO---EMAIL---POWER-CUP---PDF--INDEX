@@ -3209,9 +3209,9 @@
                 const col3X = margin + (contentWidth / 3) * 2;
                 const colWidth = contentWidth / 3;
                 
-                // === COLUMNA 1: TU FACTURA ACTUAL (IZQUIERDA) ===
+                // === COLUMNA 1: TU FACTURA ACTUAL (IZQUIERDA) - BAJADA AL MEDIO ===
                 
-                let y1 = yPos;
+                let y1 = yPos + 25;  // BAJAR: Empezar más abajo para centrar verticalmente
                 
                 // Título
                 doc.setFont('helvetica', 'bold');
@@ -3254,9 +3254,9 @@
                 doc.setLineWidth(1.5);
                 doc.line(col1X, y1 - 3, col1X + tw2, y1 - 3);
                 
-                // === COLUMNA 2: AHORRO + NUEVO COSTE FIJO (CENTRO) ===
+                // === COLUMNA 2: AHORRO + NUEVO COSTE FIJO (CENTRO) - CAJA SUBIDA ===
                 
-                let y2 = yPos;
+                let y2 = yPos;  // SUBIR: Empezar en la posición base (sin añadir espacio)
                 
                 // Caja gris superior "TU AHORRO ANUAL FIJO"
                 const boxHeaderHeight = 12;
@@ -3266,7 +3266,7 @@
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(9);
                 doc.text('TU AHORRO ANUAL FIJO', col2X + (colWidth - 8) / 2 - 2, y2 + 8, { align: 'center' });
-                y2 += boxHeaderHeight + 8;
+                y2 += boxHeaderHeight + 12;  // AUMENTADO: Más espacio después de la caja (8→12)
                 
                 // Ahorro en verde GRANDE
                 doc.setFont('helvetica', 'bold');
@@ -3302,9 +3302,9 @@
                 doc.setTextColor(...brandColor);
                 doc.text(eur(resFijo.totalAnnual) + '/año', col2X, y2);
                 
-                // === COLUMNA 3: AHORRO + NUEVO COSTE INDEXADO (DERECHA) ===
+                // === COLUMNA 3: AHORRO + NUEVO COSTE INDEXADO (DERECHA) - CAJA SUBIDA ===
                 
-                let y3 = yPos;
+                let y3 = yPos;  // SUBIR: Empezar en la posición base (sin añadir espacio)
                 
                 // Caja gris superior "TU AHORRO ANUAL INDEXADO"
                 doc.setFillColor(100, 116, 139);  // Gris azulado
@@ -3313,7 +3313,7 @@
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(9);
                 doc.text('TU AHORRO ANUAL INDEXADO', col3X + (colWidth - 8) / 2 - 2, y3 + 8, { align: 'center' });
-                y3 += boxHeaderHeight + 8;
+                y3 += boxHeaderHeight + 12;  // AUMENTADO: Más espacio después de la caja (8→12)
                 
                 // Ahorro en verde GRANDE
                 doc.setFont('helvetica', 'bold');
