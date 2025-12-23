@@ -3449,6 +3449,11 @@
                 doc.addPage();
                 yPos = 15;
                 
+                // Definir variables para las dos columnas de la explicación
+                const colWidth = (contentWidth - 3) / 2;
+                const leftX = margin;
+                const rightX = margin + colWidth + 3;
+                
                 doc.setFillColor(245, 245, 245);
                 doc.roundedRect(margin, yPos, contentWidth, 120, 2, 2, 'F');
                 
