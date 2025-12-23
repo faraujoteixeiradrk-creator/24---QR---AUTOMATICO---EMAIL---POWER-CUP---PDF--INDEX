@@ -3082,171 +3082,174 @@
                 
                 yPos = headerHeight + 8;
                 
-                // Barra verde "ESTUDIO DE AHORRO"
-                doc.setFillColor(...greenColor);
-                doc.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.text('ESTUDIO DE AHORRO', margin + 3, yPos + 4.5);
-                yPos += 9;
+                // === PÁGINA 1: RESUMEN VISUAL MEJORADO ===
                 
-                // Caja blanca con datos del cliente
-                doc.setFillColor(255, 255, 255);
-                doc.setDrawColor(...darkColor);
-                doc.setLineWidth(0.5);
-                doc.roundedRect(margin, yPos, contentWidth, 16, 2, 2, 'FD');
-                
+                // Título principal
                 doc.setTextColor(0, 0, 0);
-                doc.setFontSize(9);
+                doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`COMPARATIVA PROFESIONAL - DRK`, margin + 3, yPos + 5);
+                doc.text('📊 COMPARATIVA: TARIFA FIJA vs INDEXADA', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 10;
                 
+                // Info del cliente
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`CLIENTE: ${clientName}`, margin + 3, yPos + 10);
-                doc.text(`CUPS: ${resFijo.cups}`, margin + 3, yPos + 14);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Cliente: ${clientName} | CUPS: ${resFijo.cups} | Comercial: ${commercialCode}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
                 
-                doc.setFont('helvetica', 'bold');
-                doc.text(`COMERCIAL: ${commercialCode}`, pageWidth - margin - 3, yPos + 10, { align: 'right' });
+                // === TRES CAJAS GRANDES ===
+                const boxWidth = (contentWidth - 4) / 3;
+                const box1X = margin;
+                const box2X = margin + boxWidth + 2;
+                const box3X = margin + (boxWidth + 2) * 2;
+                const boxHeight = 60;
                 
-                yPos += 20;
-                
-                // === TRES COLUMNAS: ACTUAL, FIJO, INDEXADO ===
-                const colWidth = (contentWidth - 6) / 3;
-                const col1X = margin;
-                const col2X = margin + colWidth + 3;
-                const col3X = margin + (colWidth + 3) * 2;
-                
-                // Función para dibujar columna
-                function drawColumn(x, width, headerBg, headerText, label, costPeriod, periodDays, costYear, isActual = false) {
+                // Función para dibujar caja
+                function drawVisualBox(x, headerColor, headerText, label, mainPrice, subLabel, bottomPrice, isCrossed = false) {
                     let y = yPos;
                     
-                    // Cabecera gris
-                    doc.setFillColor(109, 115, 125);
-                    doc.roundedRect(x, y, width, 10, 1, 1, 'F');
+                    // Cabecera de color
+                    doc.setFillColor(...headerColor);
+                    doc.roundedRect(x, y, boxWidth, 9, 1.5, 1.5, 'F');
                     doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(headerText, x + width / 2, y + 6, { align: 'center' });
-                    y += 12;
-                    
-                    // Contenido
-                    doc.setFillColor(248, 249, 250);
-                    doc.roundedRect(x, y, width, 50, 2, 2, 'F');
-                    
-                    // Label
-                    doc.setTextColor(107, 114, 128);
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(label, x + width / 2, y + 6, { align: 'center' });
+                    const headerLines = doc.splitTextToSize(headerText, boxWidth - 2);
+                    doc.text(headerLines, x + boxWidth / 2, y + 4, { align: 'center' });
+                    y += 10;
                     
-                    // Coste periodo
-                    doc.setFontSize(12);
+                    // Cuerpo de la caja
+                    const bodyColor = headerColor[0] === 75 ? [248, 249, 250] : (headerColor[0] === 59 ? [239, 246, 255] : [240, 253, 244]);
+                    doc.setFillColor(...bodyColor);
+                    doc.setDrawColor(...headerColor);
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(x, y, boxWidth, boxHeight - 10, 1.5, 1.5, 'FD');
+                    
+                    // Label
+                    doc.setTextColor(100, 100, 100);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(isActual ? redColor[0] : 30, isActual ? redColor[1] : 64, isActual ? redColor[2] : 175);
-                    if (isActual) {
-                        // Tachar si es actual
-                        const text = costPeriod;
-                        const textWidth = doc.getTextWidth(text);
-                        doc.text(text, x + width / 2, y + 14, { align: 'center' });
-                        doc.setDrawColor(...redColor);
-                        doc.setLineWidth(0.5);
-                        doc.line(x + width / 2 - textWidth / 2, y + 13, x + width / 2 + textWidth / 2, y + 13);
-                    } else {
-                        doc.text(costPeriod, x + width / 2, y + 14, { align: 'center' });
+                    doc.text(label.toUpperCase(), x + boxWidth / 2, y + 7, { align: 'center' });
+                    
+                    // Precio principal (grande)
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    const mainPriceText = mainPrice;
+                    doc.text(mainPriceText, x + boxWidth / 2, y + 18, { align: 'center' });
+                    
+                    // Tachar si es necesario
+                    if (isCrossed) {
+                        const textWidth = doc.getTextWidth(mainPriceText);
+                        doc.setDrawColor(220, 38, 38);
+                        doc.setLineWidth(0.7);
+                        doc.line(x + boxWidth / 2 - textWidth / 2, y + 17, x + boxWidth / 2 + textWidth / 2, y + 17);
                     }
                     
-                    // Días
+                    // Sublabel
                     doc.setFontSize(5.5);
-                    doc.setTextColor(156, 163, 175);
+                    doc.setTextColor(120, 120, 120);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(periodDays, x + width / 2, y + 18, { align: 'center' });
+                    doc.text(subLabel, x + boxWidth / 2, y + 24, { align: 'center' });
                     
-                    // Separador
-                    doc.setDrawColor(229, 231, 235);
+                    // Línea separadora
+                    doc.setDrawColor(200, 200, 200);
                     doc.setLineWidth(0.3);
-                    doc.line(x + 5, y + 25, x + width - 5, y + 25);
+                    doc.line(x + 5, y + 30, x + boxWidth - 5, y + 30);
                     
-                    // Coste anual
-                    doc.setFontSize(10);
+                    // Precio inferior (anual)
+                    doc.setFontSize(14);
                     doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(isActual ? redColor[0] : 30, isActual ? redColor[1] : 64, isActual ? redColor[2] : 175);
-                    doc.text(costYear, x + width / 2, y + 36, { align: 'center' });
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    doc.text(bottomPrice, x + boxWidth / 2, y + 42, { align: 'center' });
                 }
                 
-                // Dibujar las tres columnas
-                drawColumn(
-                    col1X, colWidth,
-                    grayBg, 'TU FACTURA ACTUAL',
+                // CAJA 1: TU FACTURA ACTUAL (GRIS)
+                drawVisualBox(
+                    box1X,
+                    [75, 85, 99],  // Gris oscuro
                     'TU FACTURA ACTUAL',
-                    eur(resFijo.originalBillPeriod),
-                    `Total Periodo (${resFijo.dias_facturados} días)`,
+                    'Tu Factura Actual',
+                    eur(resFijo.originalBillPeriod || resFijo.importe_total),
+                    `Total Periodo (${resFijo.dias_facturados || 0} días)`,
                     `${eur(resFijo.originalBillAnnual)}/año`,
-                    true
+                    true  // Tachado
                 );
                 
-                drawColumn(
-                    col2X, colWidth,
-                    blueColor, 'LA MEJOR OPCIÓN PARA TI ES DRK',
+                // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
+                drawVisualBox(
+                    box2X,
+                    [59, 130, 246],  // Azul
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
                     resFijo.offer.name,
-                    `${eur(resFijo.totalPeriod / resFijo.dias_facturados * 30)}/mes`,
+                    `${eur(resFijo.totalAnnual / 12)}/mes`,
                     'Estimado Mensual',
                     `${eur(resFijo.totalAnnual)}/año`,
                     false
                 );
                 
-                drawColumn(
-                    col3X, colWidth,
-                    greenIndexColor, 'LA MEJOR OPCIÓN PARA TI ES DRK',
+                // CAJA 3: LA MEJOR OPCIÓN - INDEXADO (VERDE)
+                drawVisualBox(
+                    box3X,
+                    [22, 163, 74],  // Verde
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
                     resIndexed.offer.name,
-                    `${eur(resIndexed.totalPeriod / resIndexed.dias_facturados * 30)}/mes`,
+                    `${eur(resIndexed.totalAnnual / 12)}/mes`,
                     'Estimado Mensual',
                     `${eur(resIndexed.totalAnnual)}/año`,
                     false
                 );
                 
-                yPos += 65;
+                yPos += boxHeight + 5;
                 
-                // === RECUADROS DE AHORRO ===
-                const ahorroBoxWidth = (contentWidth - 6) / 3;
+                // === DOS CAJAS DE AHORRO GRANDES ===
+                const ahorroBoxWidth = (contentWidth - 2) / 2;
+                const ahorroBoxHeight = 35;
+                const ahorro1X = margin;
+                const ahorro2X = margin + ahorroBoxWidth + 2;
                 
-                // Actual (vacío)
-                yPos += 5;
-                
-                // Ahorro FIJO
+                // CAJA AHORRO FIJO (AZUL)
                 doc.setFillColor(239, 246, 255);
-                doc.setDrawColor(...blueColor);
-                doc.setLineWidth(0.5);
-                doc.roundedRect(col2X, yPos, ahorroBoxWidth, 28, 2, 2, 'FD');
+                doc.setDrawColor(59, 130, 246);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro1X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
                 
                 doc.setTextColor(59, 130, 246);
-                doc.setFontSize(7);
+                doc.setFontSize(7.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU AHORRO EN FIJO', col2X + ahorroBoxWidth / 2, yPos + 6, { align: 'center' });
+                doc.text('💼 TU AHORRO CON TARIFAS FIJAS', ahorro1X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
                 
-                doc.setFontSize(18);
-                doc.setTextColor(...greenColor);
-                doc.text(eur(resFijo.savings), col2X + ahorroBoxWidth / 2, yPos + 16, { align: 'center' });
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resFijo.savings), ahorro1X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
                 
-                doc.setFontSize(6);
-                doc.setTextColor(107, 114, 128);
+                doc.setFontSize(6.5);
+                doc.setTextColor(59, 130, 246);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado', col2X + ahorroBoxWidth / 2, yPos + 22, { align: 'center' });
+                doc.text('Ahorro anual estimado total', ahorro1X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
                 
-                // Ahorro INDEXADO
+                // CAJA AHORRO INDEXADO (VERDE)
                 doc.setFillColor(240, 253, 244);
-                doc.setDrawColor(...greenIndexColor);
-                doc.roundedRect(col3X, yPos, ahorroBoxWidth, 28, 2, 2, 'FD');
+                doc.setDrawColor(22, 163, 74);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro2X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
                 
                 doc.setTextColor(22, 163, 74);
-                doc.setFontSize(7);
+                doc.setFontSize(7.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU AHORRO EN INDEXADO', col3X + ahorroBoxWidth / 2, yPos + 6, { align: 'center' });
+                doc.text('⚡ TU AHORRO CON TARIFAS INDEXADAS', ahorro2X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
                 
-                doc.setFontSize(18);
-                doc.setTextColor(...greenColor);
-                doc.text(eur(resIndexed.savings), col3X + ahorroBoxWidth / 2, yPos + 16, { align: 'center' });
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.savings), ahorro2X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
+                
+                doc.setFontSize(6.5);
+                doc.setTextColor(22, 163, 74);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
+                
+                yPos += ahorroBoxHeight + 8;
                 
                 doc.setFontSize(6);
                 doc.setTextColor(107, 114, 128);
@@ -3629,73 +3632,177 @@
                 
                 yPos = headerHeight + 8;
                 
-                // Barra verde
-                doc.setFillColor(...greenColor);
-                doc.roundedRect(margin, yPos, contentWidth, 7, 1, 1, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
+                // === PÁGINA 1: RESUMEN VISUAL MEJORADO MULTICUPS ===
+                
+                // Título principal
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
-                doc.text('COMPARATIVA PROFESIONAL', margin + 3, yPos + 4.5);
-                yPos += 10;
+                doc.text(`📊 COMPARATIVA MULTICUPS: ${res.cups}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
                 
-                // Dos columnas de ahorros
-                // FIJO
-                doc.setFillColor(239, 246, 255);
-                doc.setDrawColor(...blueColor);
-                doc.setLineWidth(0.5);
-                doc.roundedRect(leftX, yPos, colWidth, 35, 2, 2, 'FD');
+                // === TRES CAJAS GRANDES ===
+                const boxWidth = (contentWidth - 4) / 3;
+                const box1X = margin;
+                const box2X = margin + boxWidth + 2;
+                const box3X = margin + (boxWidth + 2) * 2;
+                const boxHeight = 60;
                 
-                doc.setTextColor(...blueColor);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💼 AHORRO TOTAL CON TARIFAS FIJAS', leftX + colWidth / 2, yPos + 6, { align: 'center' });
-                
-                doc.setFontSize(22);
-                doc.setTextColor(...greenColor);
-                doc.text(eur(res.savings), leftX + colWidth / 2, yPos + 18, { align: 'center' });
-                
-                doc.setFontSize(6);
-                doc.setTextColor(107, 114, 128);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado', leftX + colWidth / 2, yPos + 24, { align: 'center' });
-                
-                doc.setFontSize(7);
-                doc.setTextColor(...redColor);
-                doc.text(`Coste actual: ${eur(res.originalBillAnnual)}`, leftX + colWidth / 2, yPos + 30, { align: 'center' });
-                
-                // INDEXADO
+                // Calcular totales
+                const totalIndexadoAnual = res.indexedTotals ? res.indexedTotals.totalAnnual : 0;
                 const ahorroIndexado = res.indexedTotals ? res.indexedTotals.savings : 0;
-                const costeIndexado = res.indexedTotals ? res.indexedTotals.originalBillAnnual : 0;
                 
-                doc.setFillColor(240, 253, 244);
-                doc.setDrawColor(...greenColor);
-                doc.roundedRect(rightX, yPos, colWidth, 35, 2, 2, 'FD');
+                // Función para dibujar caja (igual que en PDF individual)
+                function drawVisualBox(x, headerColor, headerText, label, mainPrice, subLabel, bottomPrice, isCrossed = false) {
+                    let y = yPos;
+                    
+                    // Cabecera de color
+                    doc.setFillColor(...headerColor);
+                    doc.roundedRect(x, y, boxWidth, 9, 1.5, 1.5, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    const headerLines = doc.splitTextToSize(headerText, boxWidth - 2);
+                    doc.text(headerLines, x + boxWidth / 2, y + 4, { align: 'center' });
+                    y += 10;
+                    
+                    // Cuerpo de la caja
+                    const bodyColor = headerColor[0] === 75 ? [248, 249, 250] : (headerColor[0] === 59 ? [239, 246, 255] : [240, 253, 244]);
+                    doc.setFillColor(...bodyColor);
+                    doc.setDrawColor(...headerColor);
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(x, y, boxWidth, boxHeight - 10, 1.5, 1.5, 'FD');
+                    
+                    // Label
+                    doc.setTextColor(100, 100, 100);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(label.toUpperCase(), x + boxWidth / 2, y + 7, { align: 'center' });
+                    
+                    // Precio principal (grande)
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    const mainPriceText = mainPrice;
+                    doc.text(mainPriceText, x + boxWidth / 2, y + 18, { align: 'center' });
+                    
+                    // Tachar si es necesario
+                    if (isCrossed) {
+                        const textWidth = doc.getTextWidth(mainPriceText);
+                        doc.setDrawColor(220, 38, 38);
+                        doc.setLineWidth(0.7);
+                        doc.line(x + boxWidth / 2 - textWidth / 2, y + 17, x + boxWidth / 2 + textWidth / 2, y + 17);
+                    }
+                    
+                    // Sublabel
+                    doc.setFontSize(5.5);
+                    doc.setTextColor(120, 120, 120);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(subLabel, x + boxWidth / 2, y + 24, { align: 'center' });
+                    
+                    // Línea separadora
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(x + 5, y + 30, x + boxWidth - 5, y + 30);
+                    
+                    // Precio inferior (anual)
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    doc.text(bottomPrice, x + boxWidth / 2, y + 42, { align: 'center' });
+                }
                 
-                doc.setTextColor(...greenColor);
-                doc.setFontSize(8);
+                // CAJA 1: TU FACTURA ACTUAL (GRIS)
+                drawVisualBox(
+                    box1X,
+                    [75, 85, 99],  // Gris oscuro
+                    'TU FACTURA ACTUAL',
+                    'Tu Factura Actual',
+                    eur(res.importe_total),
+                    'Total Periodo (varios días)',
+                    `${eur(res.originalBillAnnual)}/año`,
+                    true  // Tachado
+                );
+                
+                // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
+                drawVisualBox(
+                    box2X,
+                    [59, 130, 246],  // Azul
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    'DRK - TARIFAS FIJAS',
+                    `${eur(res.totalAnnual / 12)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(res.totalAnnual)}/año`,
+                    false
+                );
+                
+                // CAJA 3: LA MEJOR OPCIÓN - INDEXADO (VERDE)
+                drawVisualBox(
+                    box3X,
+                    [22, 163, 74],  // Verde
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    'DRK - TARIFAS INDEXADAS',
+                    `${eur(totalIndexadoAnual / 12)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(totalIndexadoAnual)}/año`,
+                    false
+                );
+                
+                yPos += boxHeight + 5;
+                
+                // === DOS CAJAS DE AHORRO GRANDES ===
+                const ahorroBoxWidth = (contentWidth - 2) / 2;
+                const ahorroBoxHeight = 35;
+                const ahorro1X = margin;
+                const ahorro2X = margin + ahorroBoxWidth + 2;
+                
+                // CAJA AHORRO FIJO (AZUL)
+                doc.setFillColor(239, 246, 255);
+                doc.setDrawColor(59, 130, 246);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro1X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
+                
+                doc.setTextColor(59, 130, 246);
+                doc.setFontSize(7.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('⚡ AHORRO TOTAL CON TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 6, { align: 'center' });
+                doc.text('💼 TU AHORRO CON TARIFAS FIJAS', ahorro1X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
                 
                 doc.setFontSize(22);
-                doc.setTextColor(...greenColor);
-                doc.text(eur(ahorroIndexado), rightX + colWidth / 2, yPos + 18, { align: 'center' });
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(res.savings), ahorro1X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
                 
-                doc.setFontSize(6);
-                doc.setTextColor(107, 114, 128);
+                doc.setFontSize(6.5);
+                doc.setTextColor(59, 130, 246);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado', rightX + colWidth / 2, yPos + 24, { align: 'center' });
+                doc.text('Ahorro anual estimado total', ahorro1X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
                 
-                doc.setFontSize(7);
-                doc.setTextColor(...redColor);
-                doc.text(`Coste actual: ${eur(costeIndexado)}`, rightX + colWidth / 2, yPos + 30, { align: 'center' });
+                // CAJA AHORRO INDEXADO (VERDE)
+                doc.setFillColor(240, 253, 244);
+                doc.setDrawColor(22, 163, 74);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro2X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
                 
-                yPos += 40;
+                doc.setTextColor(22, 163, 74);
+                doc.setFontSize(7.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('⚡ TU AHORRO CON TARIFAS INDEXADAS', ahorro2X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
+                
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(ahorroIndexado), ahorro2X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
+                
+                doc.setFontSize(6.5);
+                doc.setTextColor(22, 163, 74);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
+                
+                yPos += ahorroBoxHeight + 8;
                 
                 // Nota
                 doc.setFillColor(255, 251, 235);
                 doc.setDrawColor(245, 158, 11);
                 doc.setLineWidth(0.3);
-                doc.roundedRect(margin, yPos, contentWidth, 20, 1, 1, 'FD');
+                doc.roundedRect(margin, yPos, contentWidth, 18, 1, 1, 'FD');
                 
                 doc.setTextColor(146, 64, 14);
                 doc.setFontSize(7);
@@ -3704,7 +3811,7 @@
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(6.5);
                 const noteText = doc.splitTextToSize(
-                    'A continuación encontrará el desarrollo detallado de cálculos para cada suministro, mostrando el desglose completo de costes tanto para tarifas fijas como indexadas. La tarifa indexada puede variar mensualmente según el mercado eléctrico.',
+                    'A continuación encontrará el desarrollo detallado de cálculos para cada suministro, mostrando el desglose completo de costes tanto para tarifas fijas como indexadas.',
                     contentWidth - 4
                 );
                 let noteY = yPos + 10;
