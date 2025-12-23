@@ -1170,7 +1170,9 @@
             }
         }
 
-        function resetToLanding() {
+        // FUNCIÓN GLOBAL: Hacer accesible desde onclick en HTML
+        window.resetToLanding = function() {
+            console.log('resetToLanding llamada');
             stopScanner();
             
             // CRÍTICO: Limpiar TODAS las variables globales
@@ -1212,7 +1214,9 @@
 
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0'; // Resetear el contador de tarifas
-        }
+            
+            console.log('resetToLanding completada');
+        };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
             // Eliminamos la referencia a 6.1TD en la comprobación
@@ -1873,6 +1877,10 @@
             const brand = activeBrand;
             const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
             
+            // CRÍTICO: Colores dinámicos según marca
+            const isDrk = brand.NAME.includes('DRK');
+            const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
+            
             // Banner
             const companyBanner = document.getElementById('company-banner');
             companyBanner.innerHTML = `
@@ -1923,26 +1931,26 @@
                             </div>
                         </div>
                         
-                        <!-- COLUMNA 2: LA MEJOR OPCIÓN PARA TI ES DRK (FIJO) -->
+                        <!-- COLUMNA 2: LA MEJOR OPCIÓN - FIJO (Color de marca) -->
                         <div class="text-center">
-                            <div class="bg-blue-600 text-white py-2 px-2 rounded-t-lg">
-                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES DRK</p>
+                            <div class="${isDrk ? 'bg-drk-600' : 'bg-powercup-600'} text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES ${isDrk ? 'DRK' : 'POWER CUP'}</p>
                             </div>
-                            <div class="bg-blue-50 border-2 border-blue-400 rounded-b-lg p-3">
-                                <p class="text-xs text-blue-700 mb-2 font-bold">DRK - TARIFAS FIJAS</p>
-                                <p class="text-2xl font-black text-blue-900 mb-2">${eur(res.totalAnnual / 12)}/mes</p>
-                                <p class="text-xs text-blue-700 mb-3">Estimado Mensual</p>
-                                <p class="text-2xl font-black text-blue-900">${eur(res.totalAnnual)}/año</p>
+                            <div class="${isDrk ? 'bg-drk-50 border-drk-400' : 'bg-powercup-50 border-powercup-400'} border-2 rounded-b-lg p-3">
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-bold">${isDrk ? 'DRK' : 'POWER CUP'} - TARIFAS FIJAS</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'} mb-2">${eur(res.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'}">${eur(res.totalAnnual)}/año</p>
                             </div>
                         </div>
                         
-                        <!-- COLUMNA 3: LA MEJOR OPCIÓN PARA TI ES DRK (INDEXADO) -->
+                        <!-- COLUMNA 3: LA MEJOR OPCIÓN - INDEXADO (Verde) -->
                         <div class="text-center">
                             <div class="bg-green-600 text-white py-2 px-2 rounded-t-lg">
-                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES DRK</p>
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES ${isDrk ? 'DRK' : 'POWER CUP'}</p>
                             </div>
                             <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
-                                <p class="text-xs text-green-700 mb-2 font-bold">DRK - TARIFAS INDEXADAS</p>
+                                <p class="text-xs text-green-700 mb-2 font-bold">${isDrk ? 'DRK' : 'POWER CUP'} - TARIFAS INDEXADAS</p>
                                 <p class="text-2xl font-black text-green-900 mb-2">${eur(totalIndexadoAnual / 12)}/mes</p>
                                 <p class="text-xs text-green-700 mb-3">Estimado Mensual</p>
                                 <p class="text-2xl font-black text-green-900">${eur(totalIndexadoAnual)}/año</p>
@@ -1952,10 +1960,10 @@
                     
                     <!-- AHORROS -->
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-blue-100 border-2 border-blue-400 rounded-xl p-4 text-center">
-                            <p class="text-xs text-blue-700 font-bold uppercase mb-2">💼 TU AHORRO CON TARIFAS FIJAS</p>
+                        <div class="${isDrk ? 'bg-drk-100 border-drk-400' : 'bg-powercup-100 border-powercup-400'} border-2 rounded-xl p-4 text-center">
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} font-bold uppercase mb-2">💼 TU AHORRO CON TARIFAS FIJAS</p>
                             <p class="text-4xl font-black text-green-600">${eur(res.savings)}</p>
-                            <p class="text-xs text-blue-700 mt-1">Ahorro anual estimado total</p>
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mt-1">Ahorro anual estimado total</p>
                         </div>
                         <div class="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center">
                             <p class="text-xs text-green-700 font-bold uppercase mb-2">⚡ TU AHORRO CON TARIFAS INDEXADAS</p>
@@ -2471,6 +2479,10 @@
             const brand = activeBrand;
             const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
             
+            // CRÍTICO: Colores dinámicos según marca
+            const isDrk = brand.NAME.includes('DRK');
+            const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
+            
             // Banner de empresa
             const companyBanner = document.getElementById('company-banner');
             companyBanner.innerHTML = `
@@ -2513,16 +2525,16 @@
                             </div>
                         </div>
                         
-                        <!-- COLUMNA 2: LA MEJOR OPCIÓN PARA TI ES DRK (FIJO) -->
+                        <!-- COLUMNA 2: LA MEJOR OPCIÓN - FIJO (Color de marca) -->
                         <div class="text-center">
-                            <div class="bg-blue-600 text-white py-2 px-2 rounded-t-lg">
-                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES DRK</p>
+                            <div class="${isDrk ? 'bg-drk-600' : 'bg-powercup-600'} text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES ${isDrk ? 'DRK' : 'POWER CUP'}</p>
                             </div>
-                            <div class="bg-blue-50 border-2 border-blue-400 rounded-b-lg p-3">
-                                <p class="text-xs text-blue-700 mb-2 font-bold">${resFijo.offer.name}</p>
-                                <p class="text-2xl font-black text-blue-900 mb-2">${eur(resFijo.totalAnnual / 12)}/mes</p>
-                                <p class="text-xs text-blue-700 mb-3">Estimado Mensual</p>
-                                <p class="text-2xl font-black text-blue-900">${eur(resFijo.totalAnnual)}/año</p>
+                            <div class="${isDrk ? 'bg-drk-50 border-drk-400' : 'bg-powercup-50 border-powercup-400'} border-2 rounded-b-lg p-3">
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-bold">${resFijo.offer.name}</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'} mb-2">${eur(resFijo.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'}">${eur(resFijo.totalAnnual)}/año</p>
                             </div>
                         </div>
                         
@@ -2542,10 +2554,10 @@
                     
                     <!-- AHORROS -->
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-blue-100 border-2 border-blue-400 rounded-xl p-4 text-center">
-                            <p class="text-xs text-blue-700 font-bold uppercase mb-2">💼 TU AHORRO CON TARIFA FIJA</p>
+                        <div class="${isDrk ? 'bg-drk-100 border-drk-400' : 'bg-powercup-100 border-powercup-400'} border-2 rounded-xl p-4 text-center">
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} font-bold uppercase mb-2">💼 TU AHORRO CON TARIFA FIJA</p>
                             <p class="text-4xl font-black text-green-600">${eur(resFijo.savings)}</p>
-                            <p class="text-xs text-blue-700 mt-1">Ahorro anual estimado</p>
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mt-1">Ahorro anual estimado</p>
                         </div>
                         <div class="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center">
                             <p class="text-xs text-green-700 font-bold uppercase mb-2">⚡ TU AHORRO CON TARIFA INDEXADA</p>
@@ -3011,13 +3023,15 @@
                 const commercialCode = document.getElementById('comercial-code-input').value.trim();
                 const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
                 
-                // Colores
+                // Colores dinámicos según la marca activa
                 const darkColor = [107, 125, 142];
                 const greenColor = [22, 163, 74];
-                const blueColor = [59, 130, 246];
-                const greenIndexColor = [22, 163, 74];
                 const redColor = [220, 38, 38];
-                const grayBg = [245, 245, 245];
+                
+                // CRÍTICO: Colores según marca (DRK = azul, POWER CUP = verde)
+                const isDrk = brand.NAME.includes('DRK');
+                const brandColor = isDrk ? brandColor : [132, 204, 22];  // Azul DRK o Verde POWER CUP
+                const brandColorLight = isDrk ? brandColor : [22, 163, 74];  // Para ahorros
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
@@ -3182,7 +3196,7 @@
                 // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
                 drawVisualBox(
                     box2X,
-                    [59, 130, 246],  // Azul
+                    brandColor,  // Azul
                     'LA MEJOR OPCIÓN PARA TI ES DRK',
                     resFijo.offer.name,
                     `${eur(resFijo.totalAnnual / 12)}/mes`,
@@ -3569,8 +3583,13 @@
                 
                 const darkColor = [107, 125, 142];
                 const greenColor = [22, 163, 74];
-                const blueColor = [59, 130, 246];
                 const redColor = [220, 38, 38];
+                
+                // CRÍTICO: Colores según marca activa
+                const brand = activeBrand;
+                const isDrk = brand.NAME.includes('DRK');
+                const brandColor = isDrk ? [59, 130, 246] : [132, 204, 22];  // Azul DRK o Verde POWER CUP
+                const blueColor = brandColor;  // Alias para compatibilidad
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
@@ -3729,7 +3748,7 @@
                 // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
                 drawVisualBox(
                     box2X,
-                    [59, 130, 246],  // Azul
+                    brandColor,  // Azul
                     'LA MEJOR OPCIÓN PARA TI ES DRK',
                     'DRK - TARIFAS FIJAS',
                     `${eur(res.totalAnnual / 12)}/mes`,
