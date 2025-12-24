@@ -588,20 +588,85 @@
                 
                 <!-- Content -->
                 <div class="p-6">
-                    <div class="flex flex-col gap-4">
-                        <!-- Opción 1: Mejor Opción -->
-                        <button onclick="selectBestOptionDirect()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 group-hover:bg-yellow-200">
-                                    🏆
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-black text-lg text-slate-900 mb-2">VER MEJOR OPCIÓN</p>
-                                    <p class="text-sm text-slate-600">Muestra automáticamente la oferta con mayor ahorro y genera la comparativa</p>
-                                </div>
-                                <svg class="w-6 h-6 text-slate-400 group-hover:text-drk-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <!-- NUEVO: Checkbox para comparación con tarifas indexadas (SOLO POWER CUP) -->
+                    <div id="powercup-indexed-comparison-checkbox" class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                id="compare-indexed-checkbox" 
+                                class="mt-1 w-5 h-5 text-drk-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-drk-500 cursor-pointer"
+                                onchange="toggleIndexedComparison(this.checked)"
+                            >
+                            <div class="flex-1">
+                                <p class="font-black text-base text-slate-900 mb-1 group-hover:text-drk-600 transition">
+                                    ⚡ Comparar FIJO vs INDEXADO
+                                </p>
+                                <p class="text-sm text-slate-600">
+                                    Genera comparativa dual: tarifa fija y tarifa indexada DRK INDEX (precio variable del mercado).
+                                </p>
                             </div>
-                        </button>
+                        </label>
+                    </div>
+                    
+                    <div class="flex flex-col gap-4">
+                        <!-- Opción 1: Mejor Opción (CON SELECTOR PARA DRK) -->
+                        <div class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
+                            <!-- Cabecera clickeable -->
+                            <button onclick="handleBestOptionClick()" class="w-full text-left p-6 hover:bg-drk-50 transition group">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 group-hover:bg-yellow-200">
+                                        🏆
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-black text-lg text-slate-900 mb-2">VER MEJOR OPCIÓN</p>
+                                        <p class="text-sm text-slate-600">Muestra automáticamente la oferta con mayor ahorro y genera la comparativa</p>
+                                    </div>
+                                    <svg class="w-6 h-6 text-slate-400 group-hover:text-drk-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </button>
+                            
+                            <!-- Selector de tipo de tarifa (SOLO para DRK Individual) -->
+                            <div id="best-option-tariff-selector" class="hidden border-t-2 border-slate-200 bg-slate-50 p-4">
+                                <p class="text-sm font-bold text-slate-700 mb-3">🎯 ¿Qué tipo de tarifa DRK quieres ver?</p>
+                                <div class="space-y-2">
+                                    <!-- Tarifa FIJA -->
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-drk-500 bg-drk-50 cursor-pointer transition hover:bg-drk-100" id="best-fija-label">
+                                        <input 
+                                            type="radio" 
+                                            name="best-option-tariff-type" 
+                                            value="fija" 
+                                            checked
+                                            class="w-4 h-4 text-drk-600 border-2 border-slate-300 focus:ring-2 focus:ring-drk-500 cursor-pointer"
+                                            onchange="updateBestOptionTariffChoice('fija')"
+                                        >
+                                        <div class="flex-1">
+                                            <p class="font-bold text-sm text-slate-900">⚡ Tarifa FIJA</p>
+                                            <p class="text-xs text-slate-600">Precio fijo estable (excluye DRK INDEX)</p>
+                                        </div>
+                                    </label>
+                                    
+                                    <!-- Tarifa INDEXADA -->
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-green-50" id="best-indexada-label">
+                                        <input 
+                                            type="radio" 
+                                            name="best-option-tariff-type" 
+                                            value="indexada"
+                                            class="w-4 h-4 text-green-600 border-2 border-slate-300 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                            onchange="updateBestOptionTariffChoice('indexada')"
+                                        >
+                                        <div class="flex-1">
+                                            <p class="font-bold text-sm text-slate-900">🌱 Tarifa INDEXADA (DRK INDEX)</p>
+                                            <p class="text-xs text-slate-600">Solo muestra DRK INDEX del mercado</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <!-- Botón de confirmación -->
+                                <button onclick="selectBestOptionWithChoice()" class="w-full mt-3 bg-drk-600 hover:bg-drk-700 text-white font-bold py-3 rounded-lg transition">
+                                    Continuar con esta opción →
+                                </button>
+                            </div>
+                        </div>
                         
                         <!-- Opción 2: Elegir Manual -->
                         <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group">
@@ -748,6 +813,7 @@
         const BRANDS = {
             DRK: {
                 NAME: 'DRK', ACCENT: 'drk-500', ACCENT_TEXT: 'Energía',
+                FULL_NAME: 'DRK ENERGÍA', // AÑADIDO
                 TITLE: 'DRK COMPARADOR', // Título en mayúsculas
                 QR_URL: 'https://faraujoteixeiradrk-creator.github.io/QR-21-POWER-2-0-TD---3.0-TD-Con-PDF/',
                 QR_TEXT: 'DRK',
@@ -763,6 +829,7 @@
             },
             POWER_CUP: {
                 NAME: 'POWER CUP', ACCENT: 'powercup-500', ACCENT_TEXT: '',
+                FULL_NAME: 'POWER CUP', // AÑADIDO
                 TITLE: 'POWER CUP COMPARADOR', // Título en mayúsculas
                 QR_URL: 'https://faraujoteixeiradrk-creator.github.io/QR-21-POWER-2-0-TD---3.0-TD-Con-PDF/',
                 QR_TEXT: 'POWER',
@@ -788,7 +855,10 @@
         };
         let currentTariffType = '2.0TD';
         let lastComparisonResult = null;
+        let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_prioritized';
+        let compareWithIndexed = false; // Control para comparación con tarifas indexadas
+        let bestOptionTariffChoice = 'fija'; // NUEVO: Elección de tarifa para VER MEJOR OPCIÓN ('fija' o 'indexada')
         let activeBrand = BRANDS.DRK;
         let qrCodeInstance = null; // Instancia de QRCode.js
         
@@ -1146,15 +1216,32 @@
             }
         }
 
-        function resetToLanding() {
+        // FUNCIÓN GLOBAL: Hacer accesible desde onclick en HTML
+        window.resetToLanding = function() {
+            console.log('resetToLanding llamada');
             stopScanner();
             
             // CRÍTICO: Limpiar TODAS las variables globales
             lastComparisonResult = null;
+            lastIndexedResult = null; // Limpiar resultado indexado
             multiCupsData = []; // Limpiar datos de multicups
             multiCupsAddType = null; // NEW: Reset sub-type
             availableOffers = [];
             manuallySelectedOffer = null;
+            compareWithIndexed = false; // Resetear comparación indexada
+            bestOptionTariffChoice = 'fija'; // NUEVO: Resetear elección de tarifa
+            
+            // Resetear checkbox de comparación indexada
+            const checkboxIndexed = document.getElementById('compare-indexed-checkbox');
+            if (checkboxIndexed) {
+                checkboxIndexed.checked = false;
+            }
+            
+            // Resetear selector de tipo de tarifa
+            const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
+            if (fijaRadio) {
+                fijaRadio.checked = true;
+            }
             
             // Restaurar la marca activa según el modo de comparación
             const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
@@ -1180,7 +1267,9 @@
 
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0'; // Resetear el contador de tarifas
-        }
+            
+            console.log('resetToLanding completada');
+        };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
             // Eliminamos la referencia a 6.1TD en la comprobación
@@ -1660,32 +1749,36 @@
             console.log('=== DIAGNÓSTICO AHORRO CONSOLIDADO ===');
             console.log('Total CUPS:', multiCupsData.length);
             
+            // Verificar si hay comparaciones indexadas
+            const hasIndexedComparisons = multiCupsData.some(d => d.indexedComparison);
+            console.log('¿Hay comparaciones indexadas?', hasIndexedComparisons);
+            
             // Mostrar datos de cada CUPS antes de la suma
             multiCupsData.forEach((cups, idx) => {
                 console.log(`CUPS ${idx + 1}:`, cups.cups);
                 console.log(`  - Original Annual: ${cups.originalBillAnnual}`);
-                console.log(`  - Total Annual: ${cups.totalAnnual}`);
-                console.log(`  - Savings: ${cups.savings}`);
-                console.log(`  - Diferencia calculada: ${cups.originalBillAnnual - cups.totalAnnual}`);
+                console.log(`  - Total Annual (Fijo): ${cups.totalAnnual}`);
+                console.log(`  - Savings (Fijo): ${cups.savings}`);
+                if (cups.indexedComparison) {
+                    console.log(`  - Total Annual (Indexado): ${cups.indexedComparison.totalAnnual}`);
+                    console.log(`  - Savings (Indexado): ${cups.indexedComparison.savings}`);
+                }
             });
             
-            // 1. Acumular Totales y Consumos
+            // 1. Acumular Totales y Consumos (FIJO)
             const total = multiCupsData.reduce((acc, current) => {
-                // current.totalAnnual ya contiene el costo de la tarifa "ganadora" (que puede ser la actual si no hay ahorro)
                 const newAnnual = current.totalAnnual;  
                 
                 acc.originalBillAnnual += current.originalBillAnnual;
                 acc.totalAnnual += newAnnual;
-                acc.totalPeriod += current.importe_total; // Sumamos el total del periodo original
+                acc.totalPeriod += current.importe_total;
 
-                // Acumulación de Potencias y Energías (para el desglose detallado)
+                // Acumulación de Potencias y Energías
                 const type = current.originalTariffType;
                 
-                // General Power Accumulation (P1-P6) - Accumulate the CONTRACTED power (not the calculated cost)
                 for (let i = 1; i <= 6; i++) {
                     const kwKey = `potencia_p${i}_kw`;
                     if (current[kwKey] !== undefined) {
-                        // Usamos solo '2.0TD' o '3.0TD' como claves de grupo
                         const groupKey = (type === '2.0TD' ? '2.0TD' : '3.0TD');
                         
                         if (TARIFF_CONFIG[type]?.powerPeriods >= i || type === '3.0TD') {
@@ -1694,15 +1787,12 @@
                     }
                 }
 
-                // General Energy Accumulation (E1-E6)
-                // Use consumption names based on the type, but store generically
                 if (type === '2.0TD') {
                     acc.aggregatedData[type].energy.e1 += current.consumo_punta || 0;
                     acc.aggregatedData[type].energy.e2 += current.consumo_llano || 0;
                     acc.aggregatedData[type].energy.e3 += current.consumo_valle || 0;
                 } else if (type === '3.0TD') {
                     for (let i = 1; i <= 6; i++) {
-                        // For 3.0TD, fields are named consumo_p1 to consumo_p6
                         acc.aggregatedData['3.0TD'].energy[`e${i}`] += current[`consumo_p${i}`] || 0;
                     }
                 }
@@ -1712,14 +1802,32 @@
                 originalBillAnnual: 0,
                 totalAnnual: 0,
                 totalPeriod: 0,
-                diasFacturados: 0, // Not accurately summable/averagable, kept as 0/N/A for summary
+                diasFacturados: 0,
                 aggregatedData: {
                     '2.0TD': { power: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 }, energy: { e1: 0, e2: 0, e3: 0, e4: 0, e5: 0, e6: 0 } },
                     '3.0TD': { power: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 }, energy: { e1: 0, e2: 0, e3: 0, e4: 0, e5: 0, e6: 0 } }
                 }
             });
 
-            // 2. Calcular Ahorro Final Consolidado
+            // 1b. Si hay comparaciones indexadas, acumular también esos totales
+            let totalIndexed = null;
+            if (hasIndexedComparisons) {
+                totalIndexed = multiCupsData.reduce((acc, current) => {
+                    if (current.indexedComparison) {
+                        acc.totalAnnual += current.indexedComparison.totalAnnual;
+                    }
+                    return acc;
+                }, {
+                    originalBillAnnual: total.originalBillAnnual, // Mismo original
+                    totalAnnual: 0,
+                    totalPeriod: total.totalPeriod
+                });
+                
+                totalIndexed.savings = totalIndexed.originalBillAnnual - totalIndexed.totalAnnual;
+                console.log('Total Indexado acumulado:', totalIndexed);
+            }
+
+            // 2. Calcular Ahorro Final Consolidado (FIJO)
             total.savings = total.originalBillAnnual - total.totalAnnual;
             
             console.log('=== TOTALES ACUMULADOS ===');
@@ -1764,9 +1872,17 @@
                 savings: total.savings,
                 offer: bestOverallWinner.offer, // Use the (potentially generic) offer for the header display
                 isMulti: true,
+                isMultiCups: true, // IMPORTANTE: Añadir esta propiedad para que se detecte correctamente
                 individualResults: multiCupsData, // Añadir resultados individuales para el desglose HTML
-                aggregatedData: total.aggregatedData
+                aggregatedData: total.aggregatedData,
+                // Añadir datos indexados si existen
+                indexedTotals: totalIndexed // Será null si no hay comparaciones indexadas
             };
+            
+            console.log('finalResult created:', finalResult);
+            if (totalIndexed) {
+                console.log('finalResult incluye datos indexados:', totalIndexed);
+            }
             
             lastComparisonResult = finalResult;
             
@@ -1802,11 +1918,209 @@
         }
 
 
+        // Nueva función para renderizar comparación dual en MULTICUPS
+        function renderMultiDualComparisonUI(res) {
+            console.log('renderMultiDualComparisonUI llamada', res);
+            
+            // IMPORTANTE: Asegurar que la variable global esté guardada
+            if (!lastComparisonResult) {
+                lastComparisonResult = res;
+            }
+            
+            const brand = activeBrand;
+            const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            
+            // CRÍTICO: Colores dinámicos según marca
+            const isDrk = brand.NAME.includes('DRK');
+            const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
+            
+            // Banner
+            const companyBanner = document.getElementById('company-banner');
+            companyBanner.innerHTML = `
+                <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-6 md:p-8 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        ${brand.LOGO_SVG}
+                        <div>
+                            <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">${brand.FULL_NAME}</h1>
+                            <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-white text-sm font-bold">📊 MULTICUPS:</p>
+                        <p class="text-drk-100 text-xs">Fijo vs Indexado</p>
+                    </div>
+                </div>
+            `;
+            
+            // CUPS list
+            document.getElementById('results-cups-list').innerHTML = `
+                Total: ${res.cups} - <span class="text-xs">${res.multiCupsList}</span>
+            `;
+            
+            // Calcular totales indexados
+            const totalIndexadoAnual = res.indexedTotals ? res.indexedTotals.totalAnnual : 0;
+            const ahorroIndexado = res.indexedTotals ? res.indexedTotals.savings : 0;
+            
+            // Vista con TRES COLUMNAS (similar a individual pero con totales MULTICUPS)
+            const resultCard = document.getElementById('result-card');
+            resultCard.innerHTML = `
+                <div class="p-4">
+                    <h2 class="text-xl font-black text-slate-800 mb-4 text-center">
+                        📊 COMPARATIVA MULTICUPS: ${res.cups}
+                    </h2>
+                    
+                    <!-- TRES COLUMNAS -->
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <!-- COLUMNA 1: TU FACTURA ACTUAL -->
+                        <div class="text-center">
+                            <div class="bg-slate-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">TU FACTURA ACTUAL</p>
+                            </div>
+                            <div class="bg-white border-2 border-slate-300 rounded-b-lg p-3">
+                                <p class="text-xs text-slate-500 mb-2 uppercase">TU FACTURA ACTUAL</p>
+                                <p class="text-2xl font-black text-red-600 line-through mb-2">${eur(res.importe_total)}</p>
+                                <p class="text-xs text-slate-500 mb-3">Total Periodo (${res.dias_facturados || 'varios'} días)</p>
+                                <p class="text-2xl font-black text-red-600">${eur(res.originalBillAnnual)}/año</p>
+                            </div>
+                        </div>
+                        
+                        <!-- COLUMNA 2: LA MEJOR OPCIÓN - FIJO (Color de marca) -->
+                        <div class="text-center">
+                            <div class="${isDrk ? 'bg-drk-600' : 'bg-powercup-600'} text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES ${isDrk ? 'DRK' : 'POWER CUP'}</p>
+                            </div>
+                            <div class="${isDrk ? 'bg-drk-50 border-drk-400' : 'bg-powercup-50 border-powercup-400'} border-2 rounded-b-lg p-3">
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-bold">${isDrk ? 'DRK' : 'POWER CUP'} - TARIFAS FIJAS</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'} mb-2">${eur(res.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'}">${eur(res.totalAnnual)}/año</p>
+                            </div>
+                        </div>
+                        
+                        <!-- COLUMNA 3: LA MEJOR OPCIÓN - INDEXADO (Verde) -->
+                        <div class="text-center">
+                            <div class="bg-green-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES ${isDrk ? 'DRK' : 'POWER CUP'}</p>
+                            </div>
+                            <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
+                                <p class="text-xs text-green-700 mb-2 font-bold">${isDrk ? 'DRK' : 'POWER CUP'} - TARIFAS INDEXADAS</p>
+                                <p class="text-2xl font-black text-green-900 mb-2">${eur(totalIndexadoAnual / 12)}/mes</p>
+                                <p class="text-xs text-green-700 mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black text-green-900">${eur(totalIndexadoAnual)}/año</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AHORROS -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="${isDrk ? 'bg-drk-100 border-drk-400' : 'bg-powercup-100 border-powercup-400'} border-2 rounded-xl p-4 text-center">
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} font-bold uppercase mb-2">💼 TU AHORRO CON TARIFAS FIJAS</p>
+                            <p class="text-4xl font-black text-green-600">${eur(res.savings)}</p>
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mt-1">Ahorro anual estimado total</p>
+                        </div>
+                        <div class="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center">
+                            <p class="text-xs text-green-700 font-bold uppercase mb-2">⚡ TU AHORRO CON TARIFAS INDEXADAS</p>
+                            <p class="text-4xl font-black text-green-600">${eur(ahorroIndexado)}</p>
+                            <p class="text-xs text-green-700 mt-1">Ahorro anual estimado total</p>
+                        </div>
+                    </div>
+                    
+                    <!-- LISTADO DE CUPS -->
+                    <div class="bg-slate-50 rounded-xl p-4 mb-4">
+                        <h3 class="text-sm font-black text-slate-800 mb-3 text-center">
+                            📋 DETALLE POR SUMINISTRO
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4 text-xs">
+                            <!-- Lista FIJAS -->
+                            <div>
+                                <p class="font-bold text-blue-700 mb-2">💼 TARIFAS FIJAS:</p>
+                                <div class="space-y-2">
+                                    ${res.individualResults.map((supply, idx) => `
+                                        <div class="bg-white rounded p-2 border border-blue-200">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <span class="font-mono text-slate-600">${supply.cups.slice(-12)}</span>
+                                                <span class="font-bold text-green-600">${eur(supply.savings)}</span>
+                                            </div>
+                                            <div class="text-slate-700">
+                                                <span class="font-semibold">${supply.offer.name}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <!-- Lista INDEXADAS -->
+                            <div>
+                                <p class="font-bold text-green-700 mb-2">⚡ TARIFAS INDEXADAS:</p>
+                                <div class="space-y-2">
+                                    ${res.individualResults.map((supply, idx) => {
+                                        const indexedOffer = supply.indexedComparison ? supply.indexedComparison.offer : null;
+                                        const indexedSavings = supply.indexedComparison ? supply.indexedComparison.savings : 0;
+                                        return `
+                                        <div class="bg-white rounded p-2 border border-green-200">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <span class="font-mono text-slate-600">${supply.cups.slice(-12)}</span>
+                                                <span class="font-bold text-green-600">${eur(indexedSavings)}</span>
+                                            </div>
+                                            <div class="text-slate-700">
+                                                <span class="font-semibold">${indexedOffer ? indexedOffer.name : 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NOTA IMPORTANTE -->
+                    <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-yellow-900">
+                            <strong>⚠️ Importante:</strong> El PDF y HTML incluirán el desarrollo detallado de cálculos para cada CUPS, 
+                            mostrando las fórmulas completas de potencia y energía tanto para tarifas fijas como indexadas.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Configurar el botón existente (NO crear uno nuevo)
+            const sendOfferBtn = document.getElementById('send-offer-btn');
+            if (sendOfferBtn) {
+                sendOfferBtn.style.display = 'flex'; // Asegurar que esté visible
+                sendOfferBtn.onclick = () => {
+                    document.getElementById('send-offer-modal').classList.remove('hidden');
+                    document.getElementById('send-offer-modal').classList.add('flex');
+                    document.querySelectorAll('#send-offer-modal input').forEach(input => {
+                        input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
+                        input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
+                    });
+                };
+            }
+            
+            // Ocultar detalles
+            document.getElementById('details-toggle-btn').style.display = 'none';
+            document.getElementById('details-container').style.display = 'none';
+            
+            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
+            if (resetButton) {
+                resetButton.style.display = 'flex';
+                resetButton.style.visibility = 'visible';
+                resetButton.classList.remove('hidden');
+            }
+        }
         /**
          * Rellena la vista de resultados con los datos acumulados para MULTICUPS.
          * @param {Object} res - Resultado final de la comparación acumulada.
          */
         function renderMultiResultsUI(res) {
+            // Si hay resultados indexados, usar vista de comparación dual
+            if (res.indexedTotals) {
+                renderMultiDualComparisonUI(res);
+                return;
+            }
+            
+            // Si no hay resultados indexados, continuar con la vista normal
             const offer = res.offer;
             let brand = activeBrand; // Use activeBrand set by comparisonMode
             const individualResults = res.individualResults;
@@ -2203,7 +2517,152 @@
          * Rellena la vista de resultados con los datos calculados (UNIDAD).
          * @param {Object} res - Resultado final de la comparación.
          */
-        function renderResultsUI(res) {
+        // Nueva función para renderizar comparación dual (Fijo vs Indexado)
+        function renderDualComparisonUI(resFijo, resIndexed) {
+            console.log('renderDualComparisonUI llamada', resFijo, resIndexed);
+            
+            // IMPORTANTE: Asegurar que las variables globales estén guardadas
+            if (!lastComparisonResult) {
+                lastComparisonResult = resFijo;
+            }
+            if (!lastIndexedResult) {
+                lastIndexedResult = resIndexed;
+            }
+            
+            const brand = activeBrand;
+            const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            
+            // CRÍTICO: Colores dinámicos según marca
+            const isDrk = brand.NAME.includes('DRK');
+            const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
+            
+            // Banner de empresa
+            const companyBanner = document.getElementById('company-banner');
+            companyBanner.innerHTML = `
+                <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-6 md:p-8 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        ${brand.LOGO_SVG}
+                        <div>
+                            <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">${brand.FULL_NAME}</h1>
+                            <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-white text-sm font-bold">📊 Comparación:</p>
+                        <p class="text-drk-100 text-xs">Tarifa Fija vs Indexada</p>
+                    </div>
+                </div>
+            `;
+            
+            // CUPS
+            document.getElementById('results-cups-list').innerHTML = `
+                CUPS: <span class="font-mono text-slate-700">${resFijo.cups}</span>
+            `;
+            
+            // Vista con TRES COLUMNAS
+            const resultCard = document.getElementById('result-card');
+            resultCard.innerHTML = `
+                <div class="p-4">
+                    <!-- TRES COLUMNAS -->
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <!-- COLUMNA 1: TU FACTURA ACTUAL -->
+                        <div class="text-center">
+                            <div class="bg-slate-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">TU FACTURA ACTUAL</p>
+                            </div>
+                            <div class="bg-white border-2 border-slate-300 rounded-b-lg p-3">
+                                <p class="text-xs text-slate-500 mb-2 uppercase">TU FACTURA ACTUAL</p>
+                                <p class="text-2xl font-black text-red-600 line-through mb-2">${eur(resFijo.originalBillPeriod || resFijo.importe_total)}</p>
+                                <p class="text-xs text-slate-500 mb-3">Total Periodo (${resFijo.dias_facturados || 0} días)</p>
+                                <p class="text-2xl font-black text-red-600">${eur(resFijo.originalBillAnnual)}/año</p>
+                            </div>
+                        </div>
+                        
+                        <!-- COLUMNA 2: LA MEJOR OPCIÓN - FIJO (Color de marca) -->
+                        <div class="text-center">
+                            <div class="${isDrk ? 'bg-drk-600' : 'bg-powercup-600'} text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES ${isDrk ? 'DRK' : 'POWER CUP'}</p>
+                            </div>
+                            <div class="${isDrk ? 'bg-drk-50 border-drk-400' : 'bg-powercup-50 border-powercup-400'} border-2 rounded-b-lg p-3">
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-bold">${resFijo.offer.name}</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'} mb-2">${eur(resFijo.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'}">${eur(resFijo.totalAnnual)}/año</p>
+                            </div>
+                        </div>
+                        
+                        <!-- COLUMNA 3: LA MEJOR OPCIÓN PARA TI ES DRK (INDEXADO) -->
+                        <div class="text-center">
+                            <div class="bg-green-600 text-white py-2 px-2 rounded-t-lg">
+                                <p class="text-xs font-bold uppercase">LA MEJOR OPCIÓN PARA TI ES DRK</p>
+                            </div>
+                            <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
+                                <p class="text-xs text-green-700 mb-2 font-bold">${resIndexed.offer.name}</p>
+                                <p class="text-2xl font-black text-green-900 mb-2">${eur(resIndexed.totalAnnual / 12)}/mes</p>
+                                <p class="text-xs text-green-700 mb-3">Estimado Mensual</p>
+                                <p class="text-2xl font-black text-green-900">${eur(resIndexed.totalAnnual)}/año</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AHORROS -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="${isDrk ? 'bg-drk-100 border-drk-400' : 'bg-powercup-100 border-powercup-400'} border-2 rounded-xl p-4 text-center">
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} font-bold uppercase mb-2">💼 TU AHORRO CON TARIFA FIJA</p>
+                            <p class="text-4xl font-black text-green-600">${eur(resFijo.savings)}</p>
+                            <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mt-1">Ahorro anual estimado</p>
+                        </div>
+                        <div class="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center">
+                            <p class="text-xs text-green-700 font-bold uppercase mb-2">⚡ TU AHORRO CON TARIFA INDEXADA</p>
+                            <p class="text-4xl font-black text-green-600">${eur(resIndexed.savings)}</p>
+                            <p class="text-xs text-green-700 mt-1">Ahorro anual estimado</p>
+                        </div>
+                    </div>
+                    
+                    <!-- NOTA IMPORTANTE -->
+                    <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-yellow-900">
+                            <strong>⚠️ Importante:</strong> La tarifa indexada puede variar mensualmente según el mercado eléctrico. 
+                            Los valores mostrados son estimaciones basadas en precios actuales.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Configurar el botón existente (NO crear uno nuevo)
+            const sendOfferBtn = document.getElementById('send-offer-btn');
+            if (sendOfferBtn) {
+                sendOfferBtn.style.display = 'flex'; // Asegurar que esté visible
+                sendOfferBtn.onclick = () => {
+                    document.getElementById('send-offer-modal').classList.remove('hidden');
+                    document.getElementById('send-offer-modal').classList.add('flex');
+                    document.querySelectorAll('#send-offer-modal input').forEach(input => {
+                        input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
+                        input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
+                    });
+                };
+            }
+            
+            // Ocultar detalles
+            document.getElementById('details-toggle-btn').style.display = 'none';
+            document.getElementById('details-container').style.display = 'none';
+            
+            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
+            if (resetButton) {
+                resetButton.style.display = 'flex';
+                resetButton.style.visibility = 'visible';
+                resetButton.classList.remove('hidden');
+            }
+        }
+        function renderResultsUI(res, resIndexed = null) {
+            // Si hay resultado indexado, usar vista de comparación dual
+            if (resIndexed) {
+                renderDualComparisonUI(res, resIndexed);
+                return;
+            }
+            
+            // Si no hay resultado indexado, renderizar como siempre
             try {
                 console.log('renderResultsUI called with:', res);
                 
@@ -2504,7 +2963,16 @@
         // --- COPIA HTML MEJORADA ---
 
         async function handleCopyOffer() {
-            if (!lastComparisonResult) return window.showErrorModal("Primero realice una comparación.");
+            console.log('handleCopyOffer llamada', {
+                lastComparisonResult: lastComparisonResult,
+                lastIndexedResult: lastIndexedResult,
+                compareWithIndexed: compareWithIndexed
+            });
+            
+            if (!lastComparisonResult) {
+                console.error('ERROR: lastComparisonResult es null o undefined');
+                return window.showErrorModal("Primero realice una comparación.");
+            }
             
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
@@ -2512,10 +2980,24 @@
             try {
                 // 1. Generar el HTML
                 let htmlContent = '';
-                if (lastComparisonResult.isMulti) {
-                    htmlContent = generateMultiStyledHtmlOffer(commercialCode);
+                
+                // IMPORTANTE: Detectar si hay resultado indexado para generar HTML dual
+                if (lastIndexedResult && compareWithIndexed) {
+                    // Si hay resultado indexado, generar HTML dual
+                    if (lastComparisonResult.isMultiCups) {
+                        // MULTICUPS con índice - generar HTML especial
+                        htmlContent = generateMultiDualStyledHtmlOffer(commercialCode);
+                    } else {
+                        // Individual con índice - generar HTML especial
+                        htmlContent = generateDualStyledHtmlOffer(commercialCode, lastComparisonResult, lastIndexedResult);
+                    }
                 } else {
-                    htmlContent = generateStyledHtmlOffer(commercialCode);
+                    // Modo normal (sin indexado)
+                    if (lastComparisonResult.isMulti) {
+                        htmlContent = generateMultiStyledHtmlOffer(commercialCode);
+                    } else {
+                        htmlContent = generateStyledHtmlOffer(commercialCode);
+                    }
                 }
                 
                 // 2. Crear un elemento temporal para la copia HTML enriquecida
@@ -2549,10 +3031,1267 @@
             }
         }
         
+        // --- GENERACIÓN DE PDF CON COMPARACIÓN DUAL (FIJO VS INDEXADO) CON DESARROLLO COMPLETO ---
+        
+        async function generatePDF_Dual(resFijo, resIndexed) {
+            try {
+                console.log('=== generatePDF_Dual INICIADO ===');
+                console.log('resFijo:', resFijo);
+                console.log('resFijo tiene powerCosts?:', !!resFijo.powerCosts);
+                console.log('resFijo tiene energyCosts?:', !!resFijo.energyCosts);
+                console.log('resIndexed:', resIndexed);
+                console.log('resIndexed tiene powerCosts?:', !!resIndexed.powerCosts);
+                console.log('resIndexed tiene energyCosts?:', !!resIndexed.energyCosts);
+                
+                // CRÍTICO: Si no tienen powerCosts/energyCosts, recalcularlos
+                if (!resFijo.powerCosts || !resFijo.energyCosts) {
+                    console.warn('resFijo no tiene powerCosts/energyCosts, recalculando...');
+                    const recalculated = recalculateCostsForOffer(resFijo, resFijo.offer);
+                    resFijo.powerCosts = recalculated.powerCosts;
+                    resFijo.energyCosts = recalculated.energyCosts;
+                    resFijo.subPower = recalculated.subPower;
+                    resFijo.subEnergyNet = recalculated.subEnergyNet;
+                    console.log('resFijo recalculado:', resFijo);
+                }
+                
+                if (!resIndexed.powerCosts || !resIndexed.energyCosts) {
+                    console.warn('resIndexed no tiene powerCosts/energyCosts, recalculando...');
+                    const recalculated = recalculateCostsForOffer(resIndexed, resIndexed.offer);
+                    resIndexed.powerCosts = recalculated.powerCosts;
+                    resIndexed.energyCosts = recalculated.energyCosts;
+                    resIndexed.subPower = recalculated.subPower;
+                    resIndexed.subEnergyNet = recalculated.subEnergyNet;
+                    console.log('resIndexed recalculado:', resIndexed);
+                }
+                
+                window.showMessageModal("⏳ Generando PDF con comparación Fijo vs Indexado... Por favor espere.");
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                const brand = activeBrand;
+                const tariffType = resFijo.originalTariffType || currentTariffType;
+                const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
+                
+                const commercialCode = document.getElementById('comercial-code-input').value.trim();
+                const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+                
+                // Colores dinámicos según la marca activa
+                const darkColor = [107, 125, 142];
+                const greenColor = [22, 163, 74];
+                const redColor = [220, 38, 38];
+                
+                // CRÍTICO: Colores según marca (DRK = azul, POWER CUP = verde)
+                const isDrk = brand.NAME.includes('DRK');
+                const brandColor = isDrk ? [59, 130, 246] : [132, 204, 22];  // Azul DRK o Verde POWER CUP
+                const brandColorLight = isDrk ? [59, 130, 246] : [22, 163, 74];  // Para ahorros
+                const blueColor = brandColor;  // Alias para compatibilidad (usado en Página 2 y 3)
+                const greenIndexColor = [22, 163, 74];  // Verde para INDEXADA (siempre verde)
+                
+                const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+                const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+                const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
+                
+                let yPos = 0;
+                const pageWidth = 210;
+                const margin = 12;
+                const contentWidth = pageWidth - (2 * margin);
+                
+                // === PÁGINA 1: RESUMEN ===
+                
+                // CABECERA con degradado
+                const headerHeight = 35;
+                for (let i = 0; i < pageWidth; i++) {
+                    const ratio = i / pageWidth;
+                    const r = Math.round(darkColor[0] + (240 - darkColor[0]) * ratio);
+                    const g = Math.round(darkColor[1] + (245 - darkColor[1]) * ratio);
+                    const b = Math.round(darkColor[2] + (250 - darkColor[2]) * ratio);
+                    doc.setFillColor(r, g, b);
+                    doc.rect(i, 0, 1, headerHeight, 'F');
+                }
+                
+                // Logo DRK
+                const logoX = margin + 8;
+                const logoY = 12;
+                const logoRadius = 5;
+                
+                doc.setFillColor(219, 68, 55);
+                doc.circle(logoX - 1, logoY + 1, logoRadius * 0.8, 'F');
+                doc.setFillColor(66, 133, 244);
+                doc.circle(logoX + 1, logoY - 1, logoRadius * 0.8, 'F');
+                doc.setFillColor(244, 180, 0);
+                doc.circle(logoX - 1, logoY - 1, logoRadius * 0.7, 'F');
+                doc.setFillColor(15, 157, 88);
+                doc.circle(logoX + 1, logoY + 1, logoRadius * 0.7, 'F');
+                doc.setFillColor(255, 255, 255);
+                doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
+                
+                // Texto DRK ENERGÍA
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(18);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DRK ENERGÍA', logoX + 12, 14);
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Liderando el ahorro y la', logoX + 12, 20);
+                doc.text('eficiencia energética.', logoX + 12, 24);
+                
+                // Texto derecha
+                doc.setTextColor(40, 60, 80);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ESTUDIO DE AHORRO', pageWidth - margin, 12, { align: 'right' });
+                
+                doc.setFontSize(11);
+                doc.setTextColor(255, 255, 255);
+                doc.text('COMPARATIVA', pageWidth - margin, 18, { align: 'right' });
+                
+                doc.setFontSize(9);
+                doc.setTextColor(100, 120, 140);
+                doc.text('PROFESIONAL', pageWidth - margin, 24, { align: 'right' });
+                
+                yPos = headerHeight + 8;
+                
+                // === PÁGINA 1: RESUMEN VISUAL MEJORADO ===
+                
+                // Título principal
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text('📊 COMPARATIVA: TARIFA FIJA vs INDEXADA', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 10;
+                
+                // Info del cliente
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Cliente: ${clientName} | CUPS: ${resFijo.cups} | Comercial: ${commercialCode}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
+                
+                // === TRES CAJAS GRANDES ===
+                const boxWidth = (contentWidth - 4) / 3;
+                const box1X = margin;
+                const box2X = margin + boxWidth + 2;
+                const box3X = margin + (boxWidth + 2) * 2;
+                const boxHeight = 60;
+                
+                // Función para dibujar caja
+                function drawVisualBox(x, headerColor, headerText, label, mainPrice, subLabel, bottomPrice, isCrossed = false) {
+                    let y = yPos;
+                    
+                    // Cabecera de color
+                    doc.setFillColor(...headerColor);
+                    doc.roundedRect(x, y, boxWidth, 9, 1.5, 1.5, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    const headerLines = doc.splitTextToSize(headerText, boxWidth - 2);
+                    doc.text(headerLines, x + boxWidth / 2, y + 4, { align: 'center' });
+                    y += 10;
+                    
+                    // Cuerpo de la caja
+                    const bodyColor = headerColor[0] === 75 ? [248, 249, 250] : (headerColor[0] === 59 ? [239, 246, 255] : [240, 253, 244]);
+                    doc.setFillColor(...bodyColor);
+                    doc.setDrawColor(...headerColor);
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(x, y, boxWidth, boxHeight - 10, 1.5, 1.5, 'FD');
+                    
+                    // Label
+                    doc.setTextColor(100, 100, 100);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(label.toUpperCase(), x + boxWidth / 2, y + 7, { align: 'center' });
+                    
+                    // Precio principal (grande)
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    const mainPriceText = mainPrice;
+                    doc.text(mainPriceText, x + boxWidth / 2, y + 18, { align: 'center' });
+                    
+                    // Tachar si es necesario
+                    if (isCrossed) {
+                        const textWidth = doc.getTextWidth(mainPriceText);
+                        doc.setDrawColor(220, 38, 38);
+                        doc.setLineWidth(0.7);
+                        doc.line(x + boxWidth / 2 - textWidth / 2, y + 17, x + boxWidth / 2 + textWidth / 2, y + 17);
+                    }
+                    
+                    // Sublabel
+                    doc.setFontSize(5.5);
+                    doc.setTextColor(120, 120, 120);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(subLabel, x + boxWidth / 2, y + 24, { align: 'center' });
+                    
+                    // Línea separadora
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(x + 5, y + 30, x + boxWidth - 5, y + 30);
+                    
+                    // Precio inferior (anual)
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    doc.text(bottomPrice, x + boxWidth / 2, y + 42, { align: 'center' });
+                }
+                
+                // CAJA 1: TU FACTURA ACTUAL (GRIS)
+                drawVisualBox(
+                    box1X,
+                    [75, 85, 99],  // Gris oscuro
+                    'TU FACTURA ACTUAL',
+                    'Tu Factura Actual',
+                    eur(resFijo.originalBillPeriod || resFijo.importe_total),
+                    `Total Periodo (${resFijo.dias_facturados || 0} días)`,
+                    `${eur(resFijo.originalBillAnnual)}/año`,
+                    true  // Tachado
+                );
+                
+                // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
+                drawVisualBox(
+                    box2X,
+                    brandColor,  // Azul
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    resFijo.offer.name,
+                    `${eur(resFijo.totalAnnual / 12)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(resFijo.totalAnnual)}/año`,
+                    false
+                );
+                
+                // CAJA 3: LA MEJOR OPCIÓN - INDEXADO (VERDE)
+                drawVisualBox(
+                    box3X,
+                    [22, 163, 74],  // Verde
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    resIndexed.offer.name,
+                    `${eur(resIndexed.totalAnnual / 12)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(resIndexed.totalAnnual)}/año`,
+                    false
+                );
+                
+                yPos += boxHeight + 5;
+                
+                // === DOS CAJAS DE AHORRO GRANDES ===
+                const ahorroBoxWidth = (contentWidth - 2) / 2;
+                const ahorroBoxHeight = 35;
+                const ahorro1X = margin;
+                const ahorro2X = margin + ahorroBoxWidth + 2;
+                
+                // CAJA AHORRO FIJO (AZUL)
+                doc.setFillColor(239, 246, 255);
+                doc.setDrawColor(59, 130, 246);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro1X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
+                
+                doc.setTextColor(59, 130, 246);
+                doc.setFontSize(7.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('💼 TU AHORRO CON TARIFAS FIJAS', ahorro1X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
+                
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resFijo.savings), ahorro1X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
+                
+                doc.setFontSize(6.5);
+                doc.setTextColor(59, 130, 246);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado total', ahorro1X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
+                
+                // CAJA AHORRO INDEXADO (VERDE)
+                doc.setFillColor(240, 253, 244);
+                doc.setDrawColor(22, 163, 74);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro2X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
+                
+                doc.setTextColor(22, 163, 74);
+                doc.setFontSize(7.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('⚡ TU AHORRO CON TARIFAS INDEXADAS', ahorro2X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
+                
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.savings), ahorro2X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
+                
+                doc.setFontSize(6.5);
+                doc.setTextColor(22, 163, 74);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
+                
+                yPos += ahorroBoxHeight + 8;
+                
+                // === PÁGINA 2: DESARROLLO DETALLADO ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DESARROLLO DETALLADO DE LA SIMULACIÓN', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
+                
+                const col2Width = (contentWidth - 3) / 2;
+                const leftX = margin;
+                const rightX = margin + col2Width + 3;
+                
+                // Función para generar desglose completo
+                function generarDesgloseCompleto(res, x, width, color, titulo) {
+                    // VERIFICACIÓN CRÍTICA: Asegurar que res tiene los datos necesarios
+                    if (!res || !res.powerCosts || !res.energyCosts) {
+                        console.error('ERROR en generarDesgloseCompleto: res no tiene la estructura necesaria', res);
+                        doc.setTextColor(220, 38, 38);
+                        doc.setFontSize(8);
+                        doc.text('Error: Datos incompletos para generar desglose', x + 2, yPos + 10);
+                        return;
+                    }
+                    
+                    let y = yPos;
+                    
+                    // Cabecera verde
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x, y, width, 6, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(7.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(titulo, x + width / 2, y + 4, { align: 'center' });
+                    y += 8;
+                    
+                    // Fondo blanco
+                    doc.setFillColor(255, 255, 255);
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(x, y, width, 110, 1, 1, 'FD');
+                    
+                    y += 4;
+                    
+                    // TÉRMINO POTENCIA
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('TÉRMINO POTENCIA (Precio en €/kW Día)', x + 2, y);
+                    y += 4;
+                    
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'normal');
+                    res.powerCosts.forEach(p => {
+                        if (p.kw > 0 || p.period <= config.powerPeriods) {
+                            const formula = `P${p.period} (${num(p.kw, 2)} kW × ${res.dias_facturados}d × ${numPriceFormula(p.priceDay)})`;
+                            doc.text(formula, x + 2, y);
+                            doc.text(`${num(p.cost, 2)} €`, x + width - 2, y, { align: 'right' });
+                            y += 3.5;
+                        }
+                    });
+                    
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Subtotal Potencia', x + 2, y);
+                    doc.text(`${num(res.subPower, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 5;
+                    
+                    // TÉRMINO ENERGÍA
+                    doc.setFontSize(6.5);
+                    doc.text('TÉRMINO ENERGÍA (Precios en €/kWh)', x + 2, y);
+                    y += 4;
+                    
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'normal');
+                    res.energyCosts.forEach(e => {
+                        if (e.kwh > 0 || e.period <= config.periods) {
+                            let label = `E${e.period}`;
+                            if (tariffType === '2.0TD') {
+                                if (e.period === 1) label += ' - Punta';
+                                if (e.period === 2) label += ' - Llano';
+                                if (e.period === 3) label += ' - Valle';
+                            }
+                            const formula = `${label} (${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)})`;
+                            doc.text(formula, x + 2, y);
+                            doc.text(`${num(e.cost, 2)} €`, x + width - 2, y, { align: 'right' });
+                            y += 3.5;
+                        }
+                    });
+                    
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Subtotal Energía (Bruto)', x + 2, y);
+                    doc.text(`${num(res.subEnergy, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    // Descuento si existe
+                    if (res.discountAmount > 0) {
+                        doc.setTextColor(...redColor);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(5.5);
+                        doc.text(`Descuento (${num(res.discountRate * 100, 0)}%)`, x + 2, y);
+                        doc.text(`-${num(res.discountAmount, 2)} €`, x + width - 2, y, { align: 'right' });
+                        y += 3.5;
+                        
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(6);
+                        doc.text('Subtotal Energía (Neto)', x + 2, y);
+                        doc.text(`${num(res.subEnergyNet, 2)} €`, x + width - 2, y, { align: 'right' });
+                        y += 4;
+                    }
+                    
+                    y += 1;
+                    
+                    // Línea separadora
+                    doc.setDrawColor(150, 150, 150);
+                    doc.setLineWidth(0.2);
+                    doc.line(x + 2, y, x + width - 2, y);
+                    y += 3;
+                    
+                    // TOTALES
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('SUBTOTAL BASE (P+E)', x + 2, y);
+                    doc.text(`${num(res.subBase, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(5.5);
+                    doc.text(`Imp. Eléc. (${num(res.ieRate * 100, 3)}%)`, x + 2, y);
+                    doc.text(`${num(res.costIE, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(6.5);
+                    doc.text('BASE IMPONIBLE', x + 2, y);
+                    doc.text(`${num(res.baseImp, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3.5;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(5.5);
+                    doc.text('IVA (21%)', x + 2, y);
+                    doc.text(`${num(res.costIVA, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 5;
+                    
+                    // TOTAL FACTURA con fondo de color
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x + 1, y, width - 2, 7, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`TOTAL FACTURA (${res.dias_facturados} días)`, x + 3, y + 4.5);
+                    doc.text(eur(res.totalPeriod), x + width - 3, y + 4.5, { align: 'right' });
+                    y += 9;
+                    
+                    // Total año
+                    doc.setTextColor(...color);
+                    doc.setFontSize(6);
+                    doc.text('Total Año (Proyectado)', x + 2, y);
+                    doc.text(eur(res.totalAnnual), x + width - 2, y, { align: 'right' });
+                }
+                
+                // Generar desgloses en dos columnas
+                generarDesgloseCompleto(resFijo, leftX, col2Width, blueColor, `DESGLOSE DETALLADO (${resFijo.offer.name})`);
+                generarDesgloseCompleto(resIndexed, rightX, col2Width, greenIndexColor, `TARIFA INDEXADA (${resIndexed.offer.name})`);
+                
+                yPos += 120;
+                
+                // === RECUADROS ROJOS DE AHORRO ===
+                const ahorroWidth = col2Width;
+                
+                // Ahorro FIJO
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(leftX, yPos, ahorroWidth, 12, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TU AHORRO ANUAL ESTIMADO ES:', leftX + 3, yPos + 5);
+                doc.setFontSize(12);
+                doc.text(`${eur(resFijo.savings)}/ AÑO`, leftX + 3, yPos + 10);
+                
+                // Ahorro INDEXADO
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(rightX, yPos, ahorroWidth, 12, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.text('TU AHORRO ANUAL ESTIMADO ES:', rightX + 3, yPos + 5);
+                doc.setFontSize(12);
+                doc.text(`${eur(resIndexed.savings)}/ AÑO`, rightX + 3, yPos + 10);
+                
+                // === PÁGINA 3: EXPLICACIÓN ===
+                doc.addPage();
+                yPos = 15;
+                
+                // Definir variables para las dos columnas de la explicación
+                const colWidthPage3 = (contentWidth - 3) / 2;
+                const leftXPage3 = margin;
+                const rightXPage3 = margin + colWidthPage3 + 3;
+                
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, yPos, contentWidth, 120, 2, 2, 'F');
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                yPos += 15;
+                
+                // Columna izquierda - Tarifa Fija
+                let leftColY = yPos;
+                doc.setFontSize(9);
+                doc.setTextColor(...blueColor);
+                doc.setFont('helvetica', 'bold');
+                doc.text('💼 ¿POR QUÉ TARIFA FIJA?', leftXPage3 + 2, leftColY);
+                leftColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const fijaTextFull = [
+                    '• Implica un precio fijo por los kilovatios que',
+                    '  consumes (kWh).',
+                    '',
+                    '• El precio se mantiene estable,',
+                    '  independientemente de cómo se comporten los',
+                    '  precios en el mercado eléctrico.',
+                    '',
+                    '• Cuando el precio del mercado está alto, el',
+                    '  cliente está protegido frente a sobresaltos.',
+                    '',
+                    '• No tendrás que estar pendiente de las',
+                    '  variaciones del mercado y podrás seguir',
+                    '  usando la electricidad como siempre.'
+                ];
+                
+                fijaTextFull.forEach(line => {
+                    doc.text(line, leftXPage3 + 2, leftColY, { maxWidth: colWidthPage3 - 4 });
+                    leftColY += 3.5;
+                });
+                
+                // Columna derecha - Tarifa Indexada
+                let rightColY = yPos;
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...greenColor);
+                doc.text('⚡ ¿POR QUÉ TARIFA INDEXADA?', rightXPage3 + 2, rightColY);
+                rightColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const indexadaTextFull = [
+                    '• Implica un precio variable por los kilovatios',
+                    '  que consumes (kWh) cada mes.',
+                    '',
+                    '• Es la tarifa más justa, ya que pagas el coste',
+                    '  real de la energía mes a mes.',
+                    '',
+                    '• Al contratarla, el cliente evita pagar',
+                    '  márgenes adicionales cuando el precio de la',
+                    '  electricidad es más barato.',
+                    '',
+                    '• A largo plazo, con un indexado 100%',
+                    '  funcional, se puede obtener un ahorro',
+                    '  aproximado de hasta un 20% en épocas de',
+                    '  mejor precio.'
+                ];
+                
+                indexadaTextFull.forEach(line => {
+                    doc.text(line, rightXPage3 + 2, rightColY, { maxWidth: colWidthPage3 - 4 });
+                    rightColY += 3.5;
+                });
+                
+                // Guardar PDF
+                const filename = `Comparacion_Fijo_vs_Indexado_${resFijo.cups.slice(-6)}.pdf`;
+                doc.save(filename);
+                
+                window.showMessageModal(`✅ PDF generado con éxito: ${filename}`);
+                
+                // Cerrar modal
+                document.getElementById('send-offer-modal').classList.add('hidden');
+                document.getElementById('send-offer-modal').classList.remove('flex');
+                
+            } catch (error) {
+                console.error('Error generando PDF dual:', error);
+                window.showErrorModal(`Error al generar PDF: ${error.message}`);
+            }
+        }
+
+
+        async function generateMultiPDF_Dual(res) {
+            try {
+                console.log('=== generateMultiPDF_Dual INICIADO ===');
+                console.log('res recibido:', res);
+                console.log('res.individualResults:', res.individualResults);
+                
+                if (res.individualResults && res.individualResults.length > 0) {
+                    console.log('Primer supply:', res.individualResults[0]);
+                    console.log('Primer supply tiene indexedComparison?:', !!res.individualResults[0].indexedComparison);
+                    if (res.individualResults[0].indexedComparison) {
+                        console.log('indexedComparison:', res.individualResults[0].indexedComparison);
+                        console.log('indexedComparison.powerCosts?:', !!res.individualResults[0].indexedComparison.powerCosts);
+                        console.log('indexedComparison.energyCosts?:', !!res.individualResults[0].indexedComparison.energyCosts);
+                    }
+                }
+                
+                window.showMessageModal("⏳ Generando PDF MULTICUPS con comparación Fijo vs Indexado... Por favor espere.");
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                const darkColor = [107, 125, 142];
+                const greenColor = [22, 163, 74];
+                const redColor = [220, 38, 38];
+                
+                // CRÍTICO: Colores según marca activa
+                const brand = activeBrand;
+                const isDrk = brand.NAME.includes('DRK');
+                const brandColor = isDrk ? [59, 130, 246] : [132, 204, 22];  // Azul DRK o Verde POWER CUP
+                const blueColor = brandColor;  // Alias para compatibilidad
+                
+                const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+                const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+                const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
+                
+                let yPos = 0;
+                const pageWidth = 210;
+                const margin = 12;
+                const contentWidth = pageWidth - (2 * margin);
+                const colWidth = (contentWidth / 2) - 3;
+                const leftX = margin;
+                const rightX = margin + colWidth + 6;
+                
+                // === PÁGINA 1: RESUMEN GENERAL ===
+                const headerHeight = 35;
+                for (let i = 0; i < pageWidth; i++) {
+                    const ratio = i / pageWidth;
+                    const r = Math.round(darkColor[0] + (240 - darkColor[0]) * ratio);
+                    const g = Math.round(darkColor[1] + (245 - darkColor[1]) * ratio);
+                    const b = Math.round(darkColor[2] + (250 - darkColor[2]) * ratio);
+                    doc.setFillColor(r, g, b);
+                    doc.rect(i, 0, 1, headerHeight, 'F');
+                }
+                
+                // Logo DRK
+                const logoX = margin + 8;
+                const logoY = 12;
+                const logoRadius = 5;
+                
+                doc.setFillColor(219, 68, 55);
+                doc.circle(logoX - 1, logoY + 1, logoRadius * 0.8, 'F');
+                doc.setFillColor(66, 133, 244);
+                doc.circle(logoX + 1, logoY - 1, logoRadius * 0.8, 'F');
+                doc.setFillColor(244, 180, 0);
+                doc.circle(logoX - 1, logoY - 1, logoRadius * 0.7, 'F');
+                doc.setFillColor(15, 157, 88);
+                doc.circle(logoX + 1, logoY + 1, logoRadius * 0.7, 'F');
+                doc.setFillColor(255, 255, 255);
+                doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(18);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DRK ENERGÍA', logoX + 12, 14);
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Liderando el ahorro y la', logoX + 12, 20);
+                doc.text('eficiencia energética.', logoX + 12, 24);
+                
+                doc.setTextColor(40, 60, 80);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('MULTICUPS', pageWidth - margin, 12, { align: 'right' });
+                doc.setFontSize(11);
+                doc.setTextColor(255, 255, 255);
+                doc.text('FIJO VS INDEXADO', pageWidth - margin, 18, { align: 'right' });
+                doc.setFontSize(9);
+                doc.setTextColor(100, 120, 140);
+                doc.text(`Total: ${res.cups}`, pageWidth - margin, 24, { align: 'right' });
+                
+                yPos = headerHeight + 8;
+                
+                // === PÁGINA 1: RESUMEN VISUAL MEJORADO MULTICUPS ===
+                
+                // Título principal
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`📊 COMPARATIVA MULTICUPS: ${res.cups}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
+                
+                // === TRES CAJAS GRANDES ===
+                const boxWidth = (contentWidth - 4) / 3;
+                const box1X = margin;
+                const box2X = margin + boxWidth + 2;
+                const box3X = margin + (boxWidth + 2) * 2;
+                const boxHeight = 60;
+                
+                // Calcular totales
+                const totalIndexadoAnual = res.indexedTotals ? res.indexedTotals.totalAnnual : 0;
+                const ahorroIndexado = res.indexedTotals ? res.indexedTotals.savings : 0;
+                
+                // Función para dibujar caja (igual que en PDF individual)
+                function drawVisualBox(x, headerColor, headerText, label, mainPrice, subLabel, bottomPrice, isCrossed = false) {
+                    let y = yPos;
+                    
+                    // Cabecera de color
+                    doc.setFillColor(...headerColor);
+                    doc.roundedRect(x, y, boxWidth, 9, 1.5, 1.5, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    const headerLines = doc.splitTextToSize(headerText, boxWidth - 2);
+                    doc.text(headerLines, x + boxWidth / 2, y + 4, { align: 'center' });
+                    y += 10;
+                    
+                    // Cuerpo de la caja
+                    const bodyColor = headerColor[0] === 75 ? [248, 249, 250] : (headerColor[0] === 59 ? [239, 246, 255] : [240, 253, 244]);
+                    doc.setFillColor(...bodyColor);
+                    doc.setDrawColor(...headerColor);
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(x, y, boxWidth, boxHeight - 10, 1.5, 1.5, 'FD');
+                    
+                    // Label
+                    doc.setTextColor(100, 100, 100);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(label.toUpperCase(), x + boxWidth / 2, y + 7, { align: 'center' });
+                    
+                    // Precio principal (grande)
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    const mainPriceText = mainPrice;
+                    doc.text(mainPriceText, x + boxWidth / 2, y + 18, { align: 'center' });
+                    
+                    // Tachar si es necesario
+                    if (isCrossed) {
+                        const textWidth = doc.getTextWidth(mainPriceText);
+                        doc.setDrawColor(220, 38, 38);
+                        doc.setLineWidth(0.7);
+                        doc.line(x + boxWidth / 2 - textWidth / 2, y + 17, x + boxWidth / 2 + textWidth / 2, y + 17);
+                    }
+                    
+                    // Sublabel
+                    doc.setFontSize(5.5);
+                    doc.setTextColor(120, 120, 120);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(subLabel, x + boxWidth / 2, y + 24, { align: 'center' });
+                    
+                    // Línea separadora
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(x + 5, y + 30, x + boxWidth - 5, y + 30);
+                    
+                    // Precio inferior (anual)
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
+                    doc.text(bottomPrice, x + boxWidth / 2, y + 42, { align: 'center' });
+                }
+                
+                // CAJA 1: TU FACTURA ACTUAL (GRIS)
+                drawVisualBox(
+                    box1X,
+                    [75, 85, 99],  // Gris oscuro
+                    'TU FACTURA ACTUAL',
+                    'Tu Factura Actual',
+                    eur(res.importe_total),
+                    'Total Periodo (varios días)',
+                    `${eur(res.originalBillAnnual)}/año`,
+                    true  // Tachado
+                );
+                
+                // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
+                drawVisualBox(
+                    box2X,
+                    brandColor,  // Azul
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    'DRK - TARIFAS FIJAS',
+                    `${eur(res.totalAnnual / 12)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(res.totalAnnual)}/año`,
+                    false
+                );
+                
+                // CAJA 3: LA MEJOR OPCIÓN - INDEXADO (VERDE)
+                drawVisualBox(
+                    box3X,
+                    [22, 163, 74],  // Verde
+                    'LA MEJOR OPCIÓN PARA TI ES DRK',
+                    'DRK - TARIFAS INDEXADAS',
+                    `${eur(totalIndexadoAnual / 12)}/mes`,
+                    'Estimado Mensual',
+                    `${eur(totalIndexadoAnual)}/año`,
+                    false
+                );
+                
+                yPos += boxHeight + 5;
+                
+                // === DOS CAJAS DE AHORRO GRANDES ===
+                const ahorroBoxWidth = (contentWidth - 2) / 2;
+                const ahorroBoxHeight = 35;
+                const ahorro1X = margin;
+                const ahorro2X = margin + ahorroBoxWidth + 2;
+                
+                // CAJA AHORRO FIJO (AZUL)
+                doc.setFillColor(239, 246, 255);
+                doc.setDrawColor(59, 130, 246);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro1X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
+                
+                doc.setTextColor(59, 130, 246);
+                doc.setFontSize(7.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('💼 TU AHORRO CON TARIFAS FIJAS', ahorro1X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
+                
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(res.savings), ahorro1X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
+                
+                doc.setFontSize(6.5);
+                doc.setTextColor(59, 130, 246);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado total', ahorro1X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
+                
+                // CAJA AHORRO INDEXADO (VERDE)
+                doc.setFillColor(240, 253, 244);
+                doc.setDrawColor(22, 163, 74);
+                doc.setLineWidth(2);
+                doc.roundedRect(ahorro2X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
+                
+                doc.setTextColor(22, 163, 74);
+                doc.setFontSize(7.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('⚡ TU AHORRO CON TARIFAS INDEXADAS', ahorro2X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
+                
+                doc.setFontSize(22);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(ahorroIndexado), ahorro2X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
+                
+                doc.setFontSize(6.5);
+                doc.setTextColor(22, 163, 74);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
+                
+                yPos += ahorroBoxHeight + 8;
+                
+                // Nota
+                doc.setFillColor(255, 251, 235);
+                doc.setDrawColor(245, 158, 11);
+                doc.setLineWidth(0.3);
+                doc.roundedRect(margin, yPos, contentWidth, 18, 1, 1, 'FD');
+                
+                doc.setTextColor(146, 64, 14);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.text('⚠️ IMPORTANTE:', margin + 2, yPos + 5);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(6.5);
+                const noteText = doc.splitTextToSize(
+                    'A continuación encontrará el desarrollo detallado de cálculos para cada suministro, mostrando el desglose completo de costes tanto para tarifas fijas como indexadas.',
+                    contentWidth - 4
+                );
+                let noteY = yPos + 10;
+                noteText.forEach(line => {
+                    doc.text(line, margin + 2, noteY);
+                    noteY += 3;
+                });
+                
+                // === PÁGINAS 2-N: DESARROLLO DETALLADO DE CADA CUPS ===
+                
+                // Función auxiliar para generar desglose detallado
+                function generarDesgloseDetalladoCUPS(supply, x, width, color, titulo, usarIndexado = false) {
+                    const resultado = usarIndexado && supply.indexedComparison ? supply.indexedComparison : supply;
+                    
+                    // VERIFICACIÓN CRÍTICA: Asegurar que resultado tiene los datos necesarios
+                    if (!resultado || !resultado.powerCosts || !resultado.energyCosts) {
+                        console.error('ERROR: resultado no tiene la estructura necesaria', resultado);
+                        doc.setTextColor(220, 38, 38);
+                        doc.setFontSize(8);
+                        doc.text('Error: Datos incompletos para este suministro', x + 2, yPos + 10);
+                        return;
+                    }
+                    
+                    const tariffType = resultado.originalTariffType || currentTariffType;
+                    const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
+                    
+                    let y = yPos;
+                    
+                    // Cabecera
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x, y, width, 6, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'bold');
+                    const tituloSplit = doc.splitTextToSize(titulo, width - 2);
+                    doc.text(tituloSplit[0], x + width / 2, y + 4, { align: 'center' });
+                    y += 8;
+                    
+                    // Fondo blanco
+                    doc.setFillColor(255, 255, 255);
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(x, y, width, 95, 1, 1, 'FD');
+                    
+                    y += 3;
+                    
+                    // CUPS
+                    doc.setTextColor(80, 80, 80);
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`CUPS: ${supply.cups.slice(-12)}`, x + 2, y);
+                    y += 4;
+                    
+                    // TÉRMINO POTENCIA
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('TÉRMINO POTENCIA (€/kW Día)', x + 2, y);
+                    y += 3;
+                    
+                    doc.setFontSize(5);
+                    doc.setFont('helvetica', 'normal');
+                    resultado.powerCosts.forEach(p => {
+                        if (p.kw > 0 || p.period <= config.powerPeriods) {
+                            const formula = `P${p.period}: ${num(p.kw, 2)} kW × ${resultado.dias_facturados}d × ${numPriceFormula(p.priceDay)}`;
+                            doc.text(formula, x + 2, y);
+                            doc.text(`${num(p.cost, 2)} €`, x + width - 2, y, { align: 'right' });
+                            y += 3;
+                        }
+                    });
+                    
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Subtotal Potencia', x + 2, y);
+                    doc.text(`${num(resultado.subPower, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 4;
+                    
+                    // TÉRMINO ENERGÍA
+                    doc.setFontSize(5.5);
+                    doc.text('TÉRMINO ENERGÍA (€/kWh)', x + 2, y);
+                    y += 3;
+                    
+                    doc.setFontSize(5);
+                    doc.setFont('helvetica', 'normal');
+                    resultado.energyCosts.forEach(e => {
+                        if (e.kwh > 0 || e.period <= config.periods) {
+                            let label = `E${e.period}`;
+                            if (tariffType === '2.0TD') {
+                                if (e.period === 1) label += ' (Punta)';
+                                if (e.period === 2) label += ' (Llano)';
+                                if (e.period === 3) label += ' (Valle)';
+                            }
+                            const formula = `${label}: ${num(e.kwh, 0)} kWh × ${numPriceFormula(e.price)}`;
+                            doc.text(formula, x + 2, y);
+                            doc.text(`${num(e.cost, 2)} €`, x + width - 2, y, { align: 'right' });
+                            y += 3;
+                        }
+                    });
+                    
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Subtotal Energía', x + 2, y);
+                    doc.text(`${num(resultado.subEnergy, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3;
+                    
+                    // Descuento si existe
+                    if (resultado.discountAmount > 0) {
+                        doc.setTextColor(...redColor);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(5);
+                        doc.text(`Descuento (${num(resultado.discountRate * 100, 0)}%)`, x + 2, y);
+                        doc.text(`-${num(resultado.discountAmount, 2)} €`, x + width - 2, y, { align: 'right' });
+                        y += 3;
+                        
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(5.5);
+                        doc.text('Subtotal Energía (Neto)', x + 2, y);
+                        doc.text(`${num(resultado.subEnergyNet, 2)} €`, x + width - 2, y, { align: 'right' });
+                        y += 3;
+                    }
+                    
+                    // Línea
+                    doc.setDrawColor(150, 150, 150);
+                    doc.setLineWidth(0.2);
+                    doc.line(x + 2, y, x + width - 2, y);
+                    y += 2.5;
+                    
+                    // TOTALES
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('SUBTOTAL BASE (P+E)', x + 2, y);
+                    doc.text(`${num(resultado.subBase, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(5);
+                    doc.text(`Imp. Eléc. (${num(resultado.ieRate * 100, 3)}%)`, x + 2, y);
+                    doc.text(`${num(resultado.costIE, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3;
+                    
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(5.5);
+                    doc.text('BASE IMPONIBLE', x + 2, y);
+                    doc.text(`${num(resultado.baseImp, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 3;
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(5);
+                    doc.text('IVA (21%)', x + 2, y);
+                    doc.text(`${num(resultado.costIVA, 2)} €`, x + width - 2, y, { align: 'right' });
+                    y += 4;
+                    
+                    // TOTAL FACTURA
+                    doc.setFillColor(...color);
+                    doc.roundedRect(x + 1, y, width - 2, 6, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`TOTAL (${resultado.dias_facturados}d)`, x + 3, y + 4);
+                    doc.text(eur(resultado.totalPeriod), x + width - 3, y + 4, { align: 'right' });
+                    y += 7.5;
+                    
+                    doc.setTextColor(...color);
+                    doc.setFontSize(5.5);
+                    doc.text('Total Año', x + 2, y);
+                    doc.text(eur(resultado.totalAnnual), x + width - 2, y, { align: 'right' });
+                    y += 4;
+                    
+                    // Ahorro
+                    doc.setFillColor(220, 38, 38);
+                    doc.roundedRect(x + 1, y, width - 2, 6, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(5.5);
+                    doc.text('AHORRO ESTIMADO:', x + 3, y + 4);
+                    doc.setFontSize(7);
+                    doc.text(`${eur(resultado.savings)}/AÑO`, x + width - 3, y + 4, { align: 'right' });
+                }
+                
+                // Generar páginas de desarrollo para cada CUPS
+                res.individualResults.forEach((supply, idx) => {
+                    doc.addPage();
+                    yPos = 15;
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`DESARROLLO DETALLADO - SUMINISTRO ${idx + 1} DE ${res.individualResults.length}`, pageWidth / 2, yPos, { align: 'center' });
+                    yPos += 6;
+                    
+                    // Dos columnas con desarrollo
+                    generarDesgloseDetalladoCUPS(
+                        supply,
+                        leftX,
+                        colWidth,
+                        blueColor,
+                        `TARIFA FIJA: ${supply.offer.name}`,
+                        false
+                    );
+                    
+                    generarDesgloseDetalladoCUPS(
+                        supply,
+                        rightX,
+                        colWidth,
+                        greenColor,
+                        `TARIFA INDEXADA: ${supply.indexedComparison ? supply.indexedComparison.offer.name : 'N/A'}`,
+                        true
+                    );
+                });
+                
+                // === PÁGINA N+1: LISTADO COMPACTO ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('RESUMEN DE TODOS LOS SUMINISTROS', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 8;
+                
+                // Cabeceras
+                doc.setFillColor(...blueColor);
+                doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(7);
+                doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                
+                doc.setFillColor(...greenColor);
+                doc.roundedRect(rightX, yPos, colWidth, 7, 1, 1, 'F');
+                doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                
+                yPos += 9;
+                
+                // Listado
+                res.individualResults.forEach((supply, idx) => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 15;
+                        
+                        // Repetir cabeceras
+                        doc.setFillColor(...blueColor);
+                        doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                        
+                        doc.setFillColor(...greenColor);
+                        doc.roundedRect(rightX, yPos, colWidth, 7, 1, 1, 'F');
+                        doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                        
+                        yPos += 9;
+                    }
+                    
+                    // Fila FIJO
+                    doc.setFillColor(239, 246, 255);
+                    doc.roundedRect(leftX, yPos, colWidth, 10, 1, 1, 'F');
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(supply.cups.slice(-12), leftX + 1, yPos + 3);
+                    
+                    doc.setTextColor(...greenColor);
+                    doc.text(eur(supply.savings), leftX + colWidth - 1, yPos + 3, { align: 'right' });
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'normal');
+                    const tarifaFija = doc.splitTextToSize(supply.offer.name, colWidth - 2);
+                    doc.text(tarifaFija[0], leftX + 1, yPos + 7);
+                    
+                    // Fila INDEXADO
+                    doc.setFillColor(240, 253, 244);
+                    doc.roundedRect(rightX, yPos, colWidth, 10, 1, 1, 'F');
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(supply.cups.slice(-12), rightX + 1, yPos + 3);
+                    
+                    const savingsIndexed = supply.indexedComparison ? supply.indexedComparison.savings : 0;
+                    doc.setTextColor(...greenColor);
+                    doc.text(eur(savingsIndexed), rightX + colWidth - 1, yPos + 3, { align: 'right' });
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(5.5);
+                    doc.setFont('helvetica', 'normal');
+                    const tarifaIndexada = supply.indexedComparison ? supply.indexedComparison.offer.name : 'N/A';
+                    const tarifaIndexSplit = doc.splitTextToSize(tarifaIndexada, colWidth - 2);
+                    doc.text(tarifaIndexSplit[0], rightX + 1, yPos + 7);
+                    
+                    yPos += 12;
+                });
+                
+                // === PÁGINA FINAL: EXPLICACIÓN ===
+                doc.addPage();
+                yPos = 15;
+                
+                doc.setFillColor(245, 245, 245);
+                doc.roundedRect(margin, yPos, contentWidth, 120, 2, 2, 'F');
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('¿CUÁL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                yPos += 15;
+                
+                // Columna izquierda
+                let leftColY = yPos;
+                doc.setFontSize(9);
+                doc.setTextColor(...blueColor);
+                doc.setFont('helvetica', 'bold');
+                doc.text('💼 ¿POR QUÉ TARIFA FIJA?', leftX + 2, leftColY);
+                leftColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const fijaExplText = [
+                    '• Implica un precio fijo por los kilovatios que',
+                    '  consumes (kWh).',
+                    '',
+                    '• El precio se mantiene estable,',
+                    '  independientemente de cómo se comporten los',
+                    '  precios en el mercado eléctrico.',
+                    '',
+                    '• Cuando el precio del mercado está alto, el',
+                    '  cliente está protegido frente a sobresaltos.',
+                    '',
+                    '• No tendrás que estar pendiente de las',
+                    '  variaciones del mercado y podrás seguir',
+                    '  usando la electricidad como siempre.'
+                ];
+                
+                fijaExplText.forEach(line => {
+                    doc.text(line, leftX + 2, leftColY, { maxWidth: colWidth - 4 });
+                    leftColY += 3.5;
+                });
+                
+                // Columna derecha
+                let rightColY = yPos;
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...greenColor);
+                doc.text('⚡ ¿POR QUÉ TARIFA INDEXADA?', rightX + 2, rightColY);
+                rightColY += 6;
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const indexExplText = [
+                    '• Implica un precio variable por los kilovatios',
+                    '  que consumes (kWh) cada mes.',
+                    '',
+                    '• Es la tarifa más justa, ya que pagas el coste',
+                    '  real de la energía mes a mes.',
+                    '',
+                    '• Al contratarla, el cliente evita pagar',
+                    '  márgenes adicionales cuando el precio de la',
+                    '  electricidad es más barato.',
+                    '',
+                    '• A largo plazo, con un indexado 100%',
+                    '  funcional, se puede obtener un ahorro',
+                    '  aproximado de hasta un 20% en épocas de',
+                    '  mejor precio.'
+                ];
+                
+                indexExplText.forEach(line => {
+                    doc.text(line, rightX + 2, rightColY, { maxWidth: colWidth - 4 });
+                    rightColY += 3.5;
+                });
+                
+                // Guardar
+                const filename = `MULTICUPS_Fijo_vs_Indexado_${new Date().getTime()}.pdf`;
+                doc.save(filename);
+                
+                window.showMessageModal(`✅ PDF generado con éxito: ${filename}`);
+                
+                // Cerrar modal
+                document.getElementById('send-offer-modal').classList.add('hidden');
+                document.getElementById('send-offer-modal').classList.remove('flex');
+                
+            } catch (error) {
+                console.error('Error generando PDF MULTICUPS dual:', error);
+                window.showErrorModal(`Error al generar PDF: ${error.message}`);
+            }
+        }
+
+        
         // --- GENERACIÓN DE PDF PROFESIONAL COMPLETO ---
         
         async function handleGeneratePDF() {
-            if (!lastComparisonResult) return window.showErrorModal("Primero realice una comparación.");
+            console.log('handleGeneratePDF llamada', {
+                lastComparisonResult: lastComparisonResult,
+                lastIndexedResult: lastIndexedResult,
+                compareWithIndexed: compareWithIndexed
+            });
+            
+            if (!lastComparisonResult) {
+                console.error('ERROR: lastComparisonResult es null o undefined');
+                return window.showErrorModal("Primero realice una comparación.");
+            }
             
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
@@ -2560,6 +4299,23 @@
             const clientEmail = document.getElementById('client-email-input').value.trim();
             
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
+            
+            // IMPORTANTE: Detectar si hay resultado indexado para generar PDF dual
+            if (lastIndexedResult && compareWithIndexed) {
+                // Si hay resultado indexado, generar PDF dual
+                if (lastComparisonResult.isMultiCups) {
+                    // MULTICUPS con índice
+                    await generateMultiPDF_Dual(lastComparisonResult);
+                } else {
+                    // Individual con índice
+                    await generatePDF_Dual(lastComparisonResult, lastIndexedResult);
+                }
+                
+                // Cerrar modal
+                document.getElementById('send-offer-modal').classList.add('hidden');
+                document.getElementById('send-offer-modal').classList.remove('flex');
+                return;
+            }
             
             try {
                 // Mostrar mensaje de carga
@@ -3345,15 +5101,15 @@
                 
                 // === DOS COLUMNAS COMPACTAS === (Solo si hay ahorro)
                 if (res.savings > 0) {
-                const colWidth = (contentWidth - 20) / 2;
+                const colWidthResumen = (contentWidth - 20) / 2;
                 
                 // COLUMNA IZQUIERDA - TU FACTURA ACTUAL
-                const leftX = margin + 10;
+                const leftXResumen = margin + 10;
                 
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU FACTURA ACTUAL', leftX + colWidth / 2, yPos, { align: 'center' });
+                doc.text('TU FACTURA ACTUAL', leftXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio periodo (mensual estimado) tachado en rojo
                 const diasPeriodo = res.dias_facturados || 30;
@@ -3362,7 +5118,7 @@
                 doc.setTextColor(...redColor);
                 doc.setFontSize(18);
                 doc.setFont('helvetica', 'bold');
-                const oldX = leftX + colWidth / 2;
+                const oldX = leftXResumen + colWidthResumen / 2;
                 const oldY = yPos + 12;
                 doc.text(oldPrice, oldX, oldY, { align: 'center' });
                 
@@ -3376,14 +5132,14 @@
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Total Periodo (${diasPeriodo} días)`, leftX + colWidth / 2, yPos + 19, { align: 'center' });
+                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual tachado
                 const oldAnnual = eur(res.originalBillAnnual);
                 doc.setTextColor(...redColor);
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                const oldAnnualX = leftX + colWidth / 2;
+                const oldAnnualX = leftXResumen + colWidthResumen / 2;
                 const oldAnnualY = yPos + 32;
                 doc.text(`${oldAnnual}/año`, oldAnnualX, oldAnnualY, { align: 'center' });
                 
@@ -3399,31 +5155,31 @@
                 doc.line(pageWidth / 2, yPos - 5, pageWidth / 2, yPos + 38);
                 
                 // COLUMNA DERECHA - TU NUEVO COSTE
-                const rightX = margin + 10 + colWidth + 10;
+                const rightXResumen = margin + 10 + colWidthResumen + 10;
                 
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 const newLabel = `TU NUEVO COSTE ${brandName}`;
-                doc.text(newLabel, rightX + colWidth / 2, yPos, { align: 'center' });
+                doc.text(newLabel, rightXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio mensual en azul
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightX + colWidth / 2, yPos + 13, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
                 
                 // "Estimado Mensual"
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Estimado Mensual', rightX + colWidth / 2, yPos + 19, { align: 'center' });
+                doc.text('Estimado Mensual', rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual en azul
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual)}/año`, rightX + colWidth / 2, yPos + 32, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual)}/año`, rightXResumen + colWidthResumen / 2, yPos + 32, { align: 'center' });
                 
                 yPos += 50;
                 } // Fin del condicional de columnas de precios en Individual
@@ -3786,6 +5542,299 @@
             }
         }
         
+        // --- GENERACIÓN DE HTML PARA COMPARACIÓN DUAL (FIJO VS INDEXADO) ---
+        
+        function generateDualStyledHtmlOffer(commercialCode, resFijo, resIndexed) {
+            const brand = activeBrand;
+            
+            const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            
+            const DRK_DARK = '#0c4a6e';
+            const DRK_MED = '#075985';
+            const GREEN_SAVE = '#16a34a';
+            const RED_CTA = '#CC0000';
+            const BLUE_FIXED = '#3b82f6';
+            const GREEN_INDEXED = '#16a34a';
+            
+            const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+            
+            // Determinar el ahorro (usar el mayor de los dos)
+            const ahorroFijo = resFijo.savings;
+            const ahorroIndexado = resIndexed.savings;
+            const ahorroMayor = Math.max(ahorroFijo, ahorroIndexado);
+            
+            return `
+                <div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; background-color: white;">
+                    
+                    <!-- Banner Superior Azul -->
+                    <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center; border-radius: 20px 20px 0 0;">
+                        <h1 style="color: white; font-size: 18px; font-weight: bold; margin: 0 0 5px 0; letter-spacing: 1px;">
+                            LA MEJOR OPCIÓN PARA TI ES
+                        </h1>
+                        <h2 style="color: white; font-size: 48px; font-weight: bold; margin: 0; letter-spacing: 2px;">
+                            DRK
+                        </h2>
+                        <p style="color: white; font-size: 16px; margin: 10px 0 0 0; font-weight: 600;">
+                            ${resFijo.offer.name}
+                        </p>
+                    </div>
+                    
+                    <!-- Ahorro Anual -->
+                    <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
+                        <p style="color: #6b7280; font-size: 14px; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                            TU AHORRO ANUAL ESTIMADO
+                        </p>
+                        <p style="color: ${GREEN_SAVE}; font-size: 48px; font-weight: bold; margin: 0;">
+                            ${eur(ahorroMayor)}
+                        </p>
+                    </div>
+                    
+                    <!-- Tres Columnas: Actual, Fijo, Indexado -->
+                    <div style="display: flex; gap: 10px; padding: 20px; background-color: white;">
+                        
+                        <!-- Columna 1: TU FACTURA ACTUAL -->
+                        <div style="flex: 1; background-color: #fff; border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                            <div style="background-color: #f3f4f6; padding: 12px; border-bottom: 2px solid #e5e7eb;">
+                                <p style="margin: 0; font-size: 12px; font-weight: bold; color: #6b7280; text-align: center;">
+                                    TU FACTURA ACTUAL
+                                </p>
+                            </div>
+                            <div style="padding: 20px 15px; text-align: center;">
+                                <p style="margin: 0 0 5px 0; font-size: 11px; color: #9ca3af; font-weight: 600;">
+                                    TU FACTURA ACTUAL
+                                </p>
+                                <p style="margin: 0; font-size: 18px; font-weight: bold; color: ${RED_CTA}; text-decoration: line-through;">
+                                    ${eur(resFijo.originalBillPeriod)}
+                                </p>
+                                <p style="margin: 5px 0 0 0; font-size: 10px; color: #9ca3af;">
+                                    Total Periodo (${resFijo.dias_facturados} días)
+                                </p>
+                                
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: ${RED_CTA};">
+                                        ${eur(resFijo.originalBillAnnual)}/año
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna 2: TU NUEVO COSTE EN FIJO -->
+                        <div style="flex: 1; background-color: #eff6ff; border: 2px solid ${BLUE_FIXED}; border-radius: 12px; overflow: hidden;">
+                            <div style="background-color: ${BLUE_FIXED}; padding: 12px; border-bottom: 2px solid #1e40af;">
+                                <p style="margin: 0; font-size: 12px; font-weight: bold; color: white; text-align: center;">
+                                    TU NUEVO COSTE EN FIJO
+                                </p>
+                            </div>
+                            <div style="padding: 20px 15px; text-align: center;">
+                                <p style="margin: 0 0 5px 0; font-size: 11px; color: #3b82f6; font-weight: 600;">
+                                    TU NUEVO COSTE DRK
+                                </p>
+                                <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1e40af;">
+                                    ${eur(resFijo.totalPeriod / resFijo.dias_facturados * 30)}/mes
+                                </p>
+                                <p style="margin: 5px 0 0 0; font-size: 10px; color: #60a5fa;">
+                                    Estimado Mensual
+                                </p>
+                                
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bfdbfe;">
+                                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #1e40af;">
+                                        ${eur(resFijo.totalAnnual)}/año
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna 3: TU NUEVO COSTE INDEXADO -->
+                        <div style="flex: 1; background-color: #f0fdf4; border: 2px solid ${GREEN_INDEXED}; border-radius: 12px; overflow: hidden;">
+                            <div style="background-color: ${GREEN_INDEXED}; padding: 12px; border-bottom: 2px solid #15803d;">
+                                <p style="margin: 0; font-size: 12px; font-weight: bold; color: white; text-align: center;">
+                                    TU NUEVO COSTE INDEXADO
+                                </p>
+                            </div>
+                            <div style="padding: 20px 15px; text-align: center;">
+                                <p style="margin: 0 0 5px 0; font-size: 11px; color: #16a34a; font-weight: 600;">
+                                    TU NUEVO COSTE DRK
+                                </p>
+                                <p style="margin: 0; font-size: 18px; font-weight: bold; color: #15803d;">
+                                    ${eur(resIndexed.totalPeriod / resIndexed.dias_facturados * 30)}/mes
+                                </p>
+                                <p style="margin: 5px 0 0 0; font-size: 10px; color: #4ade80;">
+                                    Estimado Mensual
+                                </p>
+                                
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bbf7d0;">
+                                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #15803d;">
+                                        ${eur(resIndexed.totalAnnual)}/año
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Datos del Cliente -->
+                    <div style="background-color: #f9fafb; padding: 15px 20px; margin: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #374151;">
+                            CLIENTE: ${clientName}
+                        </p>
+                        <p style="margin: 0; font-size: 11px; color: #6b7280;">
+                            CUPS: ${resFijo.cups}
+                        </p>
+                        <p style="margin: 5px 0 0 0; font-size: 11px; color: #6b7280;">
+                            COMERCIAL: ${commercialCode}
+                        </p>
+                    </div>
+                    
+                    <!-- Nota final -->
+                    <div style="padding: 20px; background-color: #fffbeb; border-top: 3px solid #f59e0b; margin-top: 20px;">
+                        <p style="margin: 0; font-size: 11px; color: #92400e; line-height: 1.5;">
+                            ⚠️ <strong>Importante:</strong> Los cálculos mostrados son estimaciones basadas en su consumo actual. 
+                            La tarifa indexada puede variar mensualmente según el mercado eléctrico.
+                        </p>
+                    </div>
+                    
+                </div>
+            `;
+        }
+        
+        function generateMultiDualStyledHtmlOffer(commercialCode) {
+            const res = lastComparisonResult;
+            const brand = activeBrand;
+            
+            const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0);
+            
+            const GREEN_SAVE = '#16a34a';
+            const RED_CTA = '#CC0000';
+            const BLUE_FIXED = '#3b82f6';
+            const GREEN_INDEXED = '#16a34a';
+            
+            const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+            
+            // Calcular ahorros totales
+            const ahorroFijo = res.savings;
+            const ahorroIndexado = res.indexedTotals ? res.indexedTotals.savings : 0;
+            
+            // Generar listado de CUPS
+            let cupsListHtml = '';
+            res.individualResults.forEach((supply, idx) => {
+                const offerFijo = supply.offer;
+                const offerIndexado = supply.indexedComparison ? supply.indexedComparison.offer : null;
+                const savingsFijo = supply.savings;
+                const savingsIndexado = supply.indexedComparison ? supply.indexedComparison.savings : 0;
+                
+                cupsListHtml += `
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 12px 8px; font-size: 10px; color: #6b7280; font-family: monospace;">
+                            ${supply.cups.slice(-12)}
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <div style="font-size: 10px; font-weight: bold; color: #1e40af;">
+                                ${offerFijo.name}
+                            </div>
+                            <div style="font-size: 9px; color: ${GREEN_SAVE}; font-weight: bold; margin-top: 3px;">
+                                ${eur(savingsFijo)}
+                            </div>
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <div style="font-size: 10px; font-weight: bold; color: #15803d;">
+                                ${offerIndexado ? offerIndexado.name : 'N/A'}
+                            </div>
+                            <div style="font-size: 9px; color: ${GREEN_SAVE}; font-weight: bold; margin-top: 3px;">
+                                ${eur(savingsIndexado)}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            return `
+                <div style="max-width: 900px; margin: 0 auto; font-family: Arial, sans-serif; background-color: white;">
+                    
+                    <!-- Banner Superior -->
+                    <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 30px 20px; text-align: center; border-radius: 20px 20px 0 0;">
+                        <h1 style="color: white; font-size: 18px; font-weight: bold; margin: 0 0 5px 0; letter-spacing: 1px;">
+                            MULTICUPS: COMPARACIÓN FIJO VS INDEXADO
+                        </h1>
+                        <h2 style="color: white; font-size: 42px; font-weight: bold; margin: 0; letter-spacing: 2px;">
+                            DRK ENERGÍA
+                        </h2>
+                        <p style="color: white; font-size: 14px; margin: 10px 0 0 0;">
+                            Total: ${res.cups}
+                        </p>
+                    </div>
+                    
+                    <!-- Ahorros Totales -->
+                    <div style="display: flex; gap: 15px; padding: 20px; background-color: #f8f9fa;">
+                        
+                        <!-- Ahorro FIJO -->
+                        <div style="flex: 1; background-color: #eff6ff; border: 2px solid ${BLUE_FIXED}; border-radius: 12px; padding: 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #3b82f6; text-transform: uppercase;">
+                                💼 AHORRO TOTAL CON TARIFAS FIJAS
+                            </p>
+                            <p style="margin: 0; font-size: 36px; font-weight: bold; color: ${GREEN_SAVE};">
+                                ${eur(ahorroFijo)}
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #6b7280;">
+                                Ahorro anual estimado
+                            </p>
+                        </div>
+                        
+                        <!-- Ahorro INDEXADO -->
+                        <div style="flex: 1; background-color: #f0fdf4; border: 2px solid ${GREEN_INDEXED}; border-radius: 12px; padding: 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #16a34a; text-transform: uppercase;">
+                                ⚡ AHORRO TOTAL CON TARIFAS INDEXADAS
+                            </p>
+                            <p style="margin: 0; font-size: 36px; font-weight: bold; color: ${GREEN_SAVE};">
+                                ${eur(ahorroIndexado)}
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #6b7280;">
+                                Ahorro anual estimado
+                            </p>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Tabla de CUPS -->
+                    <div style="padding: 20px;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #374151; text-align: center;">
+                            📊 DETALLE POR SUMINISTRO
+                        </h3>
+                        
+                        <table style="width: 100%; border-collapse: collapse; background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                            <thead>
+                                <tr style="background-color: #f3f4f6;">
+                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: #6b7280; border-bottom: 2px solid #e5e7eb;">
+                                        CUPS
+                                    </th>
+                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: ${BLUE_FIXED}; border-bottom: 2px solid #e5e7eb;">
+                                        TARIFA FIJA
+                                    </th>
+                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: ${GREEN_INDEXED}; border-bottom: 2px solid #e5e7eb;">
+                                        TARIFA INDEXADA
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${cupsListHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Datos del Cliente -->
+                    <div style="background-color: #f9fafb; padding: 15px 20px; margin: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #374151;">
+                            CLIENTE: ${clientName}
+                        </p>
+                        <p style="margin: 0; font-size: 11px; color: #6b7280;">
+                            COMERCIAL: ${commercialCode}
+                        </p>
+                    </div>
+                    
+                </div>
+            `;
+        }
+
         function generateStyledHtmlOffer(commercialCode) {
             const bd = lastComparisonResult;
             const offer = bd.offer;
@@ -4683,11 +6732,176 @@
             document.getElementById('loading-status').classList.add('hidden');
             document.getElementById('offer-decision-modal').classList.remove('hidden');
             document.getElementById('offer-decision-modal').classList.add('flex');
+            
+            // Ocultar el selector de tarifa al abrir el modal (se mostrará solo si es necesario)
+            document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
+            
+            // IMPORTANTE: El checkbox de comparación siempre visible (para DRK y POWER CUP)
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
+            checkboxContainer?.classList.remove('hidden');
+            
+            // Resetear selector a FIJA por defecto
+            const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
+            if (fijaRadio) {
+                fijaRadio.checked = true;
+                updateBestOptionTariffChoice('fija');
+            }
         }
         
         function closeOfferDecisionModal() {
             document.getElementById('offer-decision-modal').classList.add('hidden');
             document.getElementById('offer-decision-modal').classList.remove('flex');
+        }
+        
+        // NUEVA: Manejar click en VER MEJOR OPCIÓN
+        function handleBestOptionClick() {
+            const selectorDiv = document.getElementById('best-option-tariff-selector');
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
+            
+            // Detectar contexto
+            const isDrkMode = comparisonMode !== 'overall_best';
+            const isIndividual = currentTariffType !== 'MULTICUPS';
+            
+            if (isDrkMode) {
+                // DRK (Individual o MULTICUPS)
+                
+                if (compareWithIndexed) {
+                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
+                    console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
+                    selectorDiv?.classList.add('hidden');
+                    checkboxContainer?.classList.remove('hidden'); // Mantener checkbox visible
+                    selectBestOptionDirect(); // Ejecutar directamente
+                } else {
+                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
+                    console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
+                    selectorDiv?.classList.remove('hidden');
+                    checkboxContainer?.classList.add('hidden'); // OCULTAR checkbox cuando selector aparece
+                }
+            } else {
+                // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
+                selectorDiv?.classList.add('hidden');
+                checkboxContainer?.classList.remove('hidden'); // Mantener checkbox visible
+                selectBestOptionDirect();
+            }
+        }
+        
+        // NUEVA: Actualizar elección de tipo de tarifa
+        function updateBestOptionTariffChoice(choice) {
+            bestOptionTariffChoice = choice;
+            console.log('Tipo de tarifa seleccionada en VER MEJOR OPCIÓN:', choice);
+            
+            // Actualizar estilos visuales de los labels
+            const fijaLabel = document.getElementById('best-fija-label');
+            const indexadaLabel = document.getElementById('best-indexada-label');
+            
+            if (choice === 'fija') {
+                fijaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-drk-500 bg-drk-50 cursor-pointer transition hover:bg-drk-100';
+                indexadaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-green-50';
+            } else {
+                fijaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-drk-50';
+                indexadaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-green-500 bg-green-50 cursor-pointer transition hover:bg-green-100';
+            }
+        }
+        
+        // NUEVA: Ejecutar VER MEJOR OPCIÓN con la elección de tarifa
+        function selectBestOptionWithChoice() {
+            console.log('selectBestOptionWithChoice llamada con elección:', bestOptionTariffChoice);
+            
+            // Cerrar el selector
+            document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
+            
+            // CRÍTICO: Cuando llega aquí, significa que el CHECK NO estaba marcado
+            // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
+            console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
+            
+            // Filtrar availableOffers según la elección
+            let filteredOffers = availableOffers.filter(offer => {
+                const offerName = (offer.offer.name || '').toUpperCase();
+                const offerDesc = (offer.offer.description || '').toUpperCase();
+                const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
+                
+                if (bestOptionTariffChoice === 'indexada') {
+                    // Solo tarifas INDEX
+                    return isIndexed;
+                } else {
+                    // Solo tarifas FIJAS (excluir INDEX)
+                    return !isIndexed;
+                }
+            });
+            
+            console.log('Ofertas filtradas:', filteredOffers.length, 'de', availableOffers.length);
+            
+            if (filteredOffers.length === 0) {
+                const tipoTarifa = bestOptionTariffChoice === 'indexada' ? 'INDEXADAS (DRK INDEX)' : 'FIJAS';
+                window.showErrorModal(`No se encontraron tarifas ${tipoTarifa} con ahorro positivo.`);
+                closeOfferDecisionModal();
+                return;
+            }
+            
+            // Seleccionar la mejor de las filtradas
+            let bestFiltered = filteredOffers.reduce((best, current) => {
+                return (current.totalAnnual < best.totalAnnual) ? current : best;
+            }, filteredOffers[0]);
+            
+            console.log('Mejor tarifa filtrada:', bestFiltered.offer.name, 'Ahorro:', bestFiltered.savings);
+            
+            // Actualizar lastComparisonResult con la mejor filtrada
+            lastComparisonResult = bestFiltered;
+            
+            // IMPORTANTE: NO calcular indexado porque el usuario solo quiere ver UNA tarifa
+            lastIndexedResult = null;
+            compareWithIndexed = false; // Asegurar que no se active la comparativa
+            
+            // Ejecutar lógica normal (mostrará solo el resultado principal)
+            selectBestOptionDirect();
+        }
+        
+        function toggleIndexedComparison(checked) {
+            compareWithIndexed = checked;
+            console.log('Comparación con indexadas:', compareWithIndexed ? 'ACTIVADA' : 'DESACTIVADA');
+        }
+        
+        // Nueva función para calcular la mejor oferta indexada (DRK INDEX)
+        function calculateIndexedOffer(data, tariffType) {
+            const tariffsToCompare = currentTariffs[tariffType] || [];
+            
+            // Filtrar solo tarifas que contengan "DRK INDEX" o "INDEX" en su nombre
+            const indexedTariffs = tariffsToCompare.filter(t => {
+                const name = (t.name || '').toUpperCase();
+                const description = (t.description || '').toUpperCase();
+                const commercializer = (t.commercializer || '').toUpperCase();
+                return name.includes('DRK INDEX') || name.includes('INDEX') || 
+                       description.includes('DRK INDEX') || description.includes('INDEX') ||
+                       commercializer.includes('DRK INDEX');
+            });
+            
+            console.log(`Tarifas indexadas encontradas para ${tariffType}:`, indexedTariffs.length);
+            
+            if (indexedTariffs.length === 0) {
+                console.warn('No se encontraron tarifas DRK INDEX');
+                return null;
+            }
+            
+            // Calcular coste para cada tarifa indexada
+            const indexedResults = indexedTariffs.map(t => calculateTariffCost(t, data, tariffType));
+            
+            // Encontrar la mejor tarifa indexada (menor coste anual)
+            let bestIndexed = null;
+            indexedResults.forEach(r => {
+                r.savings = r.originalBillAnnual - r.totalAnnual;
+                if (r.savings > 0) {
+                    if (!bestIndexed || r.totalAnnual < bestIndexed.totalAnnual) {
+                        bestIndexed = r;
+                    }
+                }
+            });
+            
+            if (bestIndexed) {
+                bestIndexed.isIndexed = true; // Marcar como resultado indexado
+                console.log('Mejor tarifa indexada:', bestIndexed.offer.name, 'Ahorro:', bestIndexed.savings);
+            }
+            
+            return bestIndexed;
         }
         
         function selectBestOptionDirect() {
@@ -4700,13 +6914,36 @@
                 return;
             }
             
+            // Si se activó la comparación con indexadas, calcular también ese resultado
+            if (compareWithIndexed) {
+                const tariffType = lastComparisonResult._multiCupsContext 
+                    ? lastComparisonResult._multiCupsContext.tariffType 
+                    : lastComparisonResult.originalTariffType || currentTariffType;
+                
+                const dataForCalc = lastComparisonResult._multiCupsContext 
+                    ? lastComparisonResult._multiCupsContext.dataForCalc 
+                    : lastComparisonResult;
+                
+                lastIndexedResult = calculateIndexedOffer(dataForCalc, tariffType);
+                
+                if (!lastIndexedResult) {
+                    window.showErrorModal('No se encontraron tarifas indexadas DRK INDEX para comparar.');
+                    lastIndexedResult = null;
+                    compareWithIndexed = false;
+                    document.getElementById('compare-indexed-checkbox').checked = false;
+                    return;
+                }
+                
+                console.log('Resultado indexado calculado:', lastIndexedResult.offer.name);
+            }
+            
             // Verificar si estamos en contexto MultiCups
             if (lastComparisonResult._multiCupsContext) {
                 // Contexto MultiCups: Añadir a la lista
-                addSupplyToMultiCupsList(lastComparisonResult);
+                addSupplyToMultiCupsList(lastComparisonResult, lastIndexedResult);
             } else {
                 // Contexto individual: Mostrar resultados
-                renderResultsUI(lastComparisonResult);
+                renderResultsUI(lastComparisonResult, lastIndexedResult);
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
@@ -4928,10 +7165,27 @@
         }
         
         // Nueva función para añadir suministro a MultiCups después de elegir
-        function addSupplyToMultiCupsList(result) {
+        function addSupplyToMultiCupsList(result, resultIndexed = null) {
             console.log('addSupplyToMultiCupsList called with result:', result);
             console.log('Result offer:', result.offer);
             console.log('Result originalTariffType:', result.originalTariffType);
+            console.log('Result tiene indexedComparison?:', !!result.indexedComparison);
+            
+            if (result.indexedComparison) {
+                console.log('indexedComparison encontrado en result:', result.indexedComparison);
+                console.log('indexedComparison tiene powerCosts?:', !!result.indexedComparison.powerCosts);
+                console.log('indexedComparison tiene energyCosts?:', !!result.indexedComparison.energyCosts);
+            }
+            
+            if (resultIndexed) {
+                console.log('También recibido resultado indexado como parámetro:', resultIndexed.offer.name);
+            }
+            
+            // IMPORTANTE: Preservar indexedComparison ANTES de recalcular
+            // Usar copia profunda para evitar modificaciones por referencia
+            const preservedIndexedComparison = result.indexedComparison 
+                ? JSON.parse(JSON.stringify(result.indexedComparison))
+                : null;
             
             // Asegurar que el originalTariffType esté presente
             if (!result.originalTariffType && result._multiCupsContext) {
@@ -4948,6 +7202,25 @@
                 result.subEnergyNet = recalculated.subEnergyNet;
                 console.log('Costs recalculated for', result.originalTariffType);
                 console.log('New subPower:', result.subPower, 'New subEnergyNet:', result.subEnergyNet);
+            }
+            
+            // RESTAURAR indexedComparison preservado
+            if (preservedIndexedComparison) {
+                result.indexedComparison = preservedIndexedComparison;
+                console.log('Restaurado indexedComparison preservado');
+            }
+            
+            // Si hay resultado indexado como parámetro, también recalcular sus costes
+            if (resultIndexed && resultIndexed.offer && resultIndexed.originalTariffType) {
+                const recalculatedIndexed = recalculateCostsForOffer(resultIndexed, resultIndexed.offer);
+                resultIndexed.energyCosts = recalculatedIndexed.energyCosts;
+                resultIndexed.powerCosts = recalculatedIndexed.powerCosts;
+                resultIndexed.subPower = recalculatedIndexed.subPower;
+                resultIndexed.subEnergyNet = recalculatedIndexed.subEnergyNet;
+                console.log('Costs recalculated for indexed:', resultIndexed.originalTariffType);
+                
+                // Añadirlo al resultado principal
+                result.indexedComparison = resultIndexed;
             }
             
             // Limpiar el contexto temporal
@@ -5249,13 +7522,82 @@
                 console.log('Energy costs periods:', combinedResult.energyCosts.length);
                 console.log('Power costs periods:', combinedResult.powerCosts.length);
                 
+                // IMPORTANTE: Si compareWithIndexed está activo, calcular resultado indexado ANTES de añadir a la lista
+                if (compareWithIndexed) {
+                    const tariffType = lastComparisonResult.originalTariffType;
+                    const dataForCalc = lastComparisonResult;
+                    const indexedResult = calculateIndexedOffer(dataForCalc, tariffType);
+                    
+                    if (indexedResult) {
+                        // Recalcular costes para resultado indexado
+                        const recalculatedIndexed = recalculateCostsForOffer(indexedResult, indexedResult.offer);
+                        indexedResult.energyCosts = recalculatedIndexed.energyCosts;
+                        indexedResult.powerCosts = recalculatedIndexed.powerCosts;
+                        indexedResult.subPower = recalculatedIndexed.subPower;
+                        indexedResult.subEnergyNet = recalculatedIndexed.subEnergyNet;
+                        
+                        // Calcular todos los costes adicionales para indexedResult
+                        const subEnergyNetIndexed = indexedResult.subEnergyNet || 0;
+                        const subPowerIndexed = indexedResult.subPower || 0;
+                        const subBaseIndexed = subPowerIndexed + subEnergyNetIndexed;
+                        const costIEIndexed = subBaseIndexed * IE_RATE;
+                        const baseImpIndexed = subBaseIndexed + costIEIndexed;
+                        const costIVAIndexed = baseImpIndexed * IVA_RATE;
+                        const totalPeriodIndexed = baseImpIndexed + costIVAIndexed;
+                        const totalAnnualIndexed = totalPeriodIndexed * factorAnual;
+                        const savingsIndexed = originalBillAnnual - totalAnnualIndexed;
+                        
+                        // Añadir los campos calculados al indexedResult
+                        indexedResult.subBase = subBaseIndexed;
+                        indexedResult.costIE = costIEIndexed;
+                        indexedResult.baseImp = baseImpIndexed;
+                        indexedResult.costIVA = costIVAIndexed;
+                        indexedResult.totalPeriod = totalPeriodIndexed;
+                        indexedResult.totalAnnual = totalAnnualIndexed;
+                        indexedResult.savings = savingsIndexed;
+                        indexedResult.dias_facturados = combinedResult.dias_facturados;
+                        indexedResult.originalBillAnnual = originalBillAnnual;
+                        indexedResult.originalBillPeriod = lastComparisonResult.originalBillPeriod;
+                        indexedResult.cups = combinedResult.cups;
+                        indexedResult.originalTariffType = combinedResult.originalTariffType; // CRÍTICO
+                        indexedResult.ieRate = IE_RATE; // Añadir la tasa del impuesto eléctrico
+                        indexedResult.discountAmount = indexedResult.discountAmount || 0; // Preservar o inicializar
+                        indexedResult.discountRate = indexedResult.discountRate || 0; // Preservar o inicializar
+                        indexedResult.subEnergy = indexedResult.subEnergy || indexedResult.subEnergyNet; // Por compatibilidad
+                        
+                        console.log('indexedResult completo con todos los campos:', {
+                            originalTariffType: indexedResult.originalTariffType,
+                            powerCosts: indexedResult.powerCosts?.length,
+                            energyCosts: indexedResult.energyCosts?.length,
+                            dias_facturados: indexedResult.dias_facturados
+                        });
+                        
+                        // Añadir al resultado combinado ANTES de añadir a la lista
+                        combinedResult.indexedComparison = indexedResult;
+                        console.log('Añadido resultado indexado completo al combinedResult:', indexedResult);
+                    }
+                }
+                
+                // Ahora sí, añadir a la lista (ya con indexedComparison si corresponde)
                 addSupplyToMultiCupsList(combinedResult);
             } else {
                 // Contexto individual: Mostrar resultados
                 console.log('Individual context, showing results');
                 
-                // Aplicar branding
-                let brand = result.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
+                // CRÍTICO: Aplicar branding según el modo de comparación
+                // Si el usuario eligió "POWER CUP Global", SIEMPRE usar POWER CUP
+                // Si eligió "DRK Prioritario", usar la marca de la tarifa ganadora
+                let brand;
+                if (comparisonMode === 'overall_best') {
+                    // POWER CUP Global: SIEMPRE verde, independiente de quién gane
+                    brand = BRANDS.POWER_CUP;
+                    console.log('Modo POWER CUP Global: Forzando branding POWER CUP (verde)');
+                } else {
+                    // DRK Prioritario: Usar marca de la tarifa ganadora
+                    brand = result.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
+                    console.log('Modo DRK Prioritario: Branding según ganador:', brand.NAME);
+                }
+                
                 console.log('Applying brand:', brand.NAME);
                 applyBrandStyles(brand);
                 activeBrand = brand;
@@ -5264,9 +7606,21 @@
                 lastComparisonResult = result;
                 lastComparisonResult.isMulti = false;
                 
+                // Si compareWithIndexed está activo, calcular resultado indexado
+                let indexedResult = null;
+                if (compareWithIndexed) {
+                    const tariffType = result.originalTariffType || currentTariffType;
+                    indexedResult = calculateIndexedOffer(result, tariffType);
+                    
+                    if (indexedResult) {
+                        lastIndexedResult = indexedResult;
+                        console.log('Calculado resultado indexado para contexto individual:', indexedResult.offer.name);
+                    }
+                }
+                
                 console.log('About to render results UI');
-                // Mostrar resultados
-                renderResultsUI(result);
+                // Mostrar resultados (pasando indexedResult si existe)
+                renderResultsUI(result, indexedResult);
                 
                 console.log('Hiding initial-view and showing results-view');
                 document.getElementById('loading-status').classList.add('hidden');
@@ -6022,4 +8376,3 @@
         }
     </script>
 </body>
-</html>
