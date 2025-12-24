@@ -3479,8 +3479,8 @@
                     // Nombre completo: Comercializadora - Tarifa
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'normal');
-                    const comercializadora = res.offer.commercializer || brand.NAME;
-                    const nombreTarifa = res.offer.name || 'N/A';
+                    const comercializadora = res.offer.name || brand.NAME;
+                    const nombreTarifa = res.offer.description || 'N/A';
                     const nombreCompleto = `${comercializadora} - ${nombreTarifa}`;
                     doc.text(nombreCompleto, x + 3, y + 11);
                     
