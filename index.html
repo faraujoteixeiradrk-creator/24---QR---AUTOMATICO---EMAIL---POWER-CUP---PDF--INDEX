@@ -4504,13 +4504,23 @@
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
             
             // IMPORTANTE: Detectar si hay resultado indexado para generar PDF dual
-            if (lastIndexedResult && compareWithIndexed) {
+            // Puede estar en lastIndexedResult (individual) o en indexedTotals (MULTICUPS)
+            const hasIndexedData = (lastIndexedResult && compareWithIndexed) || 
+                                    (lastComparisonResult.isMultiCups && lastComparisonResult.indexedTotals);
+            
+            console.log('🔍 hasIndexedData:', hasIndexedData);
+            console.log('🔍 lastIndexedResult:', lastIndexedResult);
+            console.log('🔍 indexedTotals:', lastComparisonResult.indexedTotals);
+            
+            if (hasIndexedData) {
                 // Si hay resultado indexado, generar PDF dual
                 if (lastComparisonResult.isMultiCups) {
                     // MULTICUPS con índice
+                    console.log('✅ Generando PDF MULTICUPS DUAL');
                     await generateMultiPDF_Dual(lastComparisonResult);
                 } else {
                     // Individual con índice
+                    console.log('✅ Generando PDF INDIVIDUAL DUAL');
                     await generatePDF_Dual(lastComparisonResult, lastIndexedResult);
                 }
                 
