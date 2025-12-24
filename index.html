@@ -7032,6 +7032,13 @@
             // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
             console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
             
+            // CRÍTICO: Preservar _multiCupsContext ANTES de reasignar lastComparisonResult
+            const preservedContext = lastComparisonResult?._multiCupsContext 
+                ? JSON.parse(JSON.stringify(lastComparisonResult._multiCupsContext))
+                : null;
+            
+            console.log('🔍 Contexto MULTICUPS preservado en selectBestOptionWithChoice:', preservedContext ? 'SÍ' : 'NO');
+            
             // FORZAR: Desmarcar checkbox y OCULTAR su contenedor
             const checkbox = document.getElementById('compare-indexed-checkbox');
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
@@ -7077,6 +7084,14 @@
             
             // Actualizar lastComparisonResult con la mejor filtrada
             lastComparisonResult = bestFiltered;
+            
+            // CRÍTICO: RESTAURAR el contexto preservado
+            if (preservedContext) {
+                lastComparisonResult._multiCupsContext = preservedContext;
+                console.log('✅ Contexto MULTICUPS restaurado en selectBestOptionWithChoice');
+            } else {
+                console.log('⚠️  No había contexto MULTICUPS que restaurar');
+            }
             
             // CRÍTICO: Ejecutar versión single
             selectBestOptionDirectSingle();
