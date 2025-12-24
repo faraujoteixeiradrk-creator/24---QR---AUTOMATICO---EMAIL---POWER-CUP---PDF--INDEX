@@ -3366,54 +3366,6 @@
                 
                 yPos = maxY + 15;
                 
-                // === DOS CAJAS DE AHORRO GRANDES ===
-                const ahorroBoxWidth = (contentWidth - 2) / 2;
-                const ahorroBoxHeight = 35;
-                const ahorro1X = margin;
-                const ahorro2X = margin + ahorroBoxWidth + 2;
-                
-                // CAJA AHORRO FIJO (AZUL)
-                doc.setFillColor(239, 246, 255);
-                doc.setDrawColor(59, 130, 246);
-                doc.setLineWidth(2);
-                doc.roundedRect(ahorro1X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
-                
-                doc.setTextColor(59, 130, 246);
-                doc.setFontSize(7.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💼 TU AHORRO CON TARIFAS FIJAS', ahorro1X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
-                
-                doc.setFontSize(22);
-                doc.setTextColor(22, 163, 74);
-                doc.text(eur(resFijo.savings), ahorro1X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
-                
-                doc.setFontSize(6.5);
-                doc.setTextColor(59, 130, 246);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado total', ahorro1X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
-                
-                // CAJA AHORRO INDEXADO (VERDE)
-                doc.setFillColor(240, 253, 244);
-                doc.setDrawColor(22, 163, 74);
-                doc.setLineWidth(2);
-                doc.roundedRect(ahorro2X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
-                
-                doc.setTextColor(22, 163, 74);
-                doc.setFontSize(7.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ TU AHORRO CON TARIFAS INDEXADAS', ahorro2X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
-                
-                doc.setFontSize(22);
-                doc.setTextColor(22, 163, 74);
-                doc.text(eur(resIndexed.savings), ahorro2X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
-                
-                doc.setFontSize(6.5);
-                doc.setTextColor(22, 163, 74);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
-                
-                yPos += ahorroBoxHeight + 8;
-                
                 // === PÁGINA 2: DESARROLLO DETALLADO ===
                 doc.addPage();
                 yPos = 15;
@@ -3917,54 +3869,6 @@
                 );
                 
                 yPos += boxHeight + 5;
-                
-                // === DOS CAJAS DE AHORRO GRANDES ===
-                const ahorroBoxWidth = (contentWidth - 2) / 2;
-                const ahorroBoxHeight = 35;
-                const ahorro1X = margin;
-                const ahorro2X = margin + ahorroBoxWidth + 2;
-                
-                // CAJA AHORRO FIJO (AZUL)
-                doc.setFillColor(239, 246, 255);
-                doc.setDrawColor(59, 130, 246);
-                doc.setLineWidth(2);
-                doc.roundedRect(ahorro1X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
-                
-                doc.setTextColor(59, 130, 246);
-                doc.setFontSize(7.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💼 TU AHORRO CON TARIFAS FIJAS', ahorro1X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
-                
-                doc.setFontSize(22);
-                doc.setTextColor(22, 163, 74);
-                doc.text(eur(res.savings), ahorro1X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
-                
-                doc.setFontSize(6.5);
-                doc.setTextColor(59, 130, 246);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado total', ahorro1X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
-                
-                // CAJA AHORRO INDEXADO (VERDE)
-                doc.setFillColor(240, 253, 244);
-                doc.setDrawColor(22, 163, 74);
-                doc.setLineWidth(2);
-                doc.roundedRect(ahorro2X, yPos, ahorroBoxWidth, ahorroBoxHeight, 2, 2, 'FD');
-                
-                doc.setTextColor(22, 163, 74);
-                doc.setFontSize(7.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ TU AHORRO CON TARIFAS INDEXADAS', ahorro2X + ahorroBoxWidth / 2, yPos + 8, { align: 'center' });
-                
-                doc.setFontSize(22);
-                doc.setTextColor(22, 163, 74);
-                doc.text(eur(ahorroIndexado), ahorro2X + ahorroBoxWidth / 2, yPos + 20, { align: 'center' });
-                
-                doc.setFontSize(6.5);
-                doc.setTextColor(22, 163, 74);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado total', ahorro2X + ahorroBoxWidth / 2, yPos + 27, { align: 'center' });
-                
-                yPos += ahorroBoxHeight + 8;
                 
                 // Nota
                 doc.setFillColor(255, 251, 235);
