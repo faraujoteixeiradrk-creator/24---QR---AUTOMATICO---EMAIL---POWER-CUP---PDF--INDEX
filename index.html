@@ -3245,181 +3245,200 @@
                 doc.text('CUPS TOTALES: ' + (resFijo.isMulti ? resFijo.cups : '1'), margin, yPos);
                 yPos += 12;
                 
-                // === CABECERA AZUL PROFESIONAL ===
-                doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, 'F');
+                // === CAJA GRIS GRANDE CON LA MEJOR OPCIÓN ===
                 
-                // "LA MEJOR OPCIÓN PARA TI ES"
+                const bigBoxY = yPos;
+                const bigBoxHeight = 45;
+                const bigBoxMargin = 20;
+                const bigBoxWidth = contentWidth - (bigBoxMargin * 2);
+                const bigBoxX = margin + bigBoxMargin;
+                
+                // Fondo gris azulado
+                doc.setFillColor(100, 116, 139);
+                doc.roundedRect(bigBoxX, bigBoxY, bigBoxWidth, bigBoxHeight, 4, 4, 'F');
+                
+                // Texto "LA MEJOR OPCIÓN PARA TI ES"
                 doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.text('LA MEJOR OPCIÓN PARA TI ES', pageWidth / 2, bigBoxY + 12, { align: 'center' });
+                
+                // Nombre de la marca en grande
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(30);
+                doc.text(brand.NAME.toUpperCase(), pageWidth / 2, bigBoxY + 26, { align: 'center' });
+                
+                // Descripción
+                doc.setFont('helvetica', 'normal');
                 doc.setFontSize(9);
+                const descripcion = `Ofrece el mayor ahorro consolidado con ${brand.FULL_NAME}.`;
+                doc.text(descripcion, pageWidth / 2, bigBoxY + 37, { align: 'center' });
+                
+                yPos = bigBoxY + bigBoxHeight + 10;
+                
+                // === DISEÑO LIMPIO SIN MARCOS (3 COLUMNAS) ===
+                
+                const col1X = margin;
+                const col2X = margin + (contentWidth / 3);
+                const col3X = margin + (contentWidth / 3) * 2;
+                const colWidth = contentWidth / 3;
+                
+                // === COLUMNA 1: TU FACTURA ACTUAL (IZQUIERDA) - BAJADA AL MEDIO ===
+                
+                let y1 = yPos + 25;
+                
+                // Título
                 doc.setFont('helvetica', 'bold');
-                doc.text('LA MEJOR OPCIÓN PARA TI ES', pageWidth / 2, yPos + 8, { align: 'center' });
-                
-                // Nombre de la marca
-                doc.setFontSize(26);
-                doc.setFont('helvetica', 'bold');
-                doc.text(brand.NAME.toUpperCase(), pageWidth / 2, yPos + 22, { align: 'center' });
-                
-                yPos += 37;
-                
-                // === CAJA BLANCA CON AHORROS LADO A LADO ===
-                doc.setFillColor(255, 255, 255);
-                doc.setDrawColor(220, 220, 220);
-                doc.setLineWidth(0.3);
-                const mainBoxHeight = 85;
-                doc.roundedRect(margin, yPos, contentWidth, mainBoxHeight, 4, 4, 'FD');
-                
-                let boxY = yPos + 8;
-                
-                // Título "COMPARACIÓN FIJO VS INDEXADO"
-                doc.setTextColor(107, 114, 128);
                 doc.setFontSize(11);
-                doc.setFont('helvetica', 'bold');
-                doc.text('COMPARACIÓN FIJO VS INDEXADO', pageWidth / 2, boxY, { align: 'center' });
-                boxY += 12;
-                
-                // DOS COLUMNAS DE AHORROS
-                const ahorroColWidth = (contentWidth - 30) / 2;
-                const ahorroLeftX = margin + 10;
-                const ahorroRightX = margin + 15 + ahorroColWidth;
-                
-                // COLUMNA IZQUIERDA - TARIFA FIJA
-                doc.setTextColor(59, 130, 246);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💼 TARIFA FIJA', ahorroLeftX + ahorroColWidth / 2, boxY, { align: 'center' });
-                boxY += 10;
-                
-                doc.setTextColor(22, 163, 74);
-                doc.setFontSize(28);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resFijo.savings), ahorroLeftX + ahorroColWidth / 2, boxY, { align: 'center' });
-                boxY += 12;
-                
                 doc.setTextColor(107, 114, 128);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado', ahorroLeftX + ahorroColWidth / 2, boxY, { align: 'center' });
+                doc.text('TU FACTURA ACTUAL', col1X, y1);
+                y1 += 12;
                 
-                // COLUMNA DERECHA - TARIFA INDEXADA
-                let boxYRight = yPos + 20;
-                doc.setTextColor(22, 163, 74);
+                // Precio mensual (TACHADO)
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(22);
+                doc.setTextColor(220, 38, 38);
+                const precioMensualActual = eur(resFijo.originalBillPeriod || resFijo.importe_total);
+                doc.text(precioMensualActual, col1X, y1);
+                
+                // Línea tachada
+                const tw1 = doc.getTextWidth(precioMensualActual);
+                doc.setDrawColor(220, 38, 38);
+                doc.setLineWidth(1.5);
+                doc.line(col1X, y1 - 4, col1X + tw1, y1 - 4);
+                y1 += 10;
+                
+                // Subtexto
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text(`Total Periodo (${resFijo.dias_facturados || 0} días)`, col1X, y1);
+                y1 += 14;
+                
+                // Precio anual (TACHADO)
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(220, 38, 38);
+                const precioAnualActual = eur(resFijo.originalBillAnnual) + '/año';
+                doc.text(precioAnualActual, col1X, y1);
+                
+                // Línea tachada
+                const tw2 = doc.getTextWidth(precioAnualActual);
+                doc.setDrawColor(220, 38, 38);
+                doc.setLineWidth(1.5);
+                doc.line(col1X, y1 - 3, col1X + tw2, y1 - 3);
+                
+                // === COLUMNA 2: AHORRO + NUEVO COSTE FIJO (CENTRO) - CAJA SUBIDA ===
+                
+                let y2 = yPos;
+                
+                // Caja gris superior "TU AHORRO ANUAL FIJO"
+                const boxHeaderHeight = 12;
+                doc.setFillColor(100, 116, 139);
+                doc.roundedRect(col2X - 2, y2, colWidth - 8, boxHeaderHeight, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
                 doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ TARIFA INDEXADA', ahorroRightX + ahorroColWidth / 2, boxYRight, { align: 'center' });
-                boxYRight += 10;
+                doc.text('TU AHORRO ANUAL FIJO', col2X + (colWidth - 8) / 2 - 2, y2 + 8, { align: 'center' });
+                y2 += boxHeaderHeight + 12;
                 
+                // Ahorro en verde GRANDE
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(30);
                 doc.setTextColor(22, 163, 74);
-                doc.setFontSize(28);
+                doc.text(eur(resFijo.savings), col2X, y2);
+                y2 += 18;
+                
+                // "TU NUEVO COSTE DRK"
                 doc.setFont('helvetica', 'bold');
-                doc.text(eur(resIndexed.savings), ahorroRightX + ahorroColWidth / 2, boxYRight, { align: 'center' });
-                boxYRight += 12;
-                
+                doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Ahorro anual estimado', ahorroRightX + ahorroColWidth / 2, boxYRight, { align: 'center' });
+                doc.text('TU NUEVO COSTE DRK', col2X, y2);
+                y2 += 12;
                 
-                // Línea separadora vertical
-                doc.setDrawColor(220, 220, 220);
+                // Precio mensual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(...brandColor);
+                doc.text(eur(resFijo.totalAnnual / 12) + '/mes', col2X, y2);
+                y2 += 10;
+                
+                // Subtexto "Estimado Mensual"
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text('Estimado Mensual', col2X, y2);
+                y2 += 12;
+                
+                // Precio anual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(18);
+                doc.setTextColor(...brandColor);
+                doc.text(eur(resFijo.totalAnnual) + '/año', col2X, y2);
+                
+                // === COLUMNA 3: AHORRO + NUEVO COSTE INDEXADO (DERECHA) - CAJA SUBIDA ===
+                
+                let y3 = yPos;
+                
+                // Caja gris superior "TU AHORRO ANUAL INDEXADO"
+                doc.setFillColor(100, 116, 139);
+                doc.roundedRect(col3X - 2, y3, colWidth - 8, boxHeaderHeight, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.text('TU AHORRO ANUAL INDEXADO', col3X + (colWidth - 8) / 2 - 2, y3 + 8, { align: 'center' });
+                y3 += boxHeaderHeight + 12;
+                
+                // Ahorro en verde GRANDE
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(30);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.savings), col3X, y3);
+                y3 += 18;
+                
+                // "TU NUEVO COSTE DRK"
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                doc.text('TU NUEVO COSTE DRK', col3X, y3);
+                y3 += 12;
+                
+                // Precio mensual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.totalAnnual / 12) + '/mes', col3X, y3);
+                y3 += 10;
+                
+                // Subtexto "Estimado Mensual"
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text('Estimado Mensual', col3X, y3);
+                y3 += 12;
+                
+                // Precio anual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(18);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.totalAnnual) + '/año', col3X, y3);
+                
+                // Actualizar yPos al máximo de las tres columnas
+                const maxY = Math.max(y1, y2, y3);
+                
+                // LÍNEAS VERTICALES SEPARADORAS
+                const lineStartY = yPos - 5;
+                const lineEndY = maxY + 5;
+                
+                // Línea entre columna 1 y 2
+                doc.setDrawColor(200, 200, 200);
                 doc.setLineWidth(0.5);
-                doc.line(pageWidth / 2, yPos + 15, pageWidth / 2, yPos + 65);
+                doc.line(col2X - 10, lineStartY, col2X - 10, lineEndY);
                 
-                yPos += mainBoxHeight + 5;
+                // Línea entre columna 2 y 3
+                doc.line(col3X - 10, lineStartY, col3X - 10, lineEndY);
                 
-                // === TRES COLUMNAS COMPACTAS ===
-                const colWidth = (contentWidth - 20) / 3;
-                const col1X = margin + 5;
-                const col2X = col1X + colWidth + 5;
-                const col3X = col2X + colWidth + 5;
-                
-                let colY = yPos;
-                
-                // COLUMNA 1 - TU FACTURA ACTUAL
-                doc.setTextColor(140, 150, 160);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TU FACTURA ACTUAL', col1X, colY);
-                colY += 8;
-                
-                doc.setTextColor(220, 38, 38);
-                doc.setFontSize(18);
-                doc.setFont('helvetica', 'bold');
-                const precio1 = eur(resFijo.originalBillPeriod || resFijo.importe_total);
-                doc.text(precio1, col1X, colY);
-                const tw1 = doc.getTextWidth(precio1);
-                doc.setDrawColor(220, 38, 38);
-                doc.setLineWidth(1);
-                doc.line(col1X, colY - 3, col1X + tw1, colY - 3);
-                colY += 7;
-                
-                doc.setFontSize(7);
-                doc.setTextColor(156, 163, 175);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`Periodo (${resFijo.dias_facturados}d)`, col1X, colY);
-                colY += 9;
-                
-                doc.setFontSize(16);
-                doc.setTextColor(220, 38, 38);
-                doc.setFont('helvetica', 'bold');
-                const precio2 = eur(resFijo.originalBillAnnual) + '/año';
-                doc.text(precio2, col1X, colY);
-                const tw2 = doc.getTextWidth(precio2);
-                doc.setDrawColor(220, 38, 38);
-                doc.setLineWidth(1);
-                doc.line(col1X, colY - 2.5, col1X + tw2, colY - 2.5);
-                
-                // COLUMNA 2 - TU NUEVO COSTE FIJO
-                colY = yPos;
-                doc.setTextColor(59, 130, 246);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TU NUEVO COSTE FIJO', col2X, colY);
-                colY += 8;
-                
-                doc.setTextColor(59, 130, 246);
-                doc.setFontSize(18);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resFijo.totalAnnual / 12) + '/mes', col2X, colY);
-                colY += 7;
-                
-                doc.setFontSize(7);
-                doc.setTextColor(156, 163, 175);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Estimado Mensual', col2X, colY);
-                colY += 9;
-                
-                doc.setFontSize(16);
-                doc.setTextColor(59, 130, 246);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resFijo.totalAnnual) + '/año', col2X, colY);
-                
-                // COLUMNA 3 - TU NUEVO COSTE INDEXADO
-                colY = yPos;
-                doc.setTextColor(22, 163, 74);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TU NUEVO COSTE INDEXADO', col3X, colY);
-                colY += 8;
-                
-                doc.setTextColor(22, 163, 74);
-                doc.setFontSize(18);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resIndexed.totalAnnual / 12) + '/mes', col3X, colY);
-                colY += 7;
-                
-                doc.setFontSize(7);
-                doc.setTextColor(156, 163, 175);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Estimado Mensual', col3X, colY);
-                colY += 9;
-                
-                doc.setFontSize(16);
-                doc.setTextColor(22, 163, 74);
-                doc.setFont('helvetica', 'bold');
-                doc.text(eur(resIndexed.totalAnnual) + '/año', col3X, colY);
-                
-                yPos = colY + 15;
+                yPos = maxY + 15;
                 
                 // === PÁGINA 2: DESGLOSE DETALLADO POR SUMINISTRO ===
                 doc.addPage();
@@ -7241,12 +7260,9 @@
             // Cerrar el selector
             document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            // CRÍTICO: Guardar el estado ORIGINAL del CHECK antes de modificarlo
-            const checkboxOriginal = document.getElementById('compare-indexed-checkbox');
-            const hadCheckMarked = checkboxOriginal ? checkboxOriginal.checked : compareWithIndexed;
-            
-            console.log('🔍 CHECK estaba marcado originalmente:', hadCheckMarked ? 'SÍ' : 'NO');
-            console.log('Usuario eligió tarifa:', bestOptionTariffChoice);
+            // CRÍTICO: Cuando llega aquí, significa que el CHECK NO estaba marcado
+            // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
+            console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
             
             // CRÍTICO: Preservar _multiCupsContext ANTES de reasignar lastComparisonResult
             const preservedContext = lastComparisonResult?._multiCupsContext 
@@ -7255,8 +7271,20 @@
             
             console.log('🔍 Contexto MULTICUPS preservado en selectBestOptionWithChoice:', preservedContext ? 'SÍ' : 'NO');
             
+            // FORZAR: Desmarcar checkbox y OCULTAR su contenedor
+            const checkbox = document.getElementById('compare-indexed-checkbox');
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            if (checkboxContainer) {
+                checkboxContainer.classList.add('hidden');
+            }
+            compareWithIndexed = false;
+            lastIndexedResult = null;
+            
             // Filtrar availableOffers según la elección
-            let filteredOffersChosen = availableOffers.filter(offer => {
+            let filteredOffers = availableOffers.filter(offer => {
                 const offerName = (offer.offer.name || '').toUpperCase();
                 const offerDesc = (offer.offer.description || '').toUpperCase();
                 const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
@@ -7270,79 +7298,24 @@
                 }
             });
             
-            console.log('Ofertas filtradas del tipo elegido:', filteredOffersChosen.length, 'de', availableOffers.length);
+            console.log('Ofertas filtradas:', filteredOffers.length, 'de', availableOffers.length);
             
-            if (filteredOffersChosen.length === 0) {
+            if (filteredOffers.length === 0) {
                 const tipoTarifa = bestOptionTariffChoice === 'indexada' ? 'INDEXADAS (DRK INDEX)' : 'FIJAS';
                 window.showErrorModal(`No se encontraron tarifas ${tipoTarifa} con ahorro positivo.`);
                 closeOfferDecisionModal();
                 return;
             }
             
-            // Seleccionar la mejor de las filtradas (del tipo elegido)
-            let bestChosen = filteredOffersChosen.reduce((best, current) => {
+            // Seleccionar la mejor de las filtradas
+            let bestFiltered = filteredOffers.reduce((best, current) => {
                 return (current.totalAnnual < best.totalAnnual) ? current : best;
-            }, filteredOffersChosen[0]);
+            }, filteredOffers[0]);
             
-            console.log('Mejor tarifa del tipo elegido:', bestChosen.offer.name, 'Ahorro:', bestChosen.savings);
+            console.log('Mejor tarifa filtrada:', bestFiltered.offer.name, 'Ahorro:', bestFiltered.savings);
             
-            // SI EL CHECK ESTABA MARCADO: Calcular también la mejor del tipo contrario
-            let bestOtherType = null;
-            if (hadCheckMarked) {
-                console.log('🔍 CHECK estaba marcado → Calculando mejor del tipo contrario para mantener comparación dual');
-                
-                // Filtrar ofertas del tipo contrario
-                let filteredOffersOther = availableOffers.filter(offer => {
-                    const offerName = (offer.offer.name || '').toUpperCase();
-                    const offerDesc = (offer.offer.description || '').toUpperCase();
-                    const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
-                    
-                    if (bestOptionTariffChoice === 'indexada') {
-                        // Usuario eligió INDEXADA → Calcular mejor FIJA
-                        return !isIndexed;
-                    } else {
-                        // Usuario eligió FIJA → Calcular mejor INDEXADA
-                        return isIndexed;
-                    }
-                });
-                
-                if (filteredOffersOther.length > 0) {
-                    bestOtherType = filteredOffersOther.reduce((best, current) => {
-                        return (current.totalAnnual < best.totalAnnual) ? current : best;
-                    }, filteredOffersOther[0]);
-                    
-                    console.log('✅ Mejor del tipo contrario:', bestOtherType.offer.name, 'Ahorro:', bestOtherType.savings);
-                } else {
-                    console.warn('⚠️  No se encontraron ofertas del tipo contrario');
-                }
-            }
-            
-            // Decidir qué es FIJO y qué es INDEXADO según lo que eligió el usuario
-            let resFijo, resIndexado;
-            if (bestOptionTariffChoice === 'indexada') {
-                // Usuario eligió INDEXADA
-                resIndexado = bestChosen;
-                resFijo = bestOtherType;
-            } else {
-                // Usuario eligió FIJA
-                resFijo = bestChosen;
-                resIndexado = bestOtherType;
-            }
-            
-            // Actualizar variables globales
-            lastComparisonResult = resFijo || bestChosen;
-            
-            if (hadCheckMarked && resIndexado) {
-                // Mantener comparación dual
-                lastIndexedResult = resIndexado;
-                compareWithIndexed = true;
-                console.log('✅ Manteniendo comparación DUAL: FIJO vs INDEXADO');
-            } else {
-                // Sin comparación dual
-                lastIndexedResult = null;
-                compareWithIndexed = false;
-                console.log('⚠️  Sin comparación dual (CHECK no estaba marcado o no hay tarifa del otro tipo)');
-            }
+            // Actualizar lastComparisonResult con la mejor filtrada
+            lastComparisonResult = bestFiltered;
             
             // CRÍTICO: RESTAURAR el contexto preservado
             if (preservedContext) {
@@ -7352,39 +7325,8 @@
                 console.log('⚠️  No había contexto MULTICUPS que restaurar');
             }
             
-            // CRÍTICO: Ejecutar según si hay comparación dual o no
-            if (hadCheckMarked && resIndexado) {
-                // Con comparación dual
-                selectBestOptionDirectDual();
-            } else {
-                // Sin comparación dual
-                selectBestOptionDirectSingle();
-            }
-        }
-        
-        // Nueva función para ejecutar con COMPARACIÓN DUAL (cuando CHECK estaba marcado)
-        function selectBestOptionDirectDual() {
-            closeOfferDecisionModal();
-            
-            if (!lastComparisonResult || !lastIndexedResult) {
-                window.showErrorModal('No hay resultados disponibles para comparación dual');
-                return;
-            }
-            
-            console.log('selectBestOptionDirectDual: Mostrando comparación DUAL (FIJO vs INDEXADO)');
-            
-            // Verificar si estamos en contexto MultiCups
-            if (lastComparisonResult._multiCupsContext) {
-                // Contexto MultiCups: Añadir a la lista CON comparación indexada
-                addSupplyToMultiCupsList(lastComparisonResult, lastIndexedResult);
-            } else {
-                // Contexto individual: Mostrar resultados CON comparación indexada
-                renderResultsUI(lastComparisonResult, lastIndexedResult);
-                document.getElementById('initial-view').classList.add('hidden');
-                document.getElementById('scanner-view').classList.add('hidden');
-                document.getElementById('results-view').classList.remove('hidden');
-                document.getElementById('results-view').classList.add('animate-fade-in-up');
-            }
+            // CRÍTICO: Ejecutar versión single
+            selectBestOptionDirectSingle();
         }
         
         // Nueva función para ejecutar con UNA sola tarifa (sin comparativa)
