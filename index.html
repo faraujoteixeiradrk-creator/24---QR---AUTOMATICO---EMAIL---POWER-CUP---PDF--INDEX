@@ -7175,8 +7175,12 @@
                 return;
             }
             
-            // Si se activó la comparación con indexadas, calcular también ese resultado
+            // ═══════════════════════════════════════════════════════════════
+            // ARREGLO: Cuando compareWithIndexed = true, calcular FIJO vs INDEXADO correctamente
+            // ═══════════════════════════════════════════════════════════════
             if (compareWithIndexed) {
+                console.log('🔧 Comparación FIJO vs INDEXADO activada');
+                
                 const tariffType = lastComparisonResult._multiCupsContext 
                     ? lastComparisonResult._multiCupsContext.tariffType 
                     : lastComparisonResult.originalTariffType || currentTariffType;
@@ -7185,6 +7189,42 @@
                     ? lastComparisonResult._multiCupsContext.dataForCalc 
                     : lastComparisonResult;
                 
+                // PASO 1: Recalcular la MEJOR OFERTA FIJA (sin indexadas)
+                console.log('📊 Calculando mejor oferta FIJA...');
+                const tarifasDisponibles = currentTariffs[tariffType] || [];
+                
+                // Filtrar SOLO tarifas FIJAS
+                const tarifasFijas = tarifasDisponibles.filter(t => {
+                    const name = (t.name || '').toUpperCase();
+                    const desc = (t.description || '').toUpperCase();
+                    return !name.includes('INDEX') && !desc.includes('INDEX');
+                });
+                
+                console.log(`Tarifas FIJAS encontradas: ${tarifasFijas.length} de ${tarifasDisponibles.length}`);
+                
+                // Calcular la mejor oferta FIJA
+                const resultadosFijos = tarifasFijas.map(t => calculateTariffCost(t, dataForCalc, tariffType));
+                let mejorFija = null;
+                
+                resultadosFijos.forEach(r => {
+                    if (!mejorFija || r.totalAnnual < mejorFija.totalAnnual) {
+                        // Aplicar filtro de modo (DRK only, DRK prioritario, Overall best)
+                        if (comparisonMode === 'drk_only' && !r.offer.isDrk) {
+                            return; // Skip non-DRK offers in DRK only mode
+                        }
+                        mejorFija = r;
+                    }
+                });
+                
+                if (!mejorFija) {
+                    window.showErrorModal('No se encontraron tarifas FIJAS disponibles.');
+                    return;
+                }
+                
+                console.log('✅ Mejor oferta FIJA:', mejorFija.offer.name, mejorFija.totalAnnual);
+                
+                // PASO 2: Calcular la MEJOR OFERTA INDEXADA
+                console.log('📊 Calculando mejor oferta INDEXADA...');
                 lastIndexedResult = calculateIndexedOffer(dataForCalc, tariffType);
                 
                 if (!lastIndexedResult) {
@@ -7195,8 +7235,19 @@
                     return;
                 }
                 
-                console.log('Resultado indexado calculado:', lastIndexedResult.offer.name);
+                console.log('✅ Mejor oferta INDEXADA:', lastIndexedResult.offer.name, lastIndexedResult.totalAnnual);
+                
+                // PASO 3: Actualizar lastComparisonResult con la mejor FIJA
+                lastComparisonResult = mejorFija;
+                
+                // Preservar contexto si existe
+                if (dataForCalc._multiCupsContext) {
+                    lastComparisonResult._multiCupsContext = dataForCalc._multiCupsContext;
+                }
             }
+            // ═══════════════════════════════════════════════════════════════
+            // FIN ARREGLO
+            // ═══════════════════════════════════════════════════════════════
             
             // Verificar si estamos en contexto MultiCups
             if (lastComparisonResult._multiCupsContext) {
