@@ -7260,9 +7260,12 @@
             // Cerrar el selector
             document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            // CRÍTICO: Cuando llega aquí, significa que el CHECK NO estaba marcado
-            // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
-            console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
+            // CRÍTICO: Guardar el estado ORIGINAL del CHECK antes de modificarlo
+            const checkboxOriginal = document.getElementById('compare-indexed-checkbox');
+            const hadCheckMarked = checkboxOriginal ? checkboxOriginal.checked : compareWithIndexed;
+            
+            console.log('🔍 CHECK estaba marcado originalmente:', hadCheckMarked ? 'SÍ' : 'NO');
+            console.log('Usuario eligió tarifa:', bestOptionTariffChoice);
             
             // CRÍTICO: Preservar _multiCupsContext ANTES de reasignar lastComparisonResult
             const preservedContext = lastComparisonResult?._multiCupsContext 
@@ -7271,20 +7274,8 @@
             
             console.log('🔍 Contexto MULTICUPS preservado en selectBestOptionWithChoice:', preservedContext ? 'SÍ' : 'NO');
             
-            // FORZAR: Desmarcar checkbox y OCULTAR su contenedor
-            const checkbox = document.getElementById('compare-indexed-checkbox');
-            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
-            if (checkbox) {
-                checkbox.checked = false;
-            }
-            if (checkboxContainer) {
-                checkboxContainer.classList.add('hidden');
-            }
-            compareWithIndexed = false;
-            lastIndexedResult = null;
-            
             // Filtrar availableOffers según la elección
-            let filteredOffers = availableOffers.filter(offer => {
+            let filteredOffersChosen = availableOffers.filter(offer => {
                 const offerName = (offer.offer.name || '').toUpperCase();
                 const offerDesc = (offer.offer.description || '').toUpperCase();
                 const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
@@ -7298,24 +7289,79 @@
                 }
             });
             
-            console.log('Ofertas filtradas:', filteredOffers.length, 'de', availableOffers.length);
+            console.log('Ofertas filtradas del tipo elegido:', filteredOffersChosen.length, 'de', availableOffers.length);
             
-            if (filteredOffers.length === 0) {
+            if (filteredOffersChosen.length === 0) {
                 const tipoTarifa = bestOptionTariffChoice === 'indexada' ? 'INDEXADAS (DRK INDEX)' : 'FIJAS';
                 window.showErrorModal(`No se encontraron tarifas ${tipoTarifa} con ahorro positivo.`);
                 closeOfferDecisionModal();
                 return;
             }
             
-            // Seleccionar la mejor de las filtradas
-            let bestFiltered = filteredOffers.reduce((best, current) => {
+            // Seleccionar la mejor de las filtradas (del tipo elegido)
+            let bestChosen = filteredOffersChosen.reduce((best, current) => {
                 return (current.totalAnnual < best.totalAnnual) ? current : best;
-            }, filteredOffers[0]);
+            }, filteredOffersChosen[0]);
             
-            console.log('Mejor tarifa filtrada:', bestFiltered.offer.name, 'Ahorro:', bestFiltered.savings);
+            console.log('Mejor tarifa del tipo elegido:', bestChosen.offer.name, 'Ahorro:', bestChosen.savings);
             
-            // Actualizar lastComparisonResult con la mejor filtrada
-            lastComparisonResult = bestFiltered;
+            // SI EL CHECK ESTABA MARCADO: Calcular también la mejor del tipo contrario
+            let bestOtherType = null;
+            if (hadCheckMarked) {
+                console.log('🔍 CHECK estaba marcado → Calculando mejor del tipo contrario para mantener comparación dual');
+                
+                // Filtrar ofertas del tipo contrario
+                let filteredOffersOther = availableOffers.filter(offer => {
+                    const offerName = (offer.offer.name || '').toUpperCase();
+                    const offerDesc = (offer.offer.description || '').toUpperCase();
+                    const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
+                    
+                    if (bestOptionTariffChoice === 'indexada') {
+                        // Usuario eligió INDEXADA → Calcular mejor FIJA
+                        return !isIndexed;
+                    } else {
+                        // Usuario eligió FIJA → Calcular mejor INDEXADA
+                        return isIndexed;
+                    }
+                });
+                
+                if (filteredOffersOther.length > 0) {
+                    bestOtherType = filteredOffersOther.reduce((best, current) => {
+                        return (current.totalAnnual < best.totalAnnual) ? current : best;
+                    }, filteredOffersOther[0]);
+                    
+                    console.log('✅ Mejor del tipo contrario:', bestOtherType.offer.name, 'Ahorro:', bestOtherType.savings);
+                } else {
+                    console.warn('⚠️  No se encontraron ofertas del tipo contrario');
+                }
+            }
+            
+            // Decidir qué es FIJO y qué es INDEXADO según lo que eligió el usuario
+            let resFijo, resIndexado;
+            if (bestOptionTariffChoice === 'indexada') {
+                // Usuario eligió INDEXADA
+                resIndexado = bestChosen;
+                resFijo = bestOtherType;
+            } else {
+                // Usuario eligió FIJA
+                resFijo = bestChosen;
+                resIndexado = bestOtherType;
+            }
+            
+            // Actualizar variables globales
+            lastComparisonResult = resFijo || bestChosen;
+            
+            if (hadCheckMarked && resIndexado) {
+                // Mantener comparación dual
+                lastIndexedResult = resIndexado;
+                compareWithIndexed = true;
+                console.log('✅ Manteniendo comparación DUAL: FIJO vs INDEXADO');
+            } else {
+                // Sin comparación dual
+                lastIndexedResult = null;
+                compareWithIndexed = false;
+                console.log('⚠️  Sin comparación dual (CHECK no estaba marcado o no hay tarifa del otro tipo)');
+            }
             
             // CRÍTICO: RESTAURAR el contexto preservado
             if (preservedContext) {
@@ -7325,8 +7371,39 @@
                 console.log('⚠️  No había contexto MULTICUPS que restaurar');
             }
             
-            // CRÍTICO: Ejecutar versión single
-            selectBestOptionDirectSingle();
+            // CRÍTICO: Ejecutar según si hay comparación dual o no
+            if (hadCheckMarked && resIndexado) {
+                // Con comparación dual
+                selectBestOptionDirectDual();
+            } else {
+                // Sin comparación dual
+                selectBestOptionDirectSingle();
+            }
+        }
+        
+        // Nueva función para ejecutar con COMPARACIÓN DUAL (cuando CHECK estaba marcado)
+        function selectBestOptionDirectDual() {
+            closeOfferDecisionModal();
+            
+            if (!lastComparisonResult || !lastIndexedResult) {
+                window.showErrorModal('No hay resultados disponibles para comparación dual');
+                return;
+            }
+            
+            console.log('selectBestOptionDirectDual: Mostrando comparación DUAL (FIJO vs INDEXADO)');
+            
+            // Verificar si estamos en contexto MultiCups
+            if (lastComparisonResult._multiCupsContext) {
+                // Contexto MultiCups: Añadir a la lista CON comparación indexada
+                addSupplyToMultiCupsList(lastComparisonResult, lastIndexedResult);
+            } else {
+                // Contexto individual: Mostrar resultados CON comparación indexada
+                renderResultsUI(lastComparisonResult, lastIndexedResult);
+                document.getElementById('initial-view').classList.add('hidden');
+                document.getElementById('scanner-view').classList.add('hidden');
+                document.getElementById('results-view').classList.remove('hidden');
+                document.getElementById('results-view').classList.add('animate-fade-in-up');
+            }
         }
         
         // Nueva función para ejecutar con UNA sola tarifa (sin comparativa)
