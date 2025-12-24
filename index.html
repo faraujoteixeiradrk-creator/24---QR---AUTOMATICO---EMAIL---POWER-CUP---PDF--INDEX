@@ -7189,6 +7189,13 @@
                     ? lastComparisonResult._multiCupsContext.dataForCalc 
                     : lastComparisonResult;
                 
+                // CRÍTICO: Preservar _multiCupsContext ANTES de recalcular
+                const preservedContext = lastComparisonResult._multiCupsContext 
+                    ? JSON.parse(JSON.stringify(lastComparisonResult._multiCupsContext))
+                    : null;
+                
+                console.log('🔍 Contexto MULTICUPS preservado:', preservedContext ? 'SÍ' : 'NO');
+                
                 // PASO 1: Recalcular la MEJOR OFERTA FIJA (sin indexadas)
                 console.log('📊 Calculando mejor oferta FIJA...');
                 const tarifasDisponibles = currentTariffs[tariffType] || [];
@@ -7240,9 +7247,12 @@
                 // PASO 3: Actualizar lastComparisonResult con la mejor FIJA
                 lastComparisonResult = mejorFija;
                 
-                // Preservar contexto si existe
-                if (dataForCalc._multiCupsContext) {
-                    lastComparisonResult._multiCupsContext = dataForCalc._multiCupsContext;
+                // CRÍTICO: RESTAURAR el contexto preservado
+                if (preservedContext) {
+                    lastComparisonResult._multiCupsContext = preservedContext;
+                    console.log('✅ Contexto MULTICUPS restaurado correctamente');
+                } else {
+                    console.log('⚠️  No había contexto MULTICUPS que restaurar');
                 }
             }
             // ═══════════════════════════════════════════════════════════════
@@ -8559,6 +8569,12 @@
             }
             
             // Añadir directamente si solo hay 1 oferta o ninguna
+            // CRÍTICO: Asegurar que el resultado tenga el contexto MULTICUPS
+            finalIndividualResult._multiCupsContext = {
+                tariffType: tariffType,
+                dataForCalc: dataForCalc
+            };
+            
             // IMPORTANTE: Usar addSupplyToMultiCupsList para que recalcule costes correctamente
             addSupplyToMultiCupsList(finalIndividualResult);
             
