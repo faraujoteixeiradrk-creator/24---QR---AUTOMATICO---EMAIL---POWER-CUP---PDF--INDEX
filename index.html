@@ -3394,14 +3394,21 @@
                     
                     // === CABECERA GRIS OSCURA CON CUPS ===
                     doc.setFillColor(71, 85, 105);
-                    doc.roundedRect(x, y, width, 10, 2, 2, 'F');
+                    doc.roundedRect(x, y, width, 14, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
                     doc.text(`[${res.cups || 'N/A'}]`, x + 3, y + 4);
                     doc.text(`Tipo: ${res.originalTariffType || tariffType}`, x + width - 3, y + 4, { align: 'right' });
                     doc.text(`Días: ${res.dias_facturados || 0}`, x + width - 3, y + 8, { align: 'right' });
-                    y += 12;
+                    
+                    // Nombre de la tarifa
+                    doc.setFontSize(6.5);
+                    doc.setFont('helvetica', 'normal');
+                    const nombreTarifa = res.offer.name || 'N/A';
+                    doc.text(nombreTarifa, x + 3, y + 11);
+                    
+                    y += 16;
                     
                     // === CAJA PRECIOS APLICADOS ===
                     doc.setFillColor(100, 116, 139);
