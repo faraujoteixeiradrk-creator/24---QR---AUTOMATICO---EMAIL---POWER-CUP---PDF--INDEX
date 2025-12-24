@@ -3421,9 +3421,13 @@
                     doc.text('POTENCIA:', x + 3, y + 4);
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
-                    doc.text(`P1: ${num(res.offer.power_price_p1 || 0, 6)} €/kW/día`, x + 3, y + 8);
+                    
+                    // Mostrar precios de potencia reales
+                    if (res.powerCosts.length > 0) {
+                        doc.text(`P1: ${num(res.powerCosts[0].priceDay || 0, 6)} €/kW/día`, x + 3, y + 8);
+                    }
                     if (res.powerCosts.length > 1) {
-                        doc.text(`P2: ${num(res.offer.power_price_p2 || 0, 6)} €/kW/día`, x + 3, y + 11);
+                        doc.text(`P2: ${num(res.powerCosts[1].priceDay || 0, 6)} €/kW/día`, x + 3, y + 11);
                     }
                     
                     doc.setFont('helvetica', 'bold');
@@ -3431,12 +3435,16 @@
                     doc.text('ENERGÍA:', x + width/2, y + 4);
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
-                    doc.text(`E1: ${num(res.offer.energy_price_p1 || 0, 6)} €/kWh`, x + width/2, y + 8);
+                    
+                    // Mostrar precios de energía reales
+                    if (res.energyCosts.length > 0) {
+                        doc.text(`E1: ${num(res.energyCosts[0].price || 0, 6)} €/kWh`, x + width/2, y + 8);
+                    }
                     if (res.energyCosts.length > 1) {
-                        doc.text(`E2: ${num(res.offer.energy_price_p2 || 0, 6)} €/kWh`, x + width/2, y + 11);
+                        doc.text(`E2: ${num(res.energyCosts[1].price || 0, 6)} €/kWh`, x + width/2, y + 11);
                     }
                     if (res.energyCosts.length > 2) {
-                        doc.text(`E3: ${num(res.offer.energy_price_p3 || 0, 6)} €/kWh`, x + width/2, y + 14);
+                        doc.text(`E3: ${num(res.energyCosts[2].price || 0, 6)} €/kWh`, x + width/2, y + 14);
                     }
                     y += 20;
                     
