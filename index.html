@@ -1218,13 +1218,14 @@
 
         // FUNCIÓN GLOBAL: Hacer accesible desde onclick en HTML
         window.resetToLanding = function() {
-            console.log('resetToLanding llamada');
+            console.log('🔄 resetToLanding llamada');
             stopScanner();
             
             // Ocultar botón de VOLVER si existe
             const backButtonContainer = document.getElementById('back-button-top-container');
             if (backButtonContainer) {
                 backButtonContainer.style.display = 'none';
+                console.log('✅ Botón VOLVER oculto');
             }
             
             // Restaurar padding del results-view
@@ -1242,6 +1243,8 @@
             manuallySelectedOffer = null;
             compareWithIndexed = false; // Resetear comparación indexada
             bestOptionTariffChoice = 'fija'; // NUEVO: Resetear elección de tarifa
+            
+            console.log('✅ Variables globales limpiadas');
             
             // Resetear checkbox de comparación indexada
             const checkboxIndexed = document.getElementById('compare-indexed-checkbox');
@@ -1266,21 +1269,33 @@
                 updateComparisonMode(comparisonMode); // Llamar directamente para asegurar el styling
             }
 
-            document.getElementById('landing-view').classList.remove('hidden');
+            // OCULTAR TODAS LAS VISTAS
             document.getElementById('initial-view').classList.add('hidden');
-            document.getElementById('multicups-saga-view').classList.add('hidden'); // NEW: Cleanup saga view
+            document.getElementById('multicups-saga-view').classList.add('hidden');
             document.getElementById('results-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
             document.getElementById('manual-input-modal').classList.add('hidden');  
             document.getElementById('manual-input-modal').classList.remove('flex');
             
-            document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden'); // Old MultiCups button
+            console.log('✅ Todas las vistas ocultas');
+            
+            // MOSTRAR LANDING-VIEW (página inicial)
+            const landingView = document.getElementById('landing-view');
+            landingView.classList.remove('hidden');
+            landingView.style.display = 'block';
+            
+            console.log('✅ Landing-view mostrado');
+            
+            document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden');
             document.getElementById('manual-tariff-selector-wrapper').classList.add('hidden');
 
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
-            document.getElementById('tariff-display-badge').textContent = '0'; // Resetear el contador de tarifas
+            document.getElementById('tariff-display-badge').textContent = '0';
             
-            console.log('resetToLanding completada');
+            // SCROLL AL INICIO
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            console.log('✅ resetToLanding completada - Deberías ver la página inicial del comparador');
         };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
