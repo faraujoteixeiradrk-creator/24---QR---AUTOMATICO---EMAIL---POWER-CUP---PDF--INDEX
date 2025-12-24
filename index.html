@@ -1218,21 +1218,8 @@
 
         // FUNCIÓN GLOBAL: Hacer accesible desde onclick en HTML
         window.resetToLanding = function() {
-            console.log('🔄 resetToLanding llamada');
+            console.log('resetToLanding llamada');
             stopScanner();
-            
-            // Ocultar botón de VOLVER si existe
-            const backButtonContainer = document.getElementById('back-button-top-container');
-            if (backButtonContainer) {
-                backButtonContainer.style.display = 'none';
-                console.log('✅ Botón VOLVER oculto');
-            }
-            
-            // Restaurar padding del results-view
-            const resultsView = document.getElementById('results-view');
-            if (resultsView) {
-                resultsView.style.paddingTop = '0';
-            }
             
             // CRÍTICO: Limpiar TODAS las variables globales
             lastComparisonResult = null;
@@ -1243,8 +1230,6 @@
             manuallySelectedOffer = null;
             compareWithIndexed = false; // Resetear comparación indexada
             bestOptionTariffChoice = 'fija'; // NUEVO: Resetear elección de tarifa
-            
-            console.log('✅ Variables globales limpiadas');
             
             // Resetear checkbox de comparación indexada
             const checkboxIndexed = document.getElementById('compare-indexed-checkbox');
@@ -1269,33 +1254,21 @@
                 updateComparisonMode(comparisonMode); // Llamar directamente para asegurar el styling
             }
 
-            // OCULTAR TODAS LAS VISTAS
+            document.getElementById('landing-view').classList.remove('hidden');
             document.getElementById('initial-view').classList.add('hidden');
-            document.getElementById('multicups-saga-view').classList.add('hidden');
+            document.getElementById('multicups-saga-view').classList.add('hidden'); // NEW: Cleanup saga view
             document.getElementById('results-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
             document.getElementById('manual-input-modal').classList.add('hidden');  
             document.getElementById('manual-input-modal').classList.remove('flex');
             
-            console.log('✅ Todas las vistas ocultas');
-            
-            // MOSTRAR LANDING-VIEW (página inicial)
-            const landingView = document.getElementById('landing-view');
-            landingView.classList.remove('hidden');
-            landingView.style.display = 'block';
-            
-            console.log('✅ Landing-view mostrado');
-            
-            document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden');
+            document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden'); // Old MultiCups button
             document.getElementById('manual-tariff-selector-wrapper').classList.add('hidden');
 
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
-            document.getElementById('tariff-display-badge').textContent = '0';
+            document.getElementById('tariff-display-badge').textContent = '0'; // Resetear el contador de tarifas
             
-            // SCROLL AL INICIO
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            console.log('✅ resetToLanding completada - Deberías ver la página inicial del comparador');
+            console.log('resetToLanding completada');
         };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
@@ -1961,42 +1934,6 @@
             const isDrk = brand.NAME.includes('DRK');
             const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
             
-            // ✅ SOLUCIÓN: Añadir botón VOLVER grande al principio del results-view
-            const resultsView = document.getElementById('results-view');
-            
-            // Verificar si ya existe el botón de volver
-            let backButtonContainer = document.getElementById('back-button-top-container');
-            if (!backButtonContainer) {
-                backButtonContainer = document.createElement('div');
-                backButtonContainer.id = 'back-button-top-container';
-                backButtonContainer.className = 'fixed top-0 left-0 right-0 z-[100] bg-white shadow-lg p-3 border-b-4 border-red-500';
-                backButtonContainer.innerHTML = `
-                    <div class="max-w-lg mx-auto">
-                        <button id="force-back-button" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black py-4 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 text-lg">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                            </svg>
-                            <span>⬅️ VOLVER AL INICIO</span>
-                        </button>
-                    </div>
-                `;
-                document.body.insertBefore(backButtonContainer, document.body.firstChild);
-                
-                // SOLUCIÓN SIMPLE: Recargar la página
-                document.getElementById('force-back-button').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔄 RECARGANDO PÁGINA (MULTICUPS)...');
-                    window.location.reload();
-                });
-            }
-            
-            // Mostrar el botón
-            backButtonContainer.style.display = 'block';
-            
-            // Ajustar padding del contenido para que no quede oculto bajo el botón
-            resultsView.style.paddingTop = '80px';
-            
             // Banner
             const companyBanner = document.getElementById('company-banner');
             companyBanner.innerHTML = `
@@ -2164,12 +2101,13 @@
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
-            // FORZAR actualización de botones de reset
-            setTimeout(() => {
-                if (window.forceResetButtons) window.forceResetButtons();
-            }, 100);
-            
-            console.log('renderMultiDualComparisonUI completada');
+            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
+            if (resetButton) {
+                resetButton.style.display = 'flex';
+                resetButton.style.visibility = 'visible';
+                resetButton.classList.remove('hidden');
+            }
         }
         /**
          * Rellena la vista de resultados con los datos acumulados para MULTICUPS.
@@ -2598,42 +2536,6 @@
             const isDrk = brand.NAME.includes('DRK');
             const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
             
-            // ✅ SOLUCIÓN: Añadir botón VOLVER grande al principio del results-view
-            const resultsView = document.getElementById('results-view');
-            
-            // Verificar si ya existe el botón de volver
-            let backButtonContainer = document.getElementById('back-button-top-container');
-            if (!backButtonContainer) {
-                backButtonContainer = document.createElement('div');
-                backButtonContainer.id = 'back-button-top-container';
-                backButtonContainer.className = 'fixed top-0 left-0 right-0 z-[100] bg-white shadow-lg p-3 border-b-4 border-red-500';
-                backButtonContainer.innerHTML = `
-                    <div class="max-w-lg mx-auto">
-                        <button id="force-back-button" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black py-4 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 text-lg">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                            </svg>
-                            <span>⬅️ VOLVER AL INICIO</span>
-                        </button>
-                    </div>
-                `;
-                document.body.insertBefore(backButtonContainer, document.body.firstChild);
-                
-                // SOLUCIÓN SIMPLE: Recargar la página
-                document.getElementById('force-back-button').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔄 RECARGANDO PÁGINA...');
-                    window.location.reload();
-                });
-            }
-            
-            // Mostrar el botón
-            backButtonContainer.style.display = 'block';
-            
-            // Ajustar padding del contenido para que no quede oculto bajo el botón
-            resultsView.style.paddingTop = '80px';
-            
             // Banner de empresa
             const companyBanner = document.getElementById('company-banner');
             companyBanner.innerHTML = `
@@ -2745,12 +2647,13 @@
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
-            // FORZAR actualización de botones de reset
-            setTimeout(() => {
-                if (window.forceResetButtons) window.forceResetButtons();
-            }, 100);
-            
-            console.log('renderDualComparisonUI completada');
+            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
+            if (resetButton) {
+                resetButton.style.display = 'flex';
+                resetButton.style.visibility = 'visible';
+                resetButton.classList.remove('hidden');
+            }
         }
         function renderResultsUI(res, resIndexed = null) {
             // Si hay resultado indexado, usar vista de comparación dual
@@ -7937,42 +7840,6 @@
         // --- INIT ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            // SOLUCIÓN ULTRA-SIMPLE: Forzar que los onclick siempre funcionen
-            // Esto se ejecuta en cada interacción
-            window.forceResetButtons = function() {
-                // Logo del header
-                const navbarLogo = document.querySelector('#navbar h1');
-                if (navbarLogo) {
-                    navbarLogo.onclick = function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔄 RESET desde logo');
-                        window.resetToLanding();
-                    };
-                }
-                
-                // Botón "Realizar Nueva Comparación"
-                const resetButtons = document.querySelectorAll('button');
-                resetButtons.forEach(btn => {
-                    const btnText = btn.textContent.trim();
-                    if (btnText.includes('Realizar Nueva Comparación') || btnText.includes('Nueva Comparación')) {
-                        btn.onclick = function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('🔄 RESET desde botón');
-                            window.resetToLanding();
-                        };
-                    }
-                });
-            };
-            
-            // Ejecutar al cargar
-            window.forceResetButtons();
-            
-            // Re-ejecutar cada vez que cambie algo (MutationObserver)
-            const observer = new MutationObserver(window.forceResetButtons);
-            observer.observe(document.body, { childList: true, subtree: true });
-            
             // Setup Event Listeners
             document.getElementById('manual-input-btn').onclick = startManualInputFlow;
             document.getElementById('execute-manual-input-btn').onclick = handleManualInput;
