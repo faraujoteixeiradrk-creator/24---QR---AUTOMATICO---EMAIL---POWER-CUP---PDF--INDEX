@@ -3402,11 +3402,13 @@
                     doc.text(`Tipo: ${res.originalTariffType || tariffType}`, x + width - 3, y + 4, { align: 'right' });
                     doc.text(`Días: ${res.dias_facturados || 0}`, x + width - 3, y + 8, { align: 'right' });
                     
-                    // Nombre de la tarifa
+                    // Nombre completo: Comercializadora - Tarifa
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'normal');
+                    const comercializadora = res.offer.commercializer || brand.NAME;
                     const nombreTarifa = res.offer.name || 'N/A';
-                    doc.text(nombreTarifa, x + 3, y + 11);
+                    const nombreCompleto = `${comercializadora} - ${nombreTarifa}`;
+                    doc.text(nombreCompleto, x + 3, y + 11);
                     
                     y += 16;
                     
@@ -6821,7 +6823,35 @@
             compareWithIndexed = false; // Asegurar que no se active la comparativa
             
             // Ejecutar lógica normal (mostrará solo el resultado principal)
-            selectBestOptionDirect();
+            // CRÍTICO: Pasar explícitamente null como segundo parámetro
+            selectBestOptionDirectSingle();
+        }
+        
+        // Nueva función para ejecutar con UNA sola tarifa (sin comparativa)
+        function selectBestOptionDirectSingle() {
+            closeOfferDecisionModal();
+            
+            if (!lastComparisonResult) {
+                window.showErrorModal('No hay resultado disponible');
+                return;
+            }
+            
+            // FORZAR: No mostrar comparativa indexada
+            lastIndexedResult = null;
+            compareWithIndexed = false;
+            
+            // Verificar si estamos en contexto MultiCups
+            if (lastComparisonResult._multiCupsContext) {
+                // Contexto MultiCups: Añadir a la lista (sin indexado)
+                addSupplyToMultiCupsList(lastComparisonResult, null);
+            } else {
+                // Contexto individual: Mostrar resultados (sin indexado)
+                renderResultsUI(lastComparisonResult, null);
+                document.getElementById('initial-view').classList.add('hidden');
+                document.getElementById('scanner-view').classList.add('hidden');
+                document.getElementById('results-view').classList.remove('hidden');
+                document.getElementById('results-view').classList.add('animate-fade-in-up');
+            }
         }
         
         function toggleIndexedComparison(checked) {
