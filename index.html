@@ -6784,6 +6784,14 @@
             // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
             console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
             
+            // FORZAR: Desmarcar checkbox y asegurar que NO se active comparativa
+            const checkbox = document.getElementById('compare-indexed-checkbox');
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            compareWithIndexed = false;
+            lastIndexedResult = null;
+            
             // Filtrar availableOffers según la elección
             let filteredOffers = availableOffers.filter(offer => {
                 const offerName = (offer.offer.name || '').toUpperCase();
@@ -6818,12 +6826,7 @@
             // Actualizar lastComparisonResult con la mejor filtrada
             lastComparisonResult = bestFiltered;
             
-            // IMPORTANTE: NO calcular indexado porque el usuario solo quiere ver UNA tarifa
-            lastIndexedResult = null;
-            compareWithIndexed = false; // Asegurar que no se active la comparativa
-            
-            // Ejecutar lógica normal (mostrará solo el resultado principal)
-            // CRÍTICO: Pasar explícitamente null como segundo parámetro
+            // CRÍTICO: Ejecutar versión single
             selectBestOptionDirectSingle();
         }
         
@@ -6839,6 +6842,14 @@
             // FORZAR: No mostrar comparativa indexada
             lastIndexedResult = null;
             compareWithIndexed = false;
+            
+            // Desmarcar checkbox físicamente
+            const checkbox = document.getElementById('compare-indexed-checkbox');
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            
+            console.log('selectBestOptionDirectSingle: Forzando vista SIMPLE (sin comparativa)');
             
             // Verificar si estamos en contexto MultiCups
             if (lastComparisonResult._multiCupsContext) {
