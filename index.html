@@ -2101,15 +2101,10 @@
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
-            // NOTA: El botón "Realizar Nueva Comparación" funcionará automáticamente
-            // gracias al event delegation global en document.addEventListener('click')
-            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
-            if (resetButton) {
-                console.log('✅ Botón "Realizar Nueva Comparación" visible (MULTICUPS dual)');
-                resetButton.style.display = 'flex';
-                resetButton.style.visibility = 'visible';
-                resetButton.classList.remove('hidden');
-            }
+            // FORZAR actualización de botones de reset
+            setTimeout(() => {
+                if (window.forceResetButtons) window.forceResetButtons();
+            }, 100);
             
             console.log('renderMultiDualComparisonUI completada');
         }
@@ -2651,15 +2646,10 @@
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
-            // NOTA: El botón "Realizar Nueva Comparación" funcionará automáticamente
-            // gracias al event delegation global en document.addEventListener('click')
-            const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
-            if (resetButton) {
-                console.log('✅ Botón "Realizar Nueva Comparación" visible');
-                resetButton.style.display = 'flex';
-                resetButton.style.visibility = 'visible';
-                resetButton.classList.remove('hidden');
-            }
+            // FORZAR actualización de botones de reset
+            setTimeout(() => {
+                if (window.forceResetButtons) window.forceResetButtons();
+            }, 100);
             
             console.log('renderDualComparisonUI completada');
         }
@@ -7848,27 +7838,41 @@
         // --- INIT ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            // SOLUCIÓN ROBUSTA: Event delegation para capturar clicks en cualquier parte
-            // Esto funciona incluso si el DOM cambia
-            document.addEventListener('click', function(e) {
-                // Click en el logo del header
-                const logoHeader = e.target.closest('#navbar h1');
-                if (logoHeader) {
-                    e.preventDefault();
-                    console.log('🔄 Click en logo detectado (event delegation)');
-                    window.resetToLanding();
-                    return;
+            // SOLUCIÓN ULTRA-SIMPLE: Forzar que los onclick siempre funcionen
+            // Esto se ejecuta en cada interacción
+            window.forceResetButtons = function() {
+                // Logo del header
+                const navbarLogo = document.querySelector('#navbar h1');
+                if (navbarLogo) {
+                    navbarLogo.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔄 RESET desde logo');
+                        window.resetToLanding();
+                    };
                 }
                 
-                // Click en botón "Realizar Nueva Comparación"
-                const resetBtn = e.target.closest('button[onclick*="resetToLanding"]');
-                if (resetBtn) {
-                    e.preventDefault();
-                    console.log('🔄 Click en "Realizar Nueva Comparación" detectado (event delegation)');
-                    window.resetToLanding();
-                    return;
-                }
-            });
+                // Botón "Realizar Nueva Comparación"
+                const resetButtons = document.querySelectorAll('button');
+                resetButtons.forEach(btn => {
+                    const btnText = btn.textContent.trim();
+                    if (btnText.includes('Realizar Nueva Comparación') || btnText.includes('Nueva Comparación')) {
+                        btn.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🔄 RESET desde botón');
+                            window.resetToLanding();
+                        };
+                    }
+                });
+            };
+            
+            // Ejecutar al cargar
+            window.forceResetButtons();
+            
+            // Re-ejecutar cada vez que cambie algo (MutationObserver)
+            const observer = new MutationObserver(window.forceResetButtons);
+            observer.observe(document.body, { childList: true, subtree: true });
             
             // Setup Event Listeners
             document.getElementById('manual-input-btn').onclick = startManualInputFlow;
