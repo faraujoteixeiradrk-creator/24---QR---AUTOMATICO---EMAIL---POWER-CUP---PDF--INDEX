@@ -2101,13 +2101,17 @@
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
-            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            // NOTA: El botón "Realizar Nueva Comparación" funcionará automáticamente
+            // gracias al event delegation global en document.addEventListener('click')
             const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
             if (resetButton) {
+                console.log('✅ Botón "Realizar Nueva Comparación" visible (MULTICUPS dual)');
                 resetButton.style.display = 'flex';
                 resetButton.style.visibility = 'visible';
                 resetButton.classList.remove('hidden');
             }
+            
+            console.log('renderMultiDualComparisonUI completada');
         }
         /**
          * Rellena la vista de resultados con los datos acumulados para MULTICUPS.
@@ -2647,13 +2651,17 @@
             document.getElementById('details-toggle-btn').style.display = 'none';
             document.getElementById('details-container').style.display = 'none';
             
-            // IMPORTANTE: Asegurar que el botón "Realizar Nueva Comparación" esté visible y funcional
+            // NOTA: El botón "Realizar Nueva Comparación" funcionará automáticamente
+            // gracias al event delegation global en document.addEventListener('click')
             const resetButton = document.querySelector('#results-view button[onclick="resetToLanding()"]');
             if (resetButton) {
+                console.log('✅ Botón "Realizar Nueva Comparación" visible');
                 resetButton.style.display = 'flex';
                 resetButton.style.visibility = 'visible';
                 resetButton.classList.remove('hidden');
             }
+            
+            console.log('renderDualComparisonUI completada');
         }
         function renderResultsUI(res, resIndexed = null) {
             // Si hay resultado indexado, usar vista de comparación dual
@@ -7840,6 +7848,28 @@
         // --- INIT ---
 
         document.addEventListener('DOMContentLoaded', () => {
+            // SOLUCIÓN ROBUSTA: Event delegation para capturar clicks en cualquier parte
+            // Esto funciona incluso si el DOM cambia
+            document.addEventListener('click', function(e) {
+                // Click en el logo del header
+                const logoHeader = e.target.closest('#navbar h1');
+                if (logoHeader) {
+                    e.preventDefault();
+                    console.log('🔄 Click en logo detectado (event delegation)');
+                    window.resetToLanding();
+                    return;
+                }
+                
+                // Click en botón "Realizar Nueva Comparación"
+                const resetBtn = e.target.closest('button[onclick*="resetToLanding"]');
+                if (resetBtn) {
+                    e.preventDefault();
+                    console.log('🔄 Click en "Realizar Nueva Comparación" detectado (event delegation)');
+                    window.resetToLanding();
+                    return;
+                }
+            });
+            
             // Setup Event Listeners
             document.getElementById('manual-input-btn').onclick = startManualInputFlow;
             document.getElementById('execute-manual-input-btn').onclick = handleManualInput;
