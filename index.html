@@ -4957,175 +4957,354 @@
                     doc.text('DESGLOSE DETALLADO POR SUMINISTRO', margin + 3, yPos + 6.5);
                     yPos += 14;
                     
-                    // Por cada suministro (DISEÑO MEJORADO)
-                    res.individualResults.forEach((supply, idx) => {
-                        const neededSpace = supply.originalTariffType === '3.0TD' ? 140 : 100;
-                        checkNewPage(neededSpace);
-                        
-                        // === CABECERA DEL SUMINISTRO (AZUL OSCURO) ===
-                        doc.setFillColor(...darkColor);
-                        doc.setDrawColor(255, 255, 255);
-                        doc.setLineWidth(2);
-                        doc.roundedRect(margin, yPos, contentWidth, 12, 3, 3, 'FD');
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(9);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(`[${idx + 1}] ${supply.cups}`, margin + 3, yPos + 5);
-                        doc.setFontSize(7);
-                        doc.setFont('helvetica', 'normal');
-                        
-                        // Mostrar nombre completo: Comercializadora - Tarifa
-                        const comercializadoraName = supply.offer.name || '';
-                        const tarifaName = supply.offer.description || supply.offer.name;
-                        const fullOfferName = isDrk 
-                            ? tarifaName 
-                            : `${comercializadoraName} - ${tarifaName}`;
-                        doc.text(`Tipo: ${supply.originalTariffType} | Días: ${supply.dias_facturados} | ${fullOfferName}`, margin + 3, yPos + 9);
-                        yPos += 14;
-                        
-                        // === PRECIOS APLICADOS ARRIBA (DISEÑO MEJORADO CON TÍTULOS) ===
-                        const priceBoxH = supply.originalTariffType === '2.0TD' ? 38 : 52;
-                        doc.setFillColor(...darkColor);
-                        doc.setDrawColor(255, 255, 255);
-                        doc.setLineWidth(1);
-                        doc.roundedRect(margin, yPos, contentWidth, priceBoxH, 3, 3, 'FD');
-                        
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(8);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('PRECIOS APLICADOS:', margin + 3, yPos + 5);
-                        yPos += 10;
-                        
-                        // === POTENCIA (con título) ===
-                        doc.setFontSize(7);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('POTENCIA:', margin + 5, yPos);
-                        yPos += 4;
-                        
-                        doc.setFont('helvetica', 'normal');
-                        if (supply.originalTariffType === '2.0TD') {
-                            const p1S = supply.offer.p_potencia_1 / 365;
-                            const p2S = supply.offer.p_potencia_2 / 365;
-                            doc.text(`P1: ${numPriceFormula(p1S)} €/kW/día`, margin + 8, yPos);
-                            doc.text(`P2: ${numPriceFormula(p2S)} €/kW/día`, margin + 70, yPos);
-                            yPos += 6;
-                        } else {
-                            // 3.0TD - compacto
-                            for (let i = 1; i <= 6; i++) {
-                                const pDS = (supply.offer[`p_potencia_${i}`] || 0) / 365;
-                                const col = i <= 3 ? margin + 8 : margin + 70;
-                                const row = i <= 3 ? i : i - 3;
-                                doc.text(`P${i}: ${numPriceFormula(pDS)} €/kW/día`, col, yPos + (row - 1) * 3.5); // Reducido de 4.5 a 3.5
-                            }
-                            yPos += 12; // Reducido de 16 a 12
+                    // Función auxiliar para generar desglose en MULTICUPS (estilo dual)
+                    function generarDesgloseMultiCups(supply, supplyIndexed, x, width, esColumnaIzq) {
+                        const res = esColumnaIzq ? supply : supplyIndexed;
+                        if (!res || !res.powerCosts || !res.energyCosts) {
+                            console.error('ERROR: res no tiene la estructura necesaria', res);
+                            return;
                         }
                         
-                        // === ENERGÍA (con título) ===
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('ENERGÍA:', margin + 5, yPos);
-                        yPos += 4;
+                        let y = yPos;
                         
-                        doc.setFont('helvetica', 'bold'); // Energía en negrita
-                        if (supply.originalTariffType === '2.0TD') {
-                            doc.text(`E1: ${numPriceFormula(supply.offer.p1_price)}`, margin + 8, yPos);
-                            doc.text(`E2: ${numPriceFormula(supply.offer.p2_price)}`, margin + 50, yPos);
-                            doc.text(`E3: ${numPriceFormula(supply.offer.p3_price)}`, margin + 95, yPos);
-                            yPos += 8;
-                        } else {
-                            // 3.0TD - compacto
-                            for (let i = 1; i <= 6; i++) {
-                                const col = i <= 3 ? margin + 8 : margin + 70;
-                                const row = i <= 3 ? i : i - 3;
-                                doc.text(`E${i}: ${numPriceFormula(supply.offer[`p${i}_price`] || 0)}`, col, yPos + (row - 1) * 3.5);
-                            }
-                            yPos += 12; // Ajustado para 3.0TD
-                        }
-                        
-                        // Espacio variable según tarifa (3.0TD necesita más espacio)
-                        yPos += supply.originalTariffType === '3.0TD' ? 12 : 8;
-                        
-                        // === DESGLOSE DE CÁLCULOS (FUERA DE LA CAJA AZUL) ===
-                        // Título POTENCIA
-                        doc.setFillColor(...darkColor);
-                        doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 6, 2, 2, 'F');
+                        // === CABECERA GRIS OSCURA CON CUPS ===
+                        doc.setFillColor(71, 85, 105);
+                        doc.roundedRect(x, y, width, 14, 2, 2, 'F');
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('POTENCIA', margin + 2, yPos + 4);
-                        yPos += 10;
+                        doc.text(`[${res.cups || 'N/A'}]`, x + 3, y + 4);
+                        doc.text(`Tipo: ${res.originalTariffType || ''}`, x + width - 3, y + 4, { align: 'right' });
+                        doc.text(`Días: ${res.dias_facturados || 0}`, x + width - 3, y + 8, { align: 'right' });
                         
-                        doc.setTextColor(0, 0, 0);
+                        // Nombre completo: Comercializadora - Tarifa
+                        doc.setFontSize(6.5);
                         doc.setFont('helvetica', 'normal');
+                        const comercializadora = res.offer.name || brand.NAME;
+                        const nombreTarifa = res.offer.description || 'N/A';
+                        const nombreCompleto = `${comercializadora} - ${nombreTarifa}`;
+                        doc.text(nombreCompleto, x + 3, y + 11);
+                        
+                        y += 16;
+                        
+                        // === CAJA PRECIOS APLICADOS ===
+                        doc.setFillColor(100, 116, 139);
+                        doc.roundedRect(x, y, width, 8, 2, 2, 'F');
+                        doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
-                        supply.powerCosts.forEach(p => {
-                            if (p.kw > 0 || p.period <= 2) {
-                                checkNewPage(4);
-                                doc.text(`P${p.period} (${num(p.kw, 2)} kW x ${supply.dias_facturados}d x ${numPriceFormula(p.priceDay)})`, margin + 4, yPos);
-                                doc.text(`${num(p.cost, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                                yPos += 3.5;
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('PRECIOS APLICADOS:', x + 3, y + 6);
+                        y += 10;
+                        
+                        // Info de precios (Potencia y Energía)
+                        doc.setFillColor(100, 116, 139);
+                        doc.roundedRect(x, y, width, 16, 2, 2, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('POTENCIA:', x + 3, y + 4);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(5.5);
+                        
+                        // Mostrar precios de potencia reales
+                        if (res.powerCosts.length > 0) {
+                            doc.text(`P1: ${num(res.powerCosts[0].priceDay || 0, 6)} €/kW/día`, x + 3, y + 8);
+                        }
+                        if (res.powerCosts.length > 1) {
+                            doc.text(`P2: ${num(res.powerCosts[1].priceDay || 0, 6)} €/kW/día`, x + 3, y + 11);
+                        }
+                        
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(6);
+                        doc.text('ENERGÍA:', x + width/2, y + 4);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(5.5);
+                        
+                        // Mostrar precios de energía reales
+                        if (res.energyCosts.length > 0) {
+                            doc.text(`E1: ${num(res.energyCosts[0].price || 0, 6)} €/kWh`, x + width/2, y + 8);
+                        }
+                        if (res.energyCosts.length > 1) {
+                            doc.text(`E2: ${num(res.energyCosts[1].price || 0, 6)} €/kWh`, x + width/2, y + 11);
+                        }
+                        if (res.energyCosts.length > 2) {
+                            doc.text(`E3: ${num(res.energyCosts[2].price || 0, 6)} €/kWh`, x + width/2, y + 14);
+                        }
+                        y += 20;
+                        
+                        // === SECCIÓN POTENCIA ===
+                        doc.setFillColor(100, 116, 139);
+                        doc.roundedRect(x, y, width, 7, 2, 2, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('POTENCIA', x + 3, y + 5);
+                        y += 9;
+                        
+                        // Desglose potencia
+                        doc.setTextColor(55, 65, 81);
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'normal');
+                        res.powerCosts.forEach((p, i) => {
+                            if (p.kw > 0) {
+                                const texto = `P${i+1}: (${num(p.kw, 2)} kW x ${num(p.priceDay, 6)} €/kW/día)`;
+                                doc.text(texto, x + 3, y);
+                                doc.text(eur(p.cost), x + width - 3, y, { align: 'right' });
+                                y += 4;
                             }
                         });
+                        y += 2;
                         
-                        yPos += 4; // Más espacio entre POTENCIA y ENERGÍA (antes 2)
-                        
-                        // Título ENERGÍA
-                        doc.setFillColor(...darkColor);
-                        doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 6, 2, 2, 'F');
+                        // === SECCIÓN ENERGÍA ===
+                        doc.setFillColor(100, 116, 139);
+                        doc.roundedRect(x, y, width, 7, 2, 2, 'F');
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('ENERGÍA', margin + 2, yPos + 4);
-                        yPos += 10; // Más espacio (antes 8)
+                        doc.text('ENERGÍA', x + 3, y + 5);
+                        y += 9;
                         
-                        doc.setTextColor(0, 0, 0);
+                        // Desglose energía
+                        doc.setTextColor(55, 65, 81);
+                        doc.setFontSize(6);
                         doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(7);
-                        supply.energyCosts.forEach(e => {
-                            const maxPeriod = supply.originalTariffType === '2.0TD' ? 3 : 6;
-                            if (e.kwh > 0 || e.period <= maxPeriod) {
-                                checkNewPage(4);
-                                let labelE = `E${e.period}`;
-                                if (supply.originalTariffType === '2.0TD') {
-                                    if (e.period === 1) labelE += ' (Punta)';
-                                    if (e.period === 2) labelE += ' (Llano)';
-                                    if (e.period === 3) labelE += ' (Valle)';
+                        res.energyCosts.forEach((e, i) => {
+                            if (e.kwh > 0) {
+                                let periodoNombre = '';
+                                if (res.originalTariffType === '2.0TD') {
+                                    if (i === 0) periodoNombre = ' (Punta)';
+                                    else if (i === 1) periodoNombre = ' (Llano)';
+                                    else if (i === 2) periodoNombre = ' (Valle)';
                                 }
-                                doc.text(`${labelE} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)})`, margin + 4, yPos);
-                                doc.text(`${num(e.cost, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                                yPos += 3.5;
+                                const texto = `E${i+1}${periodoNombre}: (${num(e.kwh, 0)} kWh x ${num(e.price, 6)} €/kWh)`;
+                                doc.text(texto, x + 3, y);
+                                doc.text(eur(e.cost), x + width - 3, y, { align: 'right' });
+                                y += 4;
                             }
                         });
+                        y += 2;
                         
-                        yPos += 3;
-                        
-                        // Total del suministro
-                        doc.setFillColor(...darkColor);
-                        doc.rect(margin, yPos, contentWidth, 7, 'F');
+                        // === TOTAL ===
+                        doc.setFillColor(71, 85, 105);
+                        doc.roundedRect(x, y, width, 9, 2, 2, 'F');
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(`TOTAL (${supply.dias_facturados} DÍAS)`, margin + 2, yPos + 4.5);
-                        doc.text(eur(supply.totalPeriod), pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
-                        yPos += 9;
+                        doc.text(`TOTAL (${res.dias_facturados || 0} DÍAS)`, x + 3, y + 6);
+                        doc.text(eur(res.totalPeriod || res.importe_total || 0), x + width - 3, y + 6, { align: 'right' });
+                        y += 12;
                         
-                        // === AHORRO INDIVIDUAL (DEBAJO DEL TOTAL - DISEÑO MEJORADO) ===
-                        if (!supply.isNegativeSavings) {
-                            // Caja compacta en la esquina derecha
-                            const ahorroWidth = 55;
-                            const ahorroHeight = 8;
-                            const ahorroX = pageWidth - margin - ahorroWidth;
+                        // === AHORRO ===
+                        doc.setFillColor(220, 38, 38);
+                        doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('AHORRO:', x + width - 52, y + 4);
+                        doc.setFontSize(9);
+                        doc.text(eur(res.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                    }
+                    
+                    // Por cada suministro
+                    res.individualResults.forEach((supply, idx) => {
+                        // Verificar si tiene comparación indexada
+                        const tieneIndexado = supply.indexedComparison && 
+                                             supply.indexedComparison.powerCosts && 
+                                             supply.indexedComparison.energyCosts;
+                        
+                        if (tieneIndexado) {
+                            // DISEÑO DUAL: DOS COLUMNAS (FIJO vs INDEXADO)
+                            const col2Width = (contentWidth - 6) / 2;
+                            const leftXDual = margin;
+                            const rightXDual = margin + col2Width + 6;
                             
-                            doc.setFillColor(...redColor); // ROJO
-                            doc.roundedRect(ahorroX, yPos, ahorroWidth, ahorroHeight, 2, 2, 'F');
+                            const neededSpace = 140;
+                            checkNewPage(neededSpace);
+                            
+                            // Título del suministro
+                            doc.setFillColor(...darkColor);
+                            doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
                             doc.setTextColor(255, 255, 255);
-                            doc.setFontSize(6);
+                            doc.setFontSize(9);
                             doc.setFont('helvetica', 'bold');
-                            doc.text('AHORRO:', ahorroX + 2, yPos + 3.5);
-                            doc.setFontSize(10);
-                            doc.text(eur(supply.savings), ahorroX + ahorroWidth - 2, yPos + 6, { align: 'right' });
-                            yPos += ahorroHeight + 4;
+                            doc.text(`SUMINISTRO ${idx + 1}`, margin + 3, yPos + 5.5);
+                            yPos += 12;
+                            
+                            // Generar desgloses en dos columnas
+                            generarDesgloseMultiCups(supply, supply.indexedComparison, leftXDual, col2Width, true);
+                            generarDesgloseMultiCups(supply, supply.indexedComparison, rightXDual, col2Width, false);
+                            
+                            yPos += 135;
+                            
                         } else {
+                            // DISEÑO SIMPLE: UNA SOLA COLUMNA (solo FIJO)
+                            const neededSpace = supply.originalTariffType === '3.0TD' ? 140 : 100;
+                            checkNewPage(neededSpace);
+                            
+                            // === CABECERA DEL SUMINISTRO (AZUL OSCURO) ===
+                            doc.setFillColor(...darkColor);
+                            doc.setDrawColor(255, 255, 255);
+                            doc.setLineWidth(2);
+                            doc.roundedRect(margin, yPos, contentWidth, 12, 3, 3, 'FD');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(9);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`[${idx + 1}] ${supply.cups}`, margin + 3, yPos + 5);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'normal');
+                            
+                            // Mostrar nombre completo: Comercializadora - Tarifa
+                            const comercializadoraName = supply.offer.name || '';
+                            const tarifaName = supply.offer.description || supply.offer.name;
+                            const fullOfferName = isDrk 
+                                ? tarifaName 
+                                : `${comercializadoraName} - ${tarifaName}`;
+                            doc.text(`Tipo: ${supply.originalTariffType} | Días: ${supply.dias_facturados} | ${fullOfferName}`, margin + 3, yPos + 9);
+                            yPos += 14;
+                            
+                            // === PRECIOS APLICADOS ARRIBA (DISEÑO MEJORADO CON TÍTULOS) ===
+                            const priceBoxH = supply.originalTariffType === '2.0TD' ? 38 : 52;
+                            doc.setFillColor(...darkColor);
+                            doc.setDrawColor(255, 255, 255);
+                            doc.setLineWidth(1);
+                            doc.roundedRect(margin, yPos, contentWidth, priceBoxH, 3, 3, 'FD');
+                            
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('PRECIOS APLICADOS:', margin + 3, yPos + 5);
+                            yPos += 10;
+                            
+                            // === POTENCIA (con título) ===
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('POTENCIA:', margin + 5, yPos);
+                            yPos += 4;
+                            
+                            doc.setFont('helvetica', 'normal');
+                            if (supply.originalTariffType === '2.0TD') {
+                                const p1S = supply.offer.p_potencia_1 / 365;
+                                const p2S = supply.offer.p_potencia_2 / 365;
+                                doc.text(`P1: ${numPriceFormula(p1S)} €/kW/día`, margin + 8, yPos);
+                                doc.text(`P2: ${numPriceFormula(p2S)} €/kW/día`, margin + 70, yPos);
+                                yPos += 6;
+                            } else {
+                                // 3.0TD - compacto
+                                for (let i = 1; i <= 6; i++) {
+                                    const pDS = (supply.offer[`p_potencia_${i}`] || 0) / 365;
+                                    const col = i <= 3 ? margin + 8 : margin + 70;
+                                    const row = i <= 3 ? i : i - 3;
+                                    doc.text(`P${i}: ${numPriceFormula(pDS)} €/kW/día`, col, yPos + (row - 1) * 3.5);
+                                }
+                                yPos += 12;
+                            }
+                            
+                            // === ENERGÍA (con título) ===
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('ENERGÍA:', margin + 5, yPos);
+                            yPos += 4;
+                            
+                            doc.setFont('helvetica', 'bold');
+                            if (supply.originalTariffType === '2.0TD') {
+                                doc.text(`E1: ${numPriceFormula(supply.offer.p1_price)}`, margin + 8, yPos);
+                                doc.text(`E2: ${numPriceFormula(supply.offer.p2_price)}`, margin + 50, yPos);
+                                doc.text(`E3: ${numPriceFormula(supply.offer.p3_price)}`, margin + 95, yPos);
+                                yPos += 8;
+                            } else {
+                                // 3.0TD - compacto
+                                for (let i = 1; i <= 6; i++) {
+                                    const col = i <= 3 ? margin + 8 : margin + 70;
+                                    const row = i <= 3 ? i : i - 3;
+                                    doc.text(`E${i}: ${numPriceFormula(supply.offer[`p${i}_price`] || 0)}`, col, yPos + (row - 1) * 3.5);
+                                }
+                                yPos += 12;
+                            }
+                            
+                            // Espacio variable según tarifa
+                            yPos += supply.originalTariffType === '3.0TD' ? 12 : 8;
+                            
+                            // === DESGLOSE DE CÁLCULOS (FUERA DE LA CAJA AZUL) ===
+                            // Título POTENCIA
+                            doc.setFillColor(...darkColor);
+                            doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 6, 2, 2, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('POTENCIA', margin + 2, yPos + 4);
+                            yPos += 10;
+                            
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setFontSize(7);
+                            supply.powerCosts.forEach(p => {
+                                if (p.kw > 0 || p.period <= 2) {
+                                    checkNewPage(4);
+                                    doc.text(`P${p.period} (${num(p.kw, 2)} kW x ${supply.dias_facturados}d x ${numPriceFormula(p.priceDay)})`, margin + 4, yPos);
+                                    doc.text(`${num(p.cost, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
+                                    yPos += 3.5;
+                                }
+                            });
+                            
+                            yPos += 4;
+                            
+                            // Título ENERGÍA
+                            doc.setFillColor(...darkColor);
+                            doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 6, 2, 2, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('ENERGÍA', margin + 2, yPos + 4);
+                            yPos += 10;
+                            
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setFontSize(7);
+                            supply.energyCosts.forEach(e => {
+                                const maxPeriod = supply.originalTariffType === '2.0TD' ? 3 : 6;
+                                if (e.kwh > 0 || e.period <= maxPeriod) {
+                                    checkNewPage(4);
+                                    let labelE = `E${e.period}`;
+                                    if (supply.originalTariffType === '2.0TD') {
+                                        if (e.period === 1) labelE += ' (Punta)';
+                                        if (e.period === 2) labelE += ' (Llano)';
+                                        if (e.period === 3) labelE += ' (Valle)';
+                                    }
+                                    doc.text(`${labelE} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)})`, margin + 4, yPos);
+                                    doc.text(`${num(e.cost, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
+                                    yPos += 3.5;
+                                }
+                            });
+                            
                             yPos += 3;
+                            
+                            // Total del suministro
+                            doc.setFillColor(...darkColor);
+                            doc.rect(margin, yPos, contentWidth, 7, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`TOTAL (${supply.dias_facturados} DÍAS)`, margin + 2, yPos + 4.5);
+                            doc.text(eur(supply.totalPeriod), pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
+                            yPos += 9;
+                            
+                            // === AHORRO INDIVIDUAL (DEBAJO DEL TOTAL) ===
+                            if (!supply.isNegativeSavings) {
+                                const ahorroWidth = 55;
+                                const ahorroHeight = 8;
+                                const ahorroX = pageWidth - margin - ahorroWidth;
+                                
+                                doc.setFillColor(...redColor);
+                                doc.roundedRect(ahorroX, yPos, ahorroWidth, ahorroHeight, 2, 2, 'F');
+                                doc.setTextColor(255, 255, 255);
+                                doc.setFontSize(6);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text('AHORRO:', ahorroX + 2, yPos + 3.5);
+                                doc.setFontSize(10);
+                                doc.text(eur(supply.savings), ahorroX + ahorroWidth - 2, yPos + 6, { align: 'right' });
+                                yPos += ahorroHeight + 4;
+                            } else {
+                                yPos += 3;
+                            }
                         }
                     });
                     
