@@ -589,7 +589,7 @@
                 <!-- Content -->
                 <div class="p-6">
                     <!-- NUEVO: Checkbox para comparación con tarifas indexadas (SOLO POWER CUP) -->
-                    <div id="powercup-indexed-comparison-checkbox" class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
+                    <div id="powercup-indexed-comparison-checkbox" class="hidden mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input 
                                 type="checkbox" 
@@ -6730,6 +6730,7 @@
         // NUEVA: Manejar click en VER MEJOR OPCIÓN
         function handleBestOptionClick() {
             const selectorDiv = document.getElementById('best-option-tariff-selector');
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             
             // Detectar contexto
             const isDrkMode = comparisonMode !== 'overall_best';
@@ -6742,15 +6743,19 @@
                     // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
                     console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
                     selectorDiv?.classList.add('hidden');
+                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
                     selectBestOptionDirect(); // Ejecutar directamente
                 } else {
                     // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
                     console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
                     selectorDiv?.classList.remove('hidden');
+                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
+                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
                 }
             } else {
                 // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
                 selectorDiv?.classList.add('hidden');
+                if (checkboxContainer) checkboxContainer.classList.remove('hidden');
                 selectBestOptionDirect();
             }
         }
@@ -6784,10 +6789,14 @@
             // Por lo tanto, solo mostrar la tarifa elegida (NO comparativa)
             console.log('Usuario eligió sin CHECK marcado:', bestOptionTariffChoice);
             
-            // FORZAR: Desmarcar checkbox y asegurar que NO se active comparativa
+            // FORZAR: Desmarcar checkbox y OCULTAR su contenedor
             const checkbox = document.getElementById('compare-indexed-checkbox');
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             if (checkbox) {
                 checkbox.checked = false;
+            }
+            if (checkboxContainer) {
+                checkboxContainer.classList.add('hidden');
             }
             compareWithIndexed = false;
             lastIndexedResult = null;
