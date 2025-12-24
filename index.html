@@ -3202,112 +3202,169 @@
                 
                 yPos = bigBoxY + bigBoxHeight + 10;
                 
-                // === PÁGINA 1: RESUMEN VISUAL MEJORADO ===
+                // === DISEÑO LIMPIO SIN MARCOS (3 COLUMNAS) ===
                 
-                // === TRES CAJAS GRANDES ===
-                const boxWidth = (contentWidth - 4) / 3;
-                const box1X = margin;
-                const box2X = margin + boxWidth + 2;
-                const box3X = margin + (boxWidth + 2) * 2;
-                const boxHeight = 60;
+                const col1X = margin;
+                const col2X = margin + (contentWidth / 3);
+                const col3X = margin + (contentWidth / 3) * 2;
+                const colWidth = contentWidth / 3;
                 
-                // Función para dibujar caja
-                function drawVisualBox(x, headerColor, headerText, label, mainPrice, subLabel, bottomPrice, isCrossed = false) {
-                    let y = yPos;
-                    
-                    // Cabecera de color
-                    doc.setFillColor(...headerColor);
-                    doc.roundedRect(x, y, boxWidth, 9, 1.5, 1.5, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(6.5);
-                    doc.setFont('helvetica', 'bold');
-                    const headerLines = doc.splitTextToSize(headerText, boxWidth - 2);
-                    doc.text(headerLines, x + boxWidth / 2, y + 4, { align: 'center' });
-                    y += 10;
-                    
-                    // Cuerpo de la caja
-                    const bodyColor = headerColor[0] === 75 ? [248, 249, 250] : (headerColor[0] === 59 ? [239, 246, 255] : [240, 253, 244]);
-                    doc.setFillColor(...bodyColor);
-                    doc.setDrawColor(...headerColor);
-                    doc.setLineWidth(1.5);
-                    doc.roundedRect(x, y, boxWidth, boxHeight - 10, 1.5, 1.5, 'FD');
-                    
-                    // Label
-                    doc.setTextColor(100, 100, 100);
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(label.toUpperCase(), x + boxWidth / 2, y + 7, { align: 'center' });
-                    
-                    // Precio principal (grande)
-                    doc.setFontSize(16);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
-                    const mainPriceText = mainPrice;
-                    doc.text(mainPriceText, x + boxWidth / 2, y + 18, { align: 'center' });
-                    
-                    // Tachar si es necesario
-                    if (isCrossed) {
-                        const textWidth = doc.getTextWidth(mainPriceText);
-                        doc.setDrawColor(220, 38, 38);
-                        doc.setLineWidth(0.7);
-                        doc.line(x + boxWidth / 2 - textWidth / 2, y + 17, x + boxWidth / 2 + textWidth / 2, y + 17);
-                    }
-                    
-                    // Sublabel
-                    doc.setFontSize(5.5);
-                    doc.setTextColor(120, 120, 120);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(subLabel, x + boxWidth / 2, y + 24, { align: 'center' });
-                    
-                    // Línea separadora
-                    doc.setDrawColor(200, 200, 200);
-                    doc.setLineWidth(0.3);
-                    doc.line(x + 5, y + 30, x + boxWidth - 5, y + 30);
-                    
-                    // Precio inferior (anual)
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(isCrossed ? 220 : headerColor[0], isCrossed ? 38 : headerColor[1], isCrossed ? 38 : headerColor[2]);
-                    doc.text(bottomPrice, x + boxWidth / 2, y + 42, { align: 'center' });
-                }
+                // === COLUMNA 1: TU FACTURA ACTUAL (IZQUIERDA) - BAJADA AL MEDIO ===
                 
-                // CAJA 1: TU FACTURA ACTUAL (GRIS)
-                drawVisualBox(
-                    box1X,
-                    [75, 85, 99],  // Gris oscuro
-                    'TU FACTURA ACTUAL',
-                    'Tu Factura Actual',
-                    eur(resFijo.originalBillPeriod || resFijo.importe_total),
-                    `Total Periodo (${resFijo.dias_facturados || 0} días)`,
-                    `${eur(resFijo.originalBillAnnual)}/año`,
-                    true  // Tachado
-                );
+                let y1 = yPos + 25;
                 
-                // CAJA 2: LA MEJOR OPCIÓN - FIJO (AZUL)
-                drawVisualBox(
-                    box2X,
-                    brandColor,  // Azul
-                    'LA MEJOR OPCIÓN PARA TI ES DRK',
-                    resFijo.offer.name,
-                    `${eur(resFijo.totalAnnual / 12)}/mes`,
-                    'Estimado Mensual',
-                    `${eur(resFijo.totalAnnual)}/año`,
-                    false
-                );
+                // Título
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.setTextColor(107, 114, 128);
+                doc.text('TU FACTURA ACTUAL', col1X, y1);
+                y1 += 12;
                 
-                // CAJA 3: LA MEJOR OPCIÓN - INDEXADO (VERDE)
-                drawVisualBox(
-                    box3X,
-                    [22, 163, 74],  // Verde
-                    'LA MEJOR OPCIÓN PARA TI ES DRK',
-                    resIndexed.offer.name,
-                    `${eur(resIndexed.totalAnnual / 12)}/mes`,
-                    'Estimado Mensual',
-                    `${eur(resIndexed.totalAnnual)}/año`,
-                    false
-                );
+                // Precio mensual (TACHADO)
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(22);
+                doc.setTextColor(220, 38, 38);
+                const precioMensualActual = eur(resFijo.originalBillPeriod || resFijo.importe_total);
+                doc.text(precioMensualActual, col1X, y1);
                 
-                yPos += boxHeight + 5;
+                // Línea tachada
+                const tw1 = doc.getTextWidth(precioMensualActual);
+                doc.setDrawColor(220, 38, 38);
+                doc.setLineWidth(1.5);
+                doc.line(col1X, y1 - 4, col1X + tw1, y1 - 4);
+                y1 += 10;
+                
+                // Subtexto
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text(`Total Periodo (${resFijo.dias_facturados || 0} días)`, col1X, y1);
+                y1 += 14;
+                
+                // Precio anual (TACHADO)
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(220, 38, 38);
+                const precioAnualActual = eur(resFijo.originalBillAnnual) + '/año';
+                doc.text(precioAnualActual, col1X, y1);
+                
+                // Línea tachada
+                const tw2 = doc.getTextWidth(precioAnualActual);
+                doc.setDrawColor(220, 38, 38);
+                doc.setLineWidth(1.5);
+                doc.line(col1X, y1 - 3, col1X + tw2, y1 - 3);
+                
+                // === COLUMNA 2: AHORRO + NUEVO COSTE FIJO (CENTRO) - CAJA SUBIDA ===
+                
+                let y2 = yPos;
+                
+                // Caja gris superior "TU AHORRO ANUAL FIJO"
+                const boxHeaderHeight = 12;
+                doc.setFillColor(100, 116, 139);
+                doc.roundedRect(col2X - 2, y2, colWidth - 8, boxHeaderHeight, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.text('TU AHORRO ANUAL FIJO', col2X + (colWidth - 8) / 2 - 2, y2 + 8, { align: 'center' });
+                y2 += boxHeaderHeight + 12;
+                
+                // Ahorro en verde GRANDE
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(30);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resFijo.savings), col2X, y2);
+                y2 += 18;
+                
+                // "TU NUEVO COSTE DRK"
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                doc.text('TU NUEVO COSTE DRK', col2X, y2);
+                y2 += 12;
+                
+                // Precio mensual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(...brandColor);
+                doc.text(eur(resFijo.totalAnnual / 12) + '/mes', col2X, y2);
+                y2 += 10;
+                
+                // Subtexto "Estimado Mensual"
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text('Estimado Mensual', col2X, y2);
+                y2 += 12;
+                
+                // Precio anual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(18);
+                doc.setTextColor(...brandColor);
+                doc.text(eur(resFijo.totalAnnual) + '/año', col2X, y2);
+                
+                // === COLUMNA 3: AHORRO + NUEVO COSTE INDEXADO (DERECHA) - CAJA SUBIDA ===
+                
+                let y3 = yPos;
+                
+                // Caja gris superior "TU AHORRO ANUAL INDEXADO"
+                doc.setFillColor(100, 116, 139);
+                doc.roundedRect(col3X - 2, y3, colWidth - 8, boxHeaderHeight, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.text('TU AHORRO ANUAL INDEXADO', col3X + (colWidth - 8) / 2 - 2, y3 + 8, { align: 'center' });
+                y3 += boxHeaderHeight + 12;
+                
+                // Ahorro en verde GRANDE
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(30);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.savings), col3X, y3);
+                y3 += 18;
+                
+                // "TU NUEVO COSTE DRK"
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.setTextColor(107, 114, 128);
+                doc.text('TU NUEVO COSTE DRK', col3X, y3);
+                y3 += 12;
+                
+                // Precio mensual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.totalAnnual / 12) + '/mes', col3X, y3);
+                y3 += 10;
+                
+                // Subtexto "Estimado Mensual"
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(156, 163, 175);
+                doc.text('Estimado Mensual', col3X, y3);
+                y3 += 12;
+                
+                // Precio anual nuevo
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(18);
+                doc.setTextColor(22, 163, 74);
+                doc.text(eur(resIndexed.totalAnnual) + '/año', col3X, y3);
+                
+                // Actualizar yPos al máximo de las tres columnas
+                const maxY = Math.max(y1, y2, y3);
+                
+                // LÍNEAS VERTICALES SEPARADORAS
+                const lineStartY = yPos - 5;
+                const lineEndY = maxY + 5;
+                
+                // Línea entre columna 1 y 2
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.line(col2X - 10, lineStartY, col2X - 10, lineEndY);
+                
+                // Línea entre columna 2 y 3
+                doc.line(col3X - 10, lineStartY, col3X - 10, lineEndY);
+                
+                yPos = maxY + 15;
                 
                 // === DOS CAJAS DE AHORRO GRANDES ===
                 const ahorroBoxWidth = (contentWidth - 2) / 2;
