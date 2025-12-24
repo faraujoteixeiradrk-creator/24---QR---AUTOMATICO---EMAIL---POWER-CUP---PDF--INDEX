@@ -3403,6 +3403,19 @@
                     doc.text(`Días: ${res.dias_facturados || 0}`, x + width - 3, y + 8, { align: 'right' });
                     y += 12;
                     
+                    // === NOMBRE DE LA TARIFA ===
+                    doc.setFillColor(59, 130, 246);  // Azul para FIJO
+                    if (!esFijo) {
+                        doc.setFillColor(22, 163, 74);  // Verde para INDEXADO
+                    }
+                    doc.roundedRect(x, y, width, 9, 2, 2, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    const nombreTarifa = res.offer.name || 'N/A';
+                    doc.text(nombreTarifa, x + width / 2, y + 6, { align: 'center' });
+                    y += 11;
+                    
                     // === CAJA PRECIOS APLICADOS ===
                     doc.setFillColor(100, 116, 139);
                     doc.roundedRect(x, y, width, 8, 2, 2, 'F');
