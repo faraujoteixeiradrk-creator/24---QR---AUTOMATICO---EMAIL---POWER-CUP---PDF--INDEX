@@ -1221,6 +1221,18 @@
             console.log('resetToLanding llamada');
             stopScanner();
             
+            // Ocultar botón de VOLVER si existe
+            const backButtonContainer = document.getElementById('back-button-top-container');
+            if (backButtonContainer) {
+                backButtonContainer.style.display = 'none';
+            }
+            
+            // Restaurar padding del results-view
+            const resultsView = document.getElementById('results-view');
+            if (resultsView) {
+                resultsView.style.paddingTop = '0';
+            }
+            
             // CRÍTICO: Limpiar TODAS las variables globales
             lastComparisonResult = null;
             lastIndexedResult = null; // Limpiar resultado indexado
@@ -1934,6 +1946,42 @@
             const isDrk = brand.NAME.includes('DRK');
             const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
             
+            // ✅ SOLUCIÓN: Añadir botón VOLVER grande al principio del results-view
+            const resultsView = document.getElementById('results-view');
+            
+            // Verificar si ya existe el botón de volver
+            let backButtonContainer = document.getElementById('back-button-top-container');
+            if (!backButtonContainer) {
+                backButtonContainer = document.createElement('div');
+                backButtonContainer.id = 'back-button-top-container';
+                backButtonContainer.className = 'fixed top-0 left-0 right-0 z-[100] bg-white shadow-lg p-3 border-b-4 border-red-500';
+                backButtonContainer.innerHTML = `
+                    <div class="max-w-lg mx-auto">
+                        <button id="force-back-button" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black py-4 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 text-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            <span>⬅️ VOLVER AL INICIO</span>
+                        </button>
+                    </div>
+                `;
+                document.body.insertBefore(backButtonContainer, document.body.firstChild);
+                
+                // Añadir event listener directo
+                document.getElementById('force-back-button').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 VOLVER AL INICIO clickeado (MULTICUPS)');
+                    window.resetToLanding();
+                });
+            }
+            
+            // Mostrar el botón
+            backButtonContainer.style.display = 'block';
+            
+            // Ajustar padding del contenido para que no quede oculto bajo el botón
+            resultsView.style.paddingTop = '80px';
+            
             // Banner
             const companyBanner = document.getElementById('company-banner');
             companyBanner.innerHTML = `
@@ -2534,6 +2582,42 @@
             // CRÍTICO: Colores dinámicos según marca
             const isDrk = brand.NAME.includes('DRK');
             const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
+            
+            // ✅ SOLUCIÓN: Añadir botón VOLVER grande al principio del results-view
+            const resultsView = document.getElementById('results-view');
+            
+            // Verificar si ya existe el botón de volver
+            let backButtonContainer = document.getElementById('back-button-top-container');
+            if (!backButtonContainer) {
+                backButtonContainer = document.createElement('div');
+                backButtonContainer.id = 'back-button-top-container';
+                backButtonContainer.className = 'fixed top-0 left-0 right-0 z-[100] bg-white shadow-lg p-3 border-b-4 border-red-500';
+                backButtonContainer.innerHTML = `
+                    <div class="max-w-lg mx-auto">
+                        <button id="force-back-button" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black py-4 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 text-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            <span>⬅️ VOLVER AL INICIO</span>
+                        </button>
+                    </div>
+                `;
+                document.body.insertBefore(backButtonContainer, document.body.firstChild);
+                
+                // Añadir event listener directo
+                document.getElementById('force-back-button').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 VOLVER AL INICIO clickeado');
+                    window.resetToLanding();
+                });
+            }
+            
+            // Mostrar el botón
+            backButtonContainer.style.display = 'block';
+            
+            // Ajustar padding del contenido para que no quede oculto bajo el botón
+            resultsView.style.paddingTop = '80px';
             
             // Banner de empresa
             const companyBanner = document.getElementById('company-banner');
