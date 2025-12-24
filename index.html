@@ -1982,12 +1982,12 @@
                 `;
                 document.body.insertBefore(backButtonContainer, document.body.firstChild);
                 
-                // Añadir event listener directo
+                // SOLUCIÓN SIMPLE: Recargar la página
                 document.getElementById('force-back-button').addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔄 VOLVER AL INICIO clickeado (MULTICUPS)');
-                    window.resetToLanding();
+                    console.log('🔄 RECARGANDO PÁGINA (MULTICUPS)...');
+                    window.location.reload();
                 });
             }
             
@@ -2619,12 +2619,12 @@
                 `;
                 document.body.insertBefore(backButtonContainer, document.body.firstChild);
                 
-                // Añadir event listener directo
+                // SOLUCIÓN SIMPLE: Recargar la página
                 document.getElementById('force-back-button').addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔄 VOLVER AL INICIO clickeado');
-                    window.resetToLanding();
+                    console.log('🔄 RECARGANDO PÁGINA...');
+                    window.location.reload();
                 });
             }
             
