@@ -6098,12 +6098,15 @@
             const res = lastComparisonResult;
             const brand = activeBrand;
             
-            const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0);
+            const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
             
             const GREEN_SAVE = '#16a34a';
-            const RED_CTA = '#CC0000';
-            const BLUE_FIXED = '#3b82f6';
-            const GREEN_INDEXED = '#16a34a';
+            const RED_CTA = '#DC2626';
+            const SLATE_DARK = '#475569';
+            const SLATE_MED = '#64748b';
+            const SLATE_LIGHT = '#cbd5e1';
             
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
             
@@ -6111,37 +6114,120 @@
             const ahorroFijo = res.savings;
             const ahorroIndexado = res.indexedTotals ? res.indexedTotals.savings : 0;
             
-            // Generar listado de CUPS
-            let cupsListHtml = '';
-            res.individualResults.forEach((supply, idx) => {
-                const offerFijo = supply.offer;
-                const offerIndexado = supply.indexedComparison ? supply.indexedComparison.offer : null;
-                const savingsFijo = supply.savings;
-                const savingsIndexado = supply.indexedComparison ? supply.indexedComparison.savings : 0;
+            // Función para generar una columna de desglose detallado (FIJO o INDEXADO)
+            function generarColumnaDesglose(supply, isIndexed) {
+                const data = isIndexed ? supply.indexedComparison : supply;
+                if (!data || !data.powerCosts || !data.energyCosts) return '';
                 
-                cupsListHtml += `
-                    <tr style="border-bottom: 1px solid #e5e7eb;">
-                        <td style="padding: 12px 8px; font-size: 10px; color: #6b7280; font-family: monospace;">
-                            ${supply.cups.slice(-12)}
-                        </td>
-                        <td style="padding: 12px 8px;">
-                            <div style="font-size: 10px; font-weight: bold; color: #1e40af;">
-                                ${offerFijo.name}
+                const nombreComercializadora = data.offer.name || 'DRK';
+                const nombreTarifa = data.offer.description || data.offer.name;
+                const nombreCompleto = `${nombreComercializadora} - ${nombreTarifa}`;
+                
+                let htmlPotencia = '';
+                data.powerCosts.forEach(p => {
+                    if (p.kw > 0) {
+                        htmlPotencia += `
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; padding: 3px 0; color: #374151;">
+                                <span>P${p.period}: (${num(p.kw, 2)} kW x ${numPriceFormula(p.priceDay)} €/kW/día)</span>
+                                <span style="font-weight: bold;">${num(p.cost, 2)} €</span>
                             </div>
-                            <div style="font-size: 9px; color: ${GREEN_SAVE}; font-weight: bold; margin-top: 3px;">
-                                ${eur(savingsFijo)}
+                        `;
+                    }
+                });
+                
+                let htmlEnergia = '';
+                data.energyCosts.forEach(e => {
+                    if (e.kwh > 0) {
+                        let label = `E${e.period}`;
+                        if (supply.originalTariffType === '2.0TD') {
+                            if (e.period === 1) label += ' (Punta)';
+                            else if (e.period === 2) label += ' (Llano)';
+                            else if (e.period === 3) label += ' (Valle)';
+                        }
+                        htmlEnergia += `
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; padding: 3px 0; color: #374151;">
+                                <span>${label}: (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)} €/kWh)</span>
+                                <span style="font-weight: bold;">${num(e.cost, 2)} €</span>
                             </div>
-                        </td>
-                        <td style="padding: 12px 8px;">
-                            <div style="font-size: 10px; font-weight: bold; color: #15803d;">
-                                ${offerIndexado ? offerIndexado.name : 'N/A'}
-                            </div>
-                            <div style="font-size: 9px; color: ${GREEN_SAVE}; font-weight: bold; margin-top: 3px;">
-                                ${eur(savingsIndexado)}
-                            </div>
-                        </td>
-                    </tr>
+                        `;
+                    }
+                });
+                
+                return `
+                    <!-- Cabecera GRIS -->
+                    <div style="background-color: ${SLATE_DARK}; color: white; padding: 10px; border-radius: 6px 6px 0 0;">
+                        <div style="font-size: 11px; font-weight: bold;">[${data.cups}]</div>
+                        <div style="font-size: 9px; margin-top: 2px;">Tipo: ${data.originalTariffType} | Días: ${data.dias_facturados}</div>
+                        <div style="font-size: 9px; margin-top: 4px;">${nombreCompleto}</div>
+                    </div>
+                    
+                    <!-- PRECIOS APLICADOS -->
+                    <div style="background-color: ${SLATE_MED}; color: white; padding: 8px; margin-top: 1px;">
+                        <div style="font-size: 10px; font-weight: bold;">PRECIOS APLICADOS:</div>
+                    </div>
+                    
+                    <div style="background-color: ${SLATE_MED}; color: white; padding: 8px; margin-top: 1px; font-size: 9px;">
+                        <div><strong>POTENCIA:</strong></div>
+                        ${data.powerCosts.map((p, i) => `<div>P${i+1}: ${numPriceFormula(p.priceDay)} €/kW/día</div>`).join('')}
+                        <div style="margin-top: 4px;"><strong>ENERGÍA:</strong></div>
+                        ${data.energyCosts.map((e, i) => `<div>E${i+1}: ${numPriceFormula(e.price)} €/kWh</div>`).join('')}
+                    </div>
+                    
+                    <!-- POTENCIA -->
+                    <div style="background-color: ${SLATE_MED}; color: white; padding: 6px; margin-top: 8px; font-size: 10px; font-weight: bold;">
+                        POTENCIA
+                    </div>
+                    <div style="padding: 8px; background-color: #f8fafc;">
+                        ${htmlPotencia}
+                    </div>
+                    
+                    <!-- ENERGÍA -->
+                    <div style="background-color: ${SLATE_MED}; color: white; padding: 6px; margin-top: 4px; font-size: 10px; font-weight: bold;">
+                        ENERGÍA
+                    </div>
+                    <div style="padding: 8px; background-color: #f8fafc;">
+                        ${htmlEnergia}
+                    </div>
+                    
+                    <!-- TOTAL -->
+                    <div style="background-color: ${SLATE_DARK}; color: white; padding: 10px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: bold;">TOTAL (${data.dias_facturados} DÍAS)</span>
+                        <span style="font-size: 12px; font-weight: bold;">${eur(data.totalPeriod)}</span>
+                    </div>
+                    
+                    <!-- AHORRO -->
+                    <div style="background-color: ${RED_CTA}; color: white; padding: 10px; margin-top: 6px; text-align: center; border-radius: 6px;">
+                        <div style="font-size: 10px; font-weight: bold;">AHORRO:</div>
+                        <div style="font-size: 16px; font-weight: bold; margin-top: 3px;">${eur(data.savings)}</div>
+                    </div>
                 `;
+            }
+            
+            // Generar HTML del desarrollo detallado por cada suministro
+            let desarrolloDetalladoHtml = '';
+            res.individualResults.forEach((supply, idx) => {
+                const tieneIndexado = supply.indexedComparison && 
+                                     supply.indexedComparison.powerCosts && 
+                                     supply.indexedComparison.energyCosts;
+                
+                if (tieneIndexado) {
+                    desarrolloDetalladoHtml += `
+                        <!-- Título del Suministro -->
+                        <div style="background-color: ${SLATE_DARK}; color: white; padding: 8px; margin: 30px 0 10px 0; border-radius: 6px;">
+                            <div style="font-size: 12px; font-weight: bold;">SUMINISTRO ${idx + 1}</div>
+                        </div>
+                        
+                        <!-- Dos columnas lado a lado -->
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                            <div style="flex: 1;">
+                                ${generarColumnaDesglose(supply, false)}
+                            </div>
+                            <div style="flex: 1;">
+                                ${generarColumnaDesglose(supply, true)}
+                            </div>
+                        </div>
+                    `;
+                }
             });
             
             return `
@@ -6156,16 +6242,14 @@
                             DRK ENERGÍA
                         </h2>
                         <p style="color: white; font-size: 14px; margin: 10px 0 0 0;">
-                            Total: ${res.cups}
+                            Total: ${res.cups} Suministros
                         </p>
                     </div>
                     
                     <!-- Ahorros Totales -->
                     <div style="display: flex; gap: 15px; padding: 20px; background-color: #f8f9fa;">
-                        
-                        <!-- Ahorro FIJO -->
-                        <div style="flex: 1; background-color: #eff6ff; border: 2px solid ${BLUE_FIXED}; border-radius: 12px; padding: 20px; text-align: center;">
-                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #3b82f6; text-transform: uppercase;">
+                        <div style="flex: 1; background-color: #e0f2fe; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #0284c7; text-transform: uppercase;">
                                 💼 AHORRO TOTAL CON TARIFAS FIJAS
                             </p>
                             <p style="margin: 0; font-size: 36px; font-weight: bold; color: ${GREEN_SAVE};">
@@ -6175,10 +6259,8 @@
                                 Ahorro anual estimado
                             </p>
                         </div>
-                        
-                        <!-- Ahorro INDEXADO -->
-                        <div style="flex: 1; background-color: #f0fdf4; border: 2px solid ${GREEN_INDEXED}; border-radius: 12px; padding: 20px; text-align: center;">
-                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #16a34a; text-transform: uppercase;">
+                        <div style="flex: 1; background-color: #f0fdf4; border: 2px solid ${GREEN_SAVE}; border-radius: 12px; padding: 20px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: ${GREEN_SAVE}; text-transform: uppercase;">
                                 ⚡ AHORRO TOTAL CON TARIFAS INDEXADAS
                             </p>
                             <p style="margin: 0; font-size: 36px; font-weight: bold; color: ${GREEN_SAVE};">
@@ -6188,37 +6270,22 @@
                                 Ahorro anual estimado
                             </p>
                         </div>
-                        
                     </div>
                     
-                    <!-- Tabla de CUPS -->
-                    <div style="padding: 20px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #374151; text-align: center;">
-                            📊 DETALLE POR SUMINISTRO
-                        </h3>
-                        
-                        <table style="width: 100%; border-collapse: collapse; background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                            <thead>
-                                <tr style="background-color: #f3f4f6;">
-                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: #6b7280; border-bottom: 2px solid #e5e7eb;">
-                                        CUPS
-                                    </th>
-                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: ${BLUE_FIXED}; border-bottom: 2px solid #e5e7eb;">
-                                        TARIFA FIJA
-                                    </th>
-                                    <th style="padding: 12px 8px; text-align: left; font-size: 11px; font-weight: bold; color: ${GREEN_INDEXED}; border-bottom: 2px solid #e5e7eb;">
-                                        TARIFA INDEXADA
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${cupsListHtml}
-                            </tbody>
-                        </table>
+                    <!-- TÍTULO: DESGLOSE DETALLADO POR SUMINISTRO -->
+                    <div style="background-color: ${GREEN_SAVE}; color: white; padding: 12px 20px; margin: 20px; border-radius: 8px; text-align: center;">
+                        <h2 style="margin: 0; font-size: 16px; font-weight: bold; letter-spacing: 0.5px;">
+                            DESGLOSE DETALLADO POR SUMINISTRO
+                        </h2>
+                    </div>
+                    
+                    <!-- Desarrollo Detallado de cada suministro -->
+                    <div style="padding: 0 20px;">
+                        ${desarrolloDetalladoHtml}
                     </div>
                     
                     <!-- Datos del Cliente -->
-                    <div style="background-color: #f9fafb; padding: 15px 20px; margin: 10px 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <div style="background-color: #f9fafb; padding: 15px 20px; margin: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
                         <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #374151;">
                             CLIENTE: ${clientName}
                         </p>
