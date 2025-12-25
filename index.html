@@ -1977,21 +1977,42 @@
             
             // Banner
             const companyBanner = document.getElementById('company-banner');
-            companyBanner.innerHTML = `
-                <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-6 md:p-8 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        ${brand.LOGO_SVG}
-                        <div>
-                            <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">${brand.FULL_NAME}</h1>
-                            <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética</p>
+            
+            // CRÍTICO: Usar colores dinámicos según marca
+            if (isDrk) {
+                companyBanner.innerHTML = `
+                    <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-6 md:p-8 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            ${brand.LOGO_SVG}
+                            <div>
+                                <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">${brand.FULL_NAME}</h1>
+                                <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white text-sm font-bold">📊 MULTICUPS:</p>
+                            <p class="text-drk-100 text-xs">Fijo vs Indexado</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-white text-sm font-bold">📊 MULTICUPS:</p>
-                        <p class="text-drk-100 text-xs">Fijo vs Indexado</p>
+                `;
+            } else {
+                // POWER CUP
+                companyBanner.innerHTML = `
+                    <div class="bg-gradient-to-r from-powercup-700 via-powercup-600 to-powercup-500 p-6 md:p-8 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            ${brand.LOGO_SVG}
+                            <div>
+                                <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">${brand.FULL_NAME}</h1>
+                                <p class="text-powercup-50 text-sm md:text-base font-medium">Asesoría Energética</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white text-sm font-bold">📊 MULTICUPS:</p>
+                            <p class="text-powercup-50 text-xs">Fijo vs Indexado</p>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
             
             // CUPS list
             document.getElementById('results-cups-list').innerHTML = `
@@ -3763,40 +3784,81 @@
                 
                 // === PÁGINA 1: RESUMEN GENERAL ===
                 const headerHeight = 35;
+                
+                // CRÍTICO: Color del header según marca
+                const headerColor = isDrk ? [107, 125, 142] : [115, 130, 95]; // Gris azulado (DRK) o Verde oliva (POWER)
+                
                 for (let i = 0; i < pageWidth; i++) {
                     const ratio = i / pageWidth;
-                    const r = Math.round(darkColor[0] + (240 - darkColor[0]) * ratio);
-                    const g = Math.round(darkColor[1] + (245 - darkColor[1]) * ratio);
-                    const b = Math.round(darkColor[2] + (250 - darkColor[2]) * ratio);
+                    const r = Math.round(headerColor[0] + (240 - headerColor[0]) * ratio);
+                    const g = Math.round(headerColor[1] + (245 - headerColor[1]) * ratio);
+                    const b = Math.round(headerColor[2] + (250 - headerColor[2]) * ratio);
                     doc.setFillColor(r, g, b);
                     doc.rect(i, 0, 1, headerHeight, 'F');
                 }
                 
-                // Logo DRK
+                // Logo según marca
                 const logoX = margin + 8;
                 const logoY = 12;
                 const logoRadius = 5;
                 
-                doc.setFillColor(219, 68, 55);
-                doc.circle(logoX - 1, logoY + 1, logoRadius * 0.8, 'F');
-                doc.setFillColor(66, 133, 244);
-                doc.circle(logoX + 1, logoY - 1, logoRadius * 0.8, 'F');
-                doc.setFillColor(244, 180, 0);
-                doc.circle(logoX - 1, logoY - 1, logoRadius * 0.7, 'F');
-                doc.setFillColor(15, 157, 88);
-                doc.circle(logoX + 1, logoY + 1, logoRadius * 0.7, 'F');
-                doc.setFillColor(255, 255, 255);
-                doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
+                if (isDrk) {
+                    // Logo DRK (anillo multicolor)
+                    doc.setFillColor(219, 68, 55);
+                    doc.circle(logoX - 1, logoY + 1, logoRadius * 0.8, 'F');
+                    doc.setFillColor(66, 133, 244);
+                    doc.circle(logoX + 1, logoY - 1, logoRadius * 0.8, 'F');
+                    doc.setFillColor(244, 180, 0);
+                    doc.circle(logoX - 1, logoY - 1, logoRadius * 0.7, 'F');
+                    doc.setFillColor(15, 157, 88);
+                    doc.circle(logoX + 1, logoY + 1, logoRadius * 0.7, 'F');
+                    doc.setFillColor(255, 255, 255);
+                    doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
+                } else {
+                    // Logo POWER CUP (taza con rayo)
+                    // Plato/base (verde oscuro)
+                    doc.setFillColor(60, 90, 50);
+                    doc.rect(logoX - 5, logoY + 4, 10, 1, 'F');
+                    
+                    // Borde de la taza (verde oscuro)
+                    doc.setDrawColor(60, 90, 50);
+                    doc.setLineWidth(1.2);
+                    doc.roundedRect(logoX - 3.5, logoY - 2, 7, 6, 0.5, 0.5, 'S');
+                    
+                    // Asa de la taza
+                    doc.setLineWidth(1);
+                    doc.line(logoX + 3.5, logoY, logoX + 5, logoY - 0.5);
+                    doc.line(logoX + 5, logoY - 0.5, logoX + 5.5, logoY + 1);
+                    doc.line(logoX + 5.5, logoY + 1, logoX + 5, logoY + 2.5);
+                    doc.line(logoX + 5, logoY + 2.5, logoX + 3.5, logoY + 2);
+                    
+                    // Rayo dentro de la taza (amarillo/oro)
+                    doc.setFillColor(255, 215, 0);
+                    doc.setLineWidth(0.3);
+                    const rayoX = logoX - 0.5;
+                    const rayoY = logoY;
+                    doc.line(rayoX, rayoY - 1, rayoX - 0.7, rayoY + 0.5);
+                    doc.line(rayoX - 0.7, rayoY + 0.5, rayoX + 0.3, rayoY + 0.3);
+                    doc.line(rayoX + 0.3, rayoY + 0.3, rayoX, rayoY + 2);
+                    doc.line(rayoX, rayoY + 2, rayoX + 0.7, rayoY + 0.2);
+                    doc.line(rayoX + 0.7, rayoY + 0.2, rayoX - 0.3, rayoY + 0.5);
+                }
                 
+                // Texto del nombre de marca
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(18);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DRK ENERGÍA', logoX + 12, 14);
+                doc.text(brand.NAME.toUpperCase(), logoX + 12, 14);
                 
+                // Subtexto según marca
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Liderando el ahorro y la', logoX + 12, 20);
-                doc.text('eficiencia energética.', logoX + 12, 24);
+                if (isDrk) {
+                    doc.text('Liderando el ahorro y la', logoX + 12, 20);
+                    doc.text('eficiencia energética.', logoX + 12, 24);
+                } else {
+                    doc.text('Asesoría Energética', logoX + 12, 20);
+                }
                 
                 doc.setTextColor(40, 60, 80);
                 doc.setFontSize(9);
@@ -3833,7 +3895,7 @@
                 doc.text('CUPS TOTALES: ' + res.cups, margin, yPos);
                 yPos += 12;
                 
-                // === CAJA GRIS GRANDE CON LA MEJOR OPCIÓN ===
+                // === CAJA GRANDE CON LA MEJOR OPCIÓN ===
                 
                 const bigBoxY = yPos;
                 const bigBoxHeight = 45;
@@ -3841,8 +3903,9 @@
                 const bigBoxWidth = contentWidth - (bigBoxMargin * 2);
                 const bigBoxX = margin + bigBoxMargin;
                 
-                // Fondo gris azulado
-                doc.setFillColor(100, 116, 139);
+                // CRÍTICO: Color de fondo según marca
+                const bigBoxColor = isDrk ? [100, 116, 139] : [115, 130, 95]; // Gris azulado (DRK) o Verde oliva (POWER)
+                doc.setFillColor(...bigBoxColor);
                 doc.roundedRect(bigBoxX, bigBoxY, bigBoxWidth, bigBoxHeight, 4, 4, 'F');
                 
                 // Texto "LA MEJOR OPCIÓN PARA TI ES"
@@ -3986,9 +4049,12 @@
                 let y2 = yPos;
                 const col2X = margin + (contentWidth / 3);
                 
-                // Caja gris superior "TU AHORRO ANUAL FIJO"
+                // CRÍTICO: Color de caja según marca
+                const cajaHeaderColor = isDrk ? [100, 116, 139] : [115, 130, 95]; // Gris azulado (DRK) o Verde oliva (POWER)
+                
+                // Caja superior "TU AHORRO ANUAL FIJO"
                 const boxHeaderHeight = 12;
-                doc.setFillColor(100, 116, 139);
+                doc.setFillColor(...cajaHeaderColor);
                 doc.roundedRect(col2X - 2, y2, (contentWidth / 3) - 8, boxHeaderHeight, 3, 3, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
@@ -4003,14 +4069,14 @@
                 doc.text(eur(res.savings), col2X, y2);
                 y2 += 18;
                 
-                // "TU NUEVO COSTE DRK"
+                // "TU NUEVO COSTE [MARCA]"
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
-                doc.text('TU NUEVO COSTE DRK', col2X, y2);
+                doc.text('TU NUEVO COSTE ' + brand.NAME.toUpperCase(), col2X, y2);
                 y2 += 12;
                 
-                // Precio mensual nuevo
+                // Precio mensual nuevo (color de marca)
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(20);
                 doc.setTextColor(...brandColor);
@@ -4024,7 +4090,7 @@
                 doc.text('Estimado Mensual', col2X, y2);
                 y2 += 12;
                 
-                // Precio anual nuevo
+                // Precio anual nuevo (color de marca)
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(18);
                 doc.setTextColor(...brandColor);
@@ -4035,8 +4101,8 @@
                 let y3 = yPos;
                 const col3X = margin + (contentWidth / 3) * 2;
                 
-                // Caja gris superior "TU AHORRO ANUAL INDEXADO"
-                doc.setFillColor(100, 116, 139);
+                // Caja superior "TU AHORRO ANUAL INDEXADO" (con mismo color que FIJO)
+                doc.setFillColor(...cajaHeaderColor);
                 doc.roundedRect(col3X - 2, y3, (contentWidth / 3) - 8, boxHeaderHeight, 3, 3, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
@@ -4051,11 +4117,11 @@
                 doc.text(eur(ahorroIndexado), col3X, y3);
                 y3 += 18;
                 
-                // "TU NUEVO COSTE DRK"
+                // "TU NUEVO COSTE [MARCA]"
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.setTextColor(107, 114, 128);
-                doc.text('TU NUEVO COSTE DRK', col3X, y3);
+                doc.text('TU NUEVO COSTE ' + brand.NAME.toUpperCase(), col3X, y3);
                 y3 += 12;
                 
                 // Precio mensual nuevo
