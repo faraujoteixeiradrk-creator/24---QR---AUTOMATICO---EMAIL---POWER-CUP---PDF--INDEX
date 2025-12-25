@@ -4452,11 +4452,19 @@
                     doc.addPage();
                     yPos = 15;
                     
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(9);
+                    // ENCABEZADO PROFESIONAL CON FONDO DE COLOR
+                    const headerBgColor = isDrk ? [140, 150, 160] : [110, 125, 90]; // Gris para DRK, verde oliva para POWER CUP
+                    const headerHeight = 12;
+                    
+                    doc.setFillColor(...headerBgColor);
+                    doc.roundedRect(margin, yPos, contentWidth, headerHeight, 3, 3, 'F');
+                    
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`DESARROLLO DETALLADO - SUMINISTRO ${idx + 1} DE ${res.individualResults.length}`, pageWidth / 2, yPos, { align: 'center' });
-                    yPos += 6;
+                    doc.text(`DESARROLLO DETALLADO - SUMINISTRO ${idx + 1} DE ${res.individualResults.length}`, pageWidth / 2, yPos + 8, { align: 'center' });
+                    
+                    yPos += headerHeight + 4;
                     
                     // Dos columnas con desarrollo
                     generarDesgloseDetalladoCUPS(
@@ -4482,11 +4490,19 @@
                 doc.addPage();
                 yPos = 15;
                 
-                doc.setTextColor(0, 0, 0);
+                // ENCABEZADO PROFESIONAL CON FONDO DE COLOR
+                const summaryHeaderBgColor = isDrk ? [140, 150, 160] : [110, 125, 90]; // Gris para DRK, verde oliva para POWER CUP
+                const summaryHeaderHeight = 12;
+                
+                doc.setFillColor(...summaryHeaderBgColor);
+                doc.roundedRect(margin, yPos, contentWidth, summaryHeaderHeight, 3, 3, 'F');
+                
+                doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('RESUMEN DE TODOS LOS SUMINISTROS', pageWidth / 2, yPos, { align: 'center' });
-                yPos += 8;
+                doc.text('RESUMEN DE TODOS LOS SUMINISTROS', pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                yPos += summaryHeaderHeight + 4;
                 
                 // Cabeceras
                 doc.setFillColor(...blueColor);
