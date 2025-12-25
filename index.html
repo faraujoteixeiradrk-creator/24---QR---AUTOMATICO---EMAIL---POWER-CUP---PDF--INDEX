@@ -1760,8 +1760,12 @@
                 console.log(`  - Total Annual (Fijo): ${cups.totalAnnual}`);
                 console.log(`  - Savings (Fijo): ${cups.savings}`);
                 if (cups.indexedComparison) {
+                    console.log(`  - ✅ TIENE indexedComparison:`, cups.indexedComparison.offer.name);
                     console.log(`  - Total Annual (Indexado): ${cups.indexedComparison.totalAnnual}`);
                     console.log(`  - Savings (Indexado): ${cups.indexedComparison.savings}`);
+                    console.log(`  - originalTariffType (Indexado): ${cups.indexedComparison.originalTariffType}`);
+                } else {
+                    console.log(`  - ❌ NO tiene indexedComparison`);
                 }
             });
             
@@ -7508,7 +7512,14 @@
             }
             
             // Calcular coste para cada tarifa indexada
-            const indexedResults = indexedTariffs.map(t => calculateTariffCost(t, data, tariffType));
+            const indexedResults = indexedTariffs.map(t => {
+                const result = calculateTariffCost(t, data, tariffType);
+                // CRÍTICO: Asegurar que tiene originalTariffType
+                if (!result.originalTariffType) {
+                    result.originalTariffType = tariffType;
+                }
+                return result;
+            });
             
             // Encontrar la mejor tarifa indexada (menor coste anual)
             let bestIndexed = null;
@@ -7523,7 +7534,12 @@
             
             if (bestIndexed) {
                 bestIndexed.isIndexed = true; // Marcar como resultado indexado
+                // CRÍTICO: Asegurar que tiene originalTariffType
+                if (!bestIndexed.originalTariffType) {
+                    bestIndexed.originalTariffType = tariffType;
+                }
                 console.log('✅ Mejor tarifa DRK INDEX:', bestIndexed.offer.name, 'Ahorro:', bestIndexed.savings);
+                console.log('✅ originalTariffType asignado:', bestIndexed.originalTariffType);
             } else {
                 console.warn('⚠️  No se encontró ninguna tarifa DRK INDEX con ahorro positivo');
             }
@@ -7916,19 +7932,65 @@
             
             // Si hay resultado indexado como parámetro, también recalcular sus costes
             if (resultIndexed && resultIndexed.offer && resultIndexed.originalTariffType) {
+                console.log('🔍 Recalculando costes para resultado INDEXADO:', resultIndexed.offer.name);
+                console.log('🔍 originalTariffType del indexado:', resultIndexed.originalTariffType);
+                console.log('🔍 totalAnnual del indexado ANTES de recalcular:', resultIndexed.totalAnnual);
+                console.log('🔍 savings del indexado ANTES de recalcular:', resultIndexed.savings);
+                
                 const recalculatedIndexed = recalculateCostsForOffer(resultIndexed, resultIndexed.offer);
                 resultIndexed.energyCosts = recalculatedIndexed.energyCosts;
                 resultIndexed.powerCosts = recalculatedIndexed.powerCosts;
                 resultIndexed.subPower = recalculatedIndexed.subPower;
                 resultIndexed.subEnergyNet = recalculatedIndexed.subEnergyNet;
-                console.log('Costs recalculated for indexed:', resultIndexed.originalTariffType);
+                console.log('✅ Costs recalculated for indexed:', resultIndexed.originalTariffType);
+                console.log('✅ subPower indexado:', resultIndexed.subPower);
+                console.log('✅ subEnergyNet indexado:', resultIndexed.subEnergyNet);
+                console.log('✅ Ahorro indexado:', resultIndexed.savings);
+                console.log('✅ Total anual indexado:', resultIndexed.totalAnnual);
                 
                 // Añadirlo al resultado principal
                 result.indexedComparison = resultIndexed;
+                console.log('✅ indexedComparison asignado a result');
+                console.log('✅ indexedComparison final:', {
+                    offer: result.indexedComparison.offer.name,
+                    totalAnnual: result.indexedComparison.totalAnnual,
+                    savings: result.indexedComparison.savings,
+                    originalTariffType: result.indexedComparison.originalTariffType
+                });
+            } else if (resultIndexed) {
+                console.error('❌❌❌ resultIndexed no tiene offer o originalTariffType ❌❌❌');
+                console.error('resultIndexed recibido:', resultIndexed);
+                console.error('Details:', {
+                    hasOffer: !!resultIndexed.offer,
+                    hasOriginalTariffType: !!resultIndexed.originalTariffType,
+                    offer: resultIndexed.offer,
+                    originalTariffType: resultIndexed.originalTariffType
+                });
+            } else {
+                console.warn('⚠️  resultIndexed es null/undefined - NO hay comparación indexada');
             }
             
             // Limpiar el contexto temporal
             delete result._multiCupsContext;
+            
+            // LOGS FINALES antes de añadir
+            console.log('═══════════════════════════════════════');
+            console.log('📋 SUMINISTRO LISTO PARA AÑADIR A multiCupsData:');
+            console.log('  CUPS:', result.cups);
+            console.log('  Oferta FIJA:', result.offer.name);
+            console.log('  Total Annual FIJO:', result.totalAnnual);
+            console.log('  Savings FIJO:', result.savings);
+            console.log('  originalTariffType FIJO:', result.originalTariffType);
+            if (result.indexedComparison) {
+                console.log('  ✅ TIENE indexedComparison:');
+                console.log('    Oferta INDEXADA:', result.indexedComparison.offer.name);
+                console.log('    Total Annual INDEXADO:', result.indexedComparison.totalAnnual);
+                console.log('    Savings INDEXADO:', result.indexedComparison.savings);
+                console.log('    originalTariffType INDEXADO:', result.indexedComparison.originalTariffType);
+            } else {
+                console.log('  ❌ NO tiene indexedComparison');
+            }
+            console.log('═══════════════════════════════════════');
             
             // Añadir a la lista
             multiCupsData.push(result);
