@@ -8549,18 +8549,110 @@
             document.getElementById('interactive').innerHTML = '';
             document.getElementById('interactive').appendChild(video);
             
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(s => {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment",
+                    width: { ideal: 1920 },      // Mayor resolución
+                    height: { ideal: 1080 },
+                    focusMode: { ideal: "continuous" }, // Autofocus continuo
+                    aspectRatio: { ideal: 16/9 }
+                } 
+            }).then(s => {
                 stream = s; video.srcObject = s;
                 video.onloadedmetadata = () => { video.play(); scanLoop(); };
-            }).catch(e => { console.error(e); stopScanner(); cancelScanner(); window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen."); });
+            }).catch(e => { 
+                // Si falla con las opciones ideales, intentar sin ellas
+                console.warn('Fallo con configuración ideal, intentando básica:', e);
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                }).then(s => {
+                    stream = s; video.srcObject = s;
+                    video.onloadedmetadata = () => { video.play(); scanLoop(); };
+                }).catch(err => {
+                    console.error(err); 
+                    stopScanner(); 
+                    cancelScanner(); 
+                    window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen.");
+                });
+            });
         }
         function scanLoop() {
-            if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { animationFrameId = requestAnimationFrame(scanLoop); return; }
-            if (canvas.width !== video.videoWidth) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; }
+            if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { 
+                animationFrameId = requestAnimationFrame(scanLoop); 
+                return; 
+            }
+            
+            if (canvas.width !== video.videoWidth) { 
+                canvas.width = video.videoWidth; 
+                canvas.height = video.videoHeight; 
+            }
+            
             canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            if (code) { handleQRRead(code.data); } else { animationFrameId = requestAnimationFrame(scanLoop); }
+            
+            // MEJORA 1: Intentar lectura normal
+            let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert" // Más rápido
+            });
+            
+            if (!code) {
+                // MEJORA 2: Intentar con inversión de colores (QR oscuros en fondo claro)
+                code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "invertFirst"
+                });
+            }
+            
+            if (!code) {
+                // MEJORA 3: Intentar con TODAS las inversiones posibles
+                code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
+            
+            if (!code && canvas.width > 640) {
+                // MEJORA 4: Si la imagen es grande, probar con resolución reducida
+                // (a veces funciona mejor con imágenes más pequeñas)
+                const smallCanvas = document.createElement('canvas');
+                const smallCtx = smallCanvas.getContext('2d');
+                smallCanvas.width = Math.floor(canvas.width / 2);
+                smallCanvas.height = Math.floor(canvas.height / 2);
+                smallCtx.drawImage(canvas, 0, 0, smallCanvas.width, smallCanvas.height);
+                
+                const smallImageData = smallCtx.getImageData(0, 0, smallCanvas.width, smallCanvas.height);
+                code = jsQR(smallImageData.data, smallImageData.width, smallImageData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
+            
+            if (!code) {
+                // MEJORA 5: Aumentar contraste y volver a intentar
+                const contrastedData = increaseContrast(imageData);
+                code = jsQR(contrastedData.data, contrastedData.width, contrastedData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
+            
+            if (code) { 
+                handleQRRead(code.data); 
+            } else { 
+                animationFrameId = requestAnimationFrame(scanLoop); 
+            }
+        }
+        
+        // Nueva función para aumentar contraste
+        function increaseContrast(imageData) {
+            const data = new Uint8ClampedArray(imageData.data);
+            const factor = 1.5; // Factor de contraste (1.5 = +50%)
+            const intercept = 128 * (1 - factor);
+            
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = data[i] * factor + intercept;         // R
+                data[i + 1] = data[i + 1] * factor + intercept; // G
+                data[i + 2] = data[i + 2] * factor + intercept; // B
+                // Alpha (i+3) no se toca
+            }
+            
+            return new ImageData(data, imageData.width, imageData.height);
         }
         function stopScanner() {
             scannerRunning = false;
@@ -8577,11 +8669,50 @@
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            // MEJORA: Intentar múltiples técnicas de lectura
+            let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert"
+            });
+            
+            if (!code) {
+                code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "invertFirst"
+                });
+            }
+            
+            if (!code) {
+                code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
+            
+            if (!code && canvas.width > 640) {
+                // Probar con resolución reducida
+                const smallCanvas = document.createElement('canvas');
+                const smallCtx = smallCanvas.getContext('2d');
+                smallCanvas.width = Math.floor(canvas.width / 2);
+                smallCanvas.height = Math.floor(canvas.height / 2);
+                smallCtx.drawImage(canvas, 0, 0, smallCanvas.width, smallCanvas.height);
+                
+                const smallImageData = smallCtx.getImageData(0, 0, smallCanvas.width, smallCanvas.height);
+                code = jsQR(smallImageData.data, smallImageData.width, smallImageData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
+            
+            if (!code) {
+                // Aumentar contraste y volver a intentar
+                const contrastedData = increaseContrast(imageData);
+                code = jsQR(contrastedData.data, contrastedData.width, contrastedData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
             
             document.getElementById('loading-status').classList.add('hidden');
-            if (code) handleQRRead(code.data);
-            else {  
+            if (code) {
+                handleQRRead(code.data);
+            } else {  
                 window.showErrorModal("No se detectó ningún QR. Asegúrese de que el código esté bien enfocado.");  
                 startScanner();  
             }
