@@ -2204,34 +2204,42 @@
             // NUEVO: Generar banner de empresa dinámico para MultiCups
             const companyBanner = document.getElementById('company-banner');
             if (isDrk) {
+                // DRK - Banner mejorado
                 companyBanner.innerHTML = `
-                    <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-6 md:p-8 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            ${brand.LOGO_SVG}
-                            <div>
-                                <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">DRK ENERGÍA</h1>
-                                <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética.</p>
+                    <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-8 md:p-12 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex flex-col md:flex-row items-center gap-6 flex-1">
+                            <div class="transform scale-125">
+                                ${brand.LOGO_SVG}
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h1 class="text-white text-4xl md:text-5xl font-black tracking-tight mb-2">DRK ENERGÍA</h1>
+                                <p class="text-drk-100 text-lg md:text-xl font-semibold">Liderando el ahorro y la eficiencia energética</p>
                             </div>
                         </div>
-                        <div class="hidden md:block text-right">
-                            <p class="text-drk-200 text-xs font-bold uppercase tracking-wider">Estudio de Ahorro</p>
-                            <p class="text-white text-lg font-black">COMPARATIVA PROFESIONAL</p>
+                        <div class="text-center md:text-right bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                            <p class="text-white text-sm md:text-base font-bold uppercase tracking-wider">📊 ESTUDIO DE AHORRO</p>
+                            <p class="text-drk-100 text-xl md:text-2xl font-black mt-1">COMPARATIVA</p>
+                            <p class="text-drk-100 text-base md:text-lg font-bold">PROFESIONAL</p>
                         </div>
                     </div>
                 `;
             } else {
+                // POWER CUP - Banner mejorado
                 companyBanner.innerHTML = `
-                    <div class="bg-gradient-to-r from-white via-powercup-50 to-white p-6 md:p-8 border-2 border-powercup-500 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            ${brand.LOGO_SVG}
-                            <div>
-                                <h1 class="text-powercup-900 text-3xl md:text-4xl font-black tracking-tight">POWER CUP</h1>
-                                <p class="text-powercup-700 text-sm md:text-base font-semibold">Asesoría Energética</p>
+                    <div class="bg-gradient-to-r from-powercup-700 via-powercup-600 to-powercup-500 p-8 md:p-12 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex flex-col md:flex-row items-center gap-6 flex-1">
+                            <div class="transform scale-125">
+                                ${brand.LOGO_SVG}
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h1 class="text-white text-4xl md:text-5xl font-black tracking-tight mb-2">POWER CUP</h1>
+                                <p class="text-powercup-50 text-lg md:text-xl font-semibold">Asesoría Energética</p>
                             </div>
                         </div>
-                        <div class="hidden md:block text-right">
-                            <p class="text-powercup-600 text-xs font-bold uppercase tracking-wider">Estudio de Ahorro</p>
-                            <p class="text-powercup-900 text-lg font-black">COMPARATIVA PROFESIONAL</p>
+                        <div class="text-center md:text-right bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                            <p class="text-white text-sm md:text-base font-bold uppercase tracking-wider">📊 ESTUDIO DE AHORRO</p>
+                            <p class="text-powercup-50 text-xl md:text-2xl font-black mt-1">COMPARATIVA</p>
+                            <p class="text-powercup-50 text-base md:text-lg font-bold">PROFESIONAL</p>
                         </div>
                     </div>
                 `;
@@ -2817,36 +2825,42 @@
             // NUEVO: Generar banner de empresa dinámico
             const companyBanner = document.getElementById('company-banner');
             if (isDrk) {
-                // Banner DRK - Estilo elegante azul
+                // DRK - Banner mejorado
                 companyBanner.innerHTML = `
-                    <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-6 md:p-8 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            ${brand.LOGO_SVG}
-                            <div>
-                                <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">DRK ENERGÍA</h1>
-                                <p class="text-drk-100 text-sm md:text-base font-medium">Liderando el ahorro y la eficiencia energética.</p>
+                    <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-8 md:p-12 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex flex-col md:flex-row items-center gap-6 flex-1">
+                            <div class="transform scale-125">
+                                ${brand.LOGO_SVG}
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h1 class="text-white text-4xl md:text-5xl font-black tracking-tight mb-2">DRK ENERGÍA</h1>
+                                <p class="text-drk-100 text-lg md:text-xl font-semibold">Liderando el ahorro y la eficiencia energética</p>
                             </div>
                         </div>
-                        <div class="hidden md:block text-right">
-                            <p class="text-drk-200 text-xs font-bold uppercase tracking-wider">Estudio de Ahorro</p>
-                            <p class="text-white text-lg font-black">COMPARATIVA PROFESIONAL</p>
+                        <div class="text-center md:text-right bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                            <p class="text-white text-sm md:text-base font-bold uppercase tracking-wider">📊 ESTUDIO DE AHORRO</p>
+                            <p class="text-drk-100 text-xl md:text-2xl font-black mt-1">COMPARATIVA</p>
+                            <p class="text-drk-100 text-base md:text-lg font-bold">PROFESIONAL</p>
                         </div>
                     </div>
                 `;
             } else {
-                // Banner POWER CUP - Estilo energético verde
+                // POWER CUP - Banner mejorado
                 companyBanner.innerHTML = `
-                    <div class="bg-gradient-to-r from-white via-powercup-50 to-white p-6 md:p-8 border-2 border-powercup-500 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            ${brand.LOGO_SVG}
-                            <div>
-                                <h1 class="text-powercup-900 text-3xl md:text-4xl font-black tracking-tight">POWER CUP</h1>
-                                <p class="text-powercup-700 text-sm md:text-base font-semibold">Asesoría Energética</p>
+                    <div class="bg-gradient-to-r from-powercup-700 via-powercup-600 to-powercup-500 p-8 md:p-12 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex flex-col md:flex-row items-center gap-6 flex-1">
+                            <div class="transform scale-125">
+                                ${brand.LOGO_SVG}
+                            </div>
+                            <div class="text-center md:text-left">
+                                <h1 class="text-white text-4xl md:text-5xl font-black tracking-tight mb-2">POWER CUP</h1>
+                                <p class="text-powercup-50 text-lg md:text-xl font-semibold">Asesoría Energética</p>
                             </div>
                         </div>
-                        <div class="hidden md:block text-right">
-                            <p class="text-powercup-600 text-xs font-bold uppercase tracking-wider">Estudio de Ahorro</p>
-                            <p class="text-powercup-900 text-lg font-black">COMPARATIVA PROFESIONAL</p>
+                        <div class="text-center md:text-right bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                            <p class="text-white text-sm md:text-base font-bold uppercase tracking-wider">📊 ESTUDIO DE AHORRO</p>
+                            <p class="text-powercup-50 text-xl md:text-2xl font-black mt-1">COMPARATIVA</p>
+                            <p class="text-powercup-50 text-base md:text-lg font-bold">PROFESIONAL</p>
                         </div>
                     </div>
                 `;
