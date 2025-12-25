@@ -7284,26 +7284,43 @@
             
             console.log('🔍 Contexto MULTICUPS preservado en selectBestOptionWithChoice:', preservedContext ? 'SÍ' : 'NO');
             
-            // Filtrar availableOffers según la elección
+            // NUEVA LÓGICA: Determinar si estamos en modo DRK o POWER CUP
+            const isDrkMode = activeBrand.NAME.includes('DRK');
+            console.log('🔍 Modo activo:', isDrkMode ? 'DRK' : 'POWER CUP');
+            
+            // Filtrar availableOffers según la elección Y el modo
             let filteredOffersChosen = availableOffers.filter(offer => {
                 const offerName = (offer.offer.name || '').toUpperCase();
                 const offerDesc = (offer.offer.description || '').toUpperCase();
                 const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
+                const isDrkOffer = offer.offer.isDrk === true;
                 
                 if (bestOptionTariffChoice === 'indexada') {
-                    // Solo tarifas INDEX
-                    return isIndexed;
+                    // Usuario eligió INDEXADA → Solo DRK INDEX (siempre)
+                    return isIndexed && isDrkOffer;
                 } else {
-                    // Solo tarifas FIJAS (excluir INDEX)
-                    return !isIndexed;
+                    // Usuario eligió FIJA
+                    if (isDrkMode) {
+                        // Modo DRK → Solo tarifas FIJAS de DRK
+                        return !isIndexed && isDrkOffer;
+                    } else {
+                        // Modo POWER CUP → Tarifas FIJAS de cualquier comercializadora
+                        return !isIndexed;
+                    }
                 }
             });
             
             console.log('Ofertas filtradas del tipo elegido:', filteredOffersChosen.length, 'de', availableOffers.length);
             
             if (filteredOffersChosen.length === 0) {
-                const tipoTarifa = bestOptionTariffChoice === 'indexada' ? 'INDEXADAS (DRK INDEX)' : 'FIJAS';
-                window.showErrorModal(`No se encontraron tarifas ${tipoTarifa} con ahorro positivo.`);
+                let mensaje;
+                if (bestOptionTariffChoice === 'indexada') {
+                    mensaje = 'No se encontraron tarifas INDEXADAS de DRK con ahorro positivo.';
+                } else {
+                    const origen = isDrkMode ? 'de DRK' : 'de cualquier comercializadora';
+                    mensaje = `No se encontraron tarifas FIJAS ${origen} con ahorro positivo.`;
+                }
+                window.showErrorModal(mensaje);
                 closeOfferDecisionModal();
                 return;
             }
@@ -7313,7 +7330,7 @@
                 return (current.totalAnnual < best.totalAnnual) ? current : best;
             }, filteredOffersChosen[0]);
             
-            console.log('Mejor tarifa del tipo elegido:', bestChosen.offer.name, 'Ahorro:', bestChosen.savings);
+            console.log('✅ Mejor tarifa del tipo elegido:', bestChosen.offer.name, 'Ahorro:', bestChosen.savings);
             
             // SI EL CHECK ESTABA MARCADO: Calcular también la mejor del tipo contrario
             let bestOtherType = null;
@@ -7325,13 +7342,20 @@
                     const offerName = (offer.offer.name || '').toUpperCase();
                     const offerDesc = (offer.offer.description || '').toUpperCase();
                     const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
+                    const isDrkOffer = offer.offer.isDrk === true;
                     
                     if (bestOptionTariffChoice === 'indexada') {
                         // Usuario eligió INDEXADA → Calcular mejor FIJA
-                        return !isIndexed;
+                        if (isDrkMode) {
+                            // Modo DRK → Solo tarifas FIJAS de DRK
+                            return !isIndexed && isDrkOffer;
+                        } else {
+                            // Modo POWER CUP → Tarifas FIJAS de cualquier comercializadora
+                            return !isIndexed;
+                        }
                     } else {
-                        // Usuario eligió FIJA → Calcular mejor INDEXADA
-                        return isIndexed;
+                        // Usuario eligió FIJA → Calcular mejor INDEXADA (siempre DRK INDEX)
+                        return isIndexed && isDrkOffer;
                     }
                 });
                 
@@ -7460,20 +7484,26 @@
         function calculateIndexedOffer(data, tariffType) {
             const tariffsToCompare = currentTariffs[tariffType] || [];
             
-            // Filtrar solo tarifas que contengan "DRK INDEX" o "INDEX" en su nombre
+            // Filtrar solo tarifas DRK INDEX (SIEMPRE de DRK, independientemente del modo)
             const indexedTariffs = tariffsToCompare.filter(t => {
                 const name = (t.name || '').toUpperCase();
                 const description = (t.description || '').toUpperCase();
                 const commercializer = (t.commercializer || '').toUpperCase();
-                return name.includes('DRK INDEX') || name.includes('INDEX') || 
-                       description.includes('DRK INDEX') || description.includes('INDEX') ||
-                       commercializer.includes('DRK INDEX');
+                
+                // CRÍTICO: Debe contener "INDEX" Y ser de DRK
+                const hasIndex = name.includes('INDEX') || description.includes('INDEX') || commercializer.includes('INDEX');
+                const isDrk = t.isDrk === true || commercializer.includes('DRK') || name.includes('DRK');
+                
+                return hasIndex && isDrk;
             });
             
-            console.log(`Tarifas indexadas encontradas para ${tariffType}:`, indexedTariffs.length);
+            console.log(`🔍 Tarifas DRK INDEX encontradas para ${tariffType}:`, indexedTariffs.length);
+            if (indexedTariffs.length > 0) {
+                console.log('📋 Tarifas DRK INDEX:', indexedTariffs.map(t => t.name).join(', '));
+            }
             
             if (indexedTariffs.length === 0) {
-                console.warn('No se encontraron tarifas DRK INDEX');
+                console.warn('⚠️  No se encontraron tarifas DRK INDEX');
                 return null;
             }
             
@@ -7493,7 +7523,9 @@
             
             if (bestIndexed) {
                 bestIndexed.isIndexed = true; // Marcar como resultado indexado
-                console.log('Mejor tarifa indexada:', bestIndexed.offer.name, 'Ahorro:', bestIndexed.savings);
+                console.log('✅ Mejor tarifa DRK INDEX:', bestIndexed.offer.name, 'Ahorro:', bestIndexed.savings);
+            } else {
+                console.warn('⚠️  No se encontró ninguna tarifa DRK INDEX con ahorro positivo');
             }
             
             return bestIndexed;
@@ -7532,9 +7564,12 @@
                 
                 // PASO 1: Recalcular la MEJOR OFERTA FIJA (sin indexadas)
                 console.log('📊 Calculando mejor oferta FIJA...');
+                console.log('🔍 Modo de comparación actual:', comparisonMode);
+                console.log('🔍 Marca activa:', activeBrand.NAME);
+                
                 const tarifasDisponibles = currentTariffs[tariffType] || [];
                 
-                // Filtrar SOLO tarifas FIJAS
+                // Filtrar SOLO tarifas FIJAS (excluir indexadas)
                 const tarifasFijas = tarifasDisponibles.filter(t => {
                     const name = (t.name || '').toUpperCase();
                     const desc = (t.description || '').toUpperCase();
@@ -7543,22 +7578,35 @@
                 
                 console.log(`Tarifas FIJAS encontradas: ${tarifasFijas.length} de ${tarifasDisponibles.length}`);
                 
+                // NUEVA LÓGICA: Filtrar según DRK o POWER CUP
+                const isDrkMode = activeBrand.NAME.includes('DRK');
+                
+                let tarifasFijasFiltradas;
+                if (isDrkMode) {
+                    // MODO DRK: Solo tarifas FIJAS de DRK
+                    tarifasFijasFiltradas = tarifasFijas.filter(t => t.isDrk);
+                    console.log('🔵 Modo DRK: Filtrando solo tarifas FIJAS de DRK');
+                } else {
+                    // MODO POWER CUP: Todas las tarifas FIJAS (cualquier comercializadora)
+                    tarifasFijasFiltradas = tarifasFijas;
+                    console.log('🟢 Modo POWER CUP: Aceptando tarifas FIJAS de cualquier comercializadora');
+                }
+                
+                console.log(`Tarifas FIJAS después de filtro DRK/POWER: ${tarifasFijasFiltradas.length}`);
+                
                 // Calcular la mejor oferta FIJA
-                const resultadosFijos = tarifasFijas.map(t => calculateTariffCost(t, dataForCalc, tariffType));
+                const resultadosFijos = tarifasFijasFiltradas.map(t => calculateTariffCost(t, dataForCalc, tariffType));
                 let mejorFija = null;
                 
                 resultadosFijos.forEach(r => {
                     if (!mejorFija || r.totalAnnual < mejorFija.totalAnnual) {
-                        // Aplicar filtro de modo (DRK only, DRK prioritario, Overall best)
-                        if (comparisonMode === 'drk_only' && !r.offer.isDrk) {
-                            return; // Skip non-DRK offers in DRK only mode
-                        }
                         mejorFija = r;
                     }
                 });
                 
                 if (!mejorFija) {
-                    window.showErrorModal('No se encontraron tarifas FIJAS disponibles.');
+                    const modoTexto = isDrkMode ? 'DRK' : 'cualquier comercializadora';
+                    window.showErrorModal(`No se encontraron tarifas FIJAS de ${modoTexto}.`);
                     return;
                 }
                 
