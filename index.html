@@ -3869,9 +3869,6 @@
                 const brandColor = isDrk ? [59, 130, 246] : [132, 204, 22];  // Azul DRK o Verde POWER CUP
                 const blueColor = brandColor;  // Alias para compatibilidad
                 
-                // NUEVO: Color para cabeceras/fondos de secciones FIJAS según marca
-                const fijaHeaderColor = isDrk ? [100, 116, 139] : [115, 130, 95]; // Gris azulado (DRK) o Verde oliva (POWER)
-                
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
                 const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
@@ -4306,10 +4303,14 @@
                     const tariffType = resultado.originalTariffType || currentTariffType;
                     const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
                     
+                    // COLORES SEGÚN MARCA (PowerCup usa verde oliva en lugar de gris)
+                    const headerDarkColor = isDrk ? [71, 85, 105] : [77, 124, 15];  // Gris oscuro DRK o Verde oliva PowerCup (#4d7c0f)
+                    const headerMedColor = isDrk ? [100, 116, 139] : [101, 163, 13]; // Gris medio DRK o Verde medio PowerCup (#65a30d)
+                    
                     let y = yPos;
                     
-                    // === CABECERA GRIS OSCURA CON CUPS ===
-                    doc.setFillColor(71, 85, 105);
+                    // === CABECERA OSCURA CON CUPS ===
+                    doc.setFillColor(...headerDarkColor);
                     doc.roundedRect(x, y, width, 14, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
@@ -4329,7 +4330,7 @@
                     y += 16;
                     
                     // === CAJA PRECIOS APLICADOS ===
-                    doc.setFillColor(100, 116, 139);
+                    doc.setFillColor(...headerMedColor);
                     doc.roundedRect(x, y, width, 8, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
@@ -4338,7 +4339,7 @@
                     y += 10;
                     
                     // Info de precios (Potencia y Energía)
-                    doc.setFillColor(100, 116, 139);
+                    doc.setFillColor(...headerMedColor);
                     doc.roundedRect(x, y, width, 16, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(6);
@@ -4374,7 +4375,7 @@
                     y += 20;
                     
                     // === SECCIÓN POTENCIA ===
-                    doc.setFillColor(100, 116, 139);
+                    doc.setFillColor(...headerMedColor);
                     doc.roundedRect(x, y, width, 7, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
@@ -4397,7 +4398,7 @@
                     y += 2;
                     
                     // === SECCIÓN ENERGÍA ===
-                    doc.setFillColor(100, 116, 139);
+                    doc.setFillColor(...headerMedColor);
                     doc.roundedRect(x, y, width, 7, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
@@ -4426,7 +4427,7 @@
                     y += 2;
                     
                     // === TOTAL ===
-                    doc.setFillColor(71, 85, 105);
+                    doc.setFillColor(...headerDarkColor);
                     doc.roundedRect(x, y, width, 9, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
@@ -4462,7 +4463,7 @@
                         supply,
                         leftX,
                         colWidth,
-                        fijaHeaderColor,  // ← Cambiado de blueColor a fijaHeaderColor
+                        blueColor,
                         `TARIFA FIJA: ${supply.offer.name}`,
                         false
                     );
@@ -4488,7 +4489,7 @@
                 yPos += 8;
                 
                 // Cabeceras
-                doc.setFillColor(...fijaHeaderColor);  // ← Cambiado de blueColor a fijaHeaderColor
+                doc.setFillColor(...blueColor);
                 doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(7);
@@ -4507,7 +4508,7 @@
                         yPos = 15;
                         
                         // Repetir cabeceras
-                        doc.setFillColor(...fijaHeaderColor);  // ← Cambiado de blueColor a fijaHeaderColor
+                        doc.setFillColor(...blueColor);
                         doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
