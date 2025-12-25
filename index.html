@@ -2596,6 +2596,7 @@
          */
         // Nueva función para renderizar comparación dual (Fijo vs Indexado)
         function renderDualComparisonUI(resFijo, resIndexed) {
+            console.log('🔥🔥🔥 renderDualComparisonUI INICIADO 🔥🔥🔥');
             console.log('renderDualComparisonUI llamada', resFijo, resIndexed);
             
             // IMPORTANTE: Asegurar que las variables globales estén guardadas
@@ -2612,6 +2613,9 @@
             // CRÍTICO: Colores dinámicos según marca
             const isDrk = brand.NAME.includes('DRK');
             const brandPrefix = isDrk ? 'drk' : 'powercup';  // drk (azul) o powercup (verde)
+            
+            console.log('🎨 Marca detectada:', brand.NAME, '| isDrk:', isDrk, '| Prefix:', brandPrefix);
+            console.log('🎨 Preparando para generar banner...');
             
             // ══════════════════════════════════════════════════════════
             // BOTÓN ROJO DE VOLVER (RECARGA PÁGINA)
@@ -2694,7 +2698,10 @@
                         </div>
                     </div>
                 `;
+                console.log('✅ Banner POWER CUP GENERADO en renderDualComparisonUI');
             }
+            
+            console.log('🎨 Banner generado. Continuando con CUPS...');
             
             // CUPS
             document.getElementById('results-cups-list').innerHTML = `
