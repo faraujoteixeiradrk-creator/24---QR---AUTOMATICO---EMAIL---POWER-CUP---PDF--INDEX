@@ -4519,14 +4519,14 @@
                 doc.text('RESUMEN DE TODOS LOS SUMINISTROS', pageWidth / 2, yPos + 9.5, { align: 'center' });
                 yPos += 20;
                 
-                // Cabeceras de columnas
-                doc.setFillColor(...blueColor);
+                // Cabeceras de columnas (mismo color que el encabezado principal)
+                doc.setFillColor(...headerBgColor);
                 doc.roundedRect(leftX, yPos, colWidth, 8, 1, 1, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(8);
                 doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 5.5, { align: 'center' });
                 
-                doc.setFillColor(22, 163, 74);
+                doc.setFillColor(...headerBgColor);
                 doc.roundedRect(rightX, yPos, colWidth, 8, 1, 1, 'F');
                 doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 5.5, { align: 'center' });
                 yPos += 12;
