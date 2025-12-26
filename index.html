@@ -3854,10 +3854,17 @@
                     }
                 }
                 
+                console.log('🟢 ANTES de showMessageModal');
                 window.showMessageModal("⏳ Generando PDF MULTICUPS con comparación Fijo vs Indexado... Por favor espere.");
+                console.log('🟢 DESPUÉS de showMessageModal');
                 
+                console.log('🟢 ANTES de obtener jsPDF');
                 const { jsPDF } = window.jspdf;
+                console.log('🟢 DESPUÉS de obtener jsPDF, creando documento...');
                 const doc = new jsPDF('p', 'mm', 'a4');
+                console.log('🟢 Documento PDF creado exitosamente');
+                
+                console.log('✅ PASO 1: Objeto PDF creado');
                 
                 const darkColor = [107, 125, 142];
                 const greenColor = [22, 163, 74];
@@ -3883,6 +3890,8 @@
                 const colWidth = (contentWidth / 2) - 3;
                 const leftX = margin;
                 const rightX = margin + colWidth + 6;
+                
+                console.log('✅ PASO 2: Variables definidas - leftX:', leftX, 'rightX:', rightX, 'colWidth:', colWidth);
                 
                 // === PÁGINA 1: RESUMEN GENERAL ===
                 const headerHeight = 35;
@@ -3972,6 +3981,8 @@
                 doc.setFontSize(9);
                 doc.setTextColor(100, 120, 140);
                 doc.text(`Total: ${res.cups}`, pageWidth - margin, 24, { align: 'right' });
+                
+                console.log('✅ PASO 3: Encabezado completo creado (logo + título + Total CUPS:', res.cups, ')');
                 
                 yPos = headerHeight + 8;
                 
@@ -4101,6 +4112,8 @@
                 }
                 
                 // CAJA 1: TU FACTURA ACTUAL (GRIS) - REEMPLAZADA CON DISEÑO LIMPIO
+                
+                console.log('✅ PASO 4: Iniciando dibujo de 3 columnas (Factura Actual, Fijo, Indexado)');
                 
                 // === COLUMNA 1: TU FACTURA ACTUAL (DISEÑO LIMPIO) ===
                 let y1 = yPos + 25;
@@ -4447,8 +4460,14 @@
                     doc.text(eur(resultado.savings || 0), x + width - 28, y + 7, { align: 'center' });
                 }
                 
+                console.log('✅ PASO 5: Función generarDesgloseDetalladoCUPS definida');
+                console.log('✅ PASO 6: res.individualResults existe?', !!res.individualResults);
+                console.log('✅ PASO 6B: res.individualResults.length:', res.individualResults ? res.individualResults.length : 'undefined');
+                
                 // Generar páginas de desarrollo para cada CUPS
+                console.log('🔧 Iniciando forEach de páginas detalladas para', res.individualResults ? res.individualResults.length : 0, 'suministros');
                 res.individualResults.forEach((supply, idx) => {
+                    console.log(`  📄 Generando página detallada ${idx + 1}/${res.individualResults.length} para CUPS:`, supply.cups);
                     doc.addPage();
                     yPos = 15;
                     
@@ -4486,97 +4505,96 @@
                     );
                 });
                 
-                // === PÁGINA N+1: LISTADO COMPACTO ===
+                // === NUEVA PÁGINA: RESUMEN DE TODOS LOS SUMINISTROS ===
                 doc.addPage();
-                yPos = 15;
+                yPos = 20;
                 
-                // ENCABEZADO PROFESIONAL CON FONDO DE COLOR
-                const summaryHeaderBgColor = isDrk ? [140, 150, 160] : [110, 125, 90]; // Gris para DRK, verde oliva para POWER CUP
-                const summaryHeaderHeight = 12;
-                
-                doc.setFillColor(...summaryHeaderBgColor);
-                doc.roundedRect(margin, yPos, contentWidth, summaryHeaderHeight, 3, 3, 'F');
-                
+                // Encabezado con color según marca
+                const headerBgColor = isDrk ? [140, 150, 160] : [110, 125, 90];
+                doc.setFillColor(...headerBgColor);
+                doc.roundedRect(margin, yPos, contentWidth, 14, 3, 3, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(10);
+                doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('RESUMEN DE TODOS LOS SUMINISTROS', pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text('RESUMEN DE TODOS LOS SUMINISTROS', pageWidth / 2, yPos + 9.5, { align: 'center' });
+                yPos += 20;
                 
-                yPos += summaryHeaderHeight + 4;
-                
-                // Cabeceras
+                // Cabeceras de columnas
                 doc.setFillColor(...blueColor);
-                doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
+                doc.roundedRect(leftX, yPos, colWidth, 8, 1, 1, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(7);
-                doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                doc.setFontSize(8);
+                doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 5.5, { align: 'center' });
                 
-                doc.setFillColor(...greenColor);
-                doc.roundedRect(rightX, yPos, colWidth, 7, 1, 1, 'F');
-                doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 4.5, { align: 'center' });
+                doc.setFillColor(22, 163, 74);
+                doc.roundedRect(rightX, yPos, colWidth, 8, 1, 1, 'F');
+                doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 5.5, { align: 'center' });
+                yPos += 12;
                 
-                yPos += 9;
+                // Listar cada suministro
+                let totalFijas = 0;
+                let totalIndexadas = 0;
                 
-                // Listado
                 res.individualResults.forEach((supply, idx) => {
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 15;
-                        
-                        // Repetir cabeceras
-                        doc.setFillColor(...blueColor);
-                        doc.roundedRect(leftX, yPos, colWidth, 7, 1, 1, 'F');
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(7);
-                        doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 4.5, { align: 'center' });
-                        
-                        doc.setFillColor(...greenColor);
-                        doc.roundedRect(rightX, yPos, colWidth, 7, 1, 1, 'F');
-                        doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 4.5, { align: 'center' });
-                        
-                        yPos += 9;
-                    }
-                    
-                    // Fila FIJO
+                    // FIJO
                     doc.setFillColor(239, 246, 255);
-                    doc.roundedRect(leftX, yPos, colWidth, 10, 1, 1, 'F');
-                    
+                    doc.roundedRect(leftX, yPos, colWidth, 11, 1, 1, 'F');
                     doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(6);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(supply.cups.slice(-12), leftX + 1, yPos + 3);
-                    
-                    doc.setTextColor(...greenColor);
-                    doc.text(eur(supply.savings), leftX + colWidth - 1, yPos + 3, { align: 'right' });
-                    
+                    doc.text(supply.cups.slice(-12), leftX + 2, yPos + 4);
+                    doc.setTextColor(22, 163, 74);
+                    doc.setFontSize(7);
+                    doc.text(eur(supply.savings), leftX + colWidth - 2, yPos + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
-                    const tarifaFija = doc.splitTextToSize(supply.offer.name, colWidth - 2);
-                    doc.text(tarifaFija[0], leftX + 1, yPos + 7);
+                    const nombreFija = supply.offer.name || 'N/A';
+                    doc.text(nombreFija.substring(0, 35), leftX + 2, yPos + 8.5);
                     
-                    // Fila INDEXADO
+                    // INDEXADO
                     doc.setFillColor(240, 253, 244);
-                    doc.roundedRect(rightX, yPos, colWidth, 10, 1, 1, 'F');
-                    
+                    doc.roundedRect(rightX, yPos, colWidth, 11, 1, 1, 'F');
                     doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(6);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(supply.cups.slice(-12), rightX + 1, yPos + 3);
-                    
-                    const savingsIndexed = supply.indexedComparison ? supply.indexedComparison.savings : 0;
-                    doc.setTextColor(...greenColor);
-                    doc.text(eur(savingsIndexed), rightX + colWidth - 1, yPos + 3, { align: 'right' });
-                    
+                    doc.text(supply.cups.slice(-12), rightX + 2, yPos + 4);
+                    const savingsIdx = supply.indexedComparison ? supply.indexedComparison.savings : 0;
+                    doc.setTextColor(22, 163, 74);
+                    doc.setFontSize(7);
+                    doc.text(eur(savingsIdx), rightX + colWidth - 2, yPos + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
-                    const tarifaIndexada = supply.indexedComparison ? supply.indexedComparison.offer.name : 'N/A';
-                    const tarifaIndexSplit = doc.splitTextToSize(tarifaIndexada, colWidth - 2);
-                    doc.text(tarifaIndexSplit[0], rightX + 1, yPos + 7);
+                    const nombreIdx = supply.indexedComparison ? supply.indexedComparison.offer.name : 'N/A';
+                    doc.text(nombreIdx.substring(0, 35), rightX + 2, yPos + 8.5);
                     
-                    yPos += 12;
+                    totalFijas += supply.savings || 0;
+                    totalIndexadas += savingsIdx;
+                    yPos += 13;
                 });
+                
+                // Espacio antes de los totales
+                yPos += 5;
+                
+                // CAJAS ROJAS CON TOTALES
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(leftX, yPos, colWidth, 13, 2, 2, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('AHORRO TOTAL FIJAS:', leftX + 3, yPos + 6);
+                doc.setFontSize(11);
+                doc.text(eur(totalFijas), leftX + colWidth - 3, yPos + 9.5, { align: 'right' });
+                
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(rightX, yPos, colWidth, 13, 2, 2, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('AHORRO TOTAL INDEXADAS:', rightX + 3, yPos + 6);
+                doc.setFontSize(11);
+                doc.text(eur(totalIndexadas), rightX + colWidth - 3, yPos + 9.5, { align: 'right' });
                 
                 // === PÁGINA FINAL: EXPLICACIÓN ===
                 doc.addPage();
